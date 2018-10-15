@@ -1,0 +1,26 @@
+{
+    "name": "casbin/casbin",
+    "description": "a powerful and efficient open-source access control library for php projects.",
+    "authors": [
+        {
+            "name": "TechLee",
+            "email": "techlee@qq.com"
+        }
+    ],
+    "license": "MIT",
+    "keywords": [        
+        "casbin",
+        "rbac",
+        "access control",
+        "acl"
+    ],
+    "require": {
+        "php": ">=5.6.0",
+        "symfony/expression-language": "^2.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Casbin\\": "src/"
+        }
+    }
+}
