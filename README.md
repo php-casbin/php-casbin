@@ -7,7 +7,7 @@ php-casbin is a powerful and efficient open-source access control library for ph
 ## Installation
 
 ```
-composer require techone/casbin
+composer require casbin/casbin
 ```
 
 ## Get started
@@ -39,7 +39,7 @@ if ($e->enforce($sub, $obj, $act) === true) {
 - Golang: [Casbin](https://github.com/casbin/casbin) (production-ready)
 - Java: [jCasbin](https://github.com/casbin/jcasbin) (production-ready)
 - Node.js: [php-casbin](https://github.com/casbin/php-casbin) (production-ready)
-- PHP: [PHP-Casbin](https://github.com/techleeone/php-casbin) (experimental)
+- PHP: [PHP-Casbin](https://github.com/php-casbin/php-casbin) (experimental)
 - C++: xCasbin (WIP)
 
 ## Table of contents
