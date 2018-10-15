@@ -3,6 +3,10 @@ namespace Casbin\Model;
 
 use Casbin\Util\Log;
 
+/**
+ * Policy
+ * @author techlee@qq.com
+ */
 trait Policy
 {
     public function buildRoleLinks($rm)

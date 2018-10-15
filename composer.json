@@ -7,7 +7,7 @@
             "email": "techlee@qq.com"
         }
     ],
-    "license": "MIT",
+    "license": "Apache-2.0",
     "keywords": [        
         "casbin",
         "rbac",

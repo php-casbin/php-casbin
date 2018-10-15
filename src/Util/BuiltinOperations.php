@@ -4,7 +4,8 @@ namespace Casbin\Util;
 use Casbin\Rbac\RoleManager;
 
 /**
- *
+ * BuiltinOperations
+ * @author techlee@qq.com
  */
 class BuiltinOperations
 {

@@ -2,7 +2,8 @@
 namespace Casbin\Persist;
 
 /**
- *
+ * Adapter interface
+ * @author techlee@qq.com
  */
 interface Adapter
 {

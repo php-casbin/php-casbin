@@ -6,7 +6,8 @@ use Casbin\Util\Log;
 use Casbin\Util\Util;
 
 /**
- *
+ * Model
+ * @author techlee@qq.com
  */
 class Model
 {

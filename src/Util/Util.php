@@ -2,7 +2,8 @@
 namespace Casbin\Util;
 
 /**
- *
+ * Util
+ * @author techlee@qq.com
  */
 class Util
 {

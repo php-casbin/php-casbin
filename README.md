@@ -34,12 +34,12 @@ if ($e->enforce($sub, $obj, $act) === true) {
 }
 ```
 
-## All the languages supported by node-casbin:
+## All the languages supported by php-casbin:
 
 - Golang: [Casbin](https://github.com/casbin/casbin) (production-ready)
 - Java: [jCasbin](https://github.com/casbin/jcasbin) (production-ready)
-- Node.js: [node-casbin](https://github.com/casbin/node-casbin) (production-ready)
-- PHP: [PHP-Casbin](https://github.com/casbin/php-casbin) (experimental)
+- Node.js: [php-casbin](https://github.com/casbin/php-casbin) (production-ready)
+- PHP: [PHP-Casbin](https://github.com/techleeone/php-casbin) (experimental)
 - C++: xCasbin (WIP)
 
 ## Table of contents
@@ -72,9 +72,9 @@ if ($e->enforce($sub, $obj, $act) === true) {
 
 ## How it works?
 
-In node-casbin, an access control model is abstracted into a CONF file based on the **PERM metamodel (Policy, Effect, Request, Matchers)**. So switching or upgrading the authorization mechanism for a project is just as simple as modifying a configuration. You can customize your own access control model by combining the available models. For example, you can get RBAC roles and ABAC attributes together inside one model and share one set of policy rules.
+In php-casbin, an access control model is abstracted into a CONF file based on the **PERM metamodel (Policy, Effect, Request, Matchers)**. So switching or upgrading the authorization mechanism for a project is just as simple as modifying a configuration. You can customize your own access control model by combining the available models. For example, you can get RBAC roles and ABAC attributes together inside one model and share one set of policy rules.
 
-The most basic and simplest model in node-casbin is ACL. ACL's model CONF is:
+The most basic and simplest model in php-casbin is ACL. ACL's model CONF is:
 
 ```ini
 # Request definition
@@ -108,7 +108,7 @@ It means:
 
 ## Features
 
-What node-casbin does:
+What php-casbin does:
 
 1. enforce the policy in the classic ``{subject, object, action}`` form or a customized form as you defined, both allow and deny authorizations are supported.
 2. handle the storage of the access control model and its policy.
@@ -116,18 +116,18 @@ What node-casbin does:
 4. support built-in superuser like ``root`` or ``administrator``. A superuser can do anything without explict permissions.
 5. multiple built-in operators to support the rule matching. For example, ``keyMatch`` can map a resource key ``/foo/bar`` to the pattern ``/foo*``.
 
-What node-casbin does NOT do:
+What php-casbin does NOT do:
 
 1. authentication (aka verify ``username`` and ``password`` when a user logs in)
-2. manage the list of users or roles. I believe it's more convenient for the project itself to manage these entities. Users usually have their passwords, and node-casbin is not designed as a password container. However, node-casbin stores the user-role mapping for the RBAC scenario. 
+2. manage the list of users or roles. I believe it's more convenient for the project itself to manage these entities. Users usually have their passwords, and php-casbin is not designed as a password container. However, php-casbin stores the user-role mapping for the RBAC scenario. 
 
 ## Documentation
 
-For documentation, please see: [Our Wiki](https://github.com/casbin/casbin/wiki)
+For documentation, please see: [Our Wiki](https://github.com/php-casbin/php-casbin/wiki)
 
 ## Online editor
 
-You can also use the online editor (http://casbin.org/editor/) to write your node-casbin model and policy in your web browser. It provides functionality such as ``syntax highlighting`` and ``code completion``, just like an IDE for a programming language.
+You can also use the online editor (http://casbin.org/editor/) to write your php-casbin model and policy in your web browser. It provides functionality such as ``syntax highlighting`` and ``code completion``, just like an IDE for a programming language.
 
 ## Tutorials
 
@@ -138,10 +138,10 @@ You can also use the online editor (http://casbin.org/editor/) to write your nod
 
 ## Policy management
 
-node-casbin provides two sets of APIs to manage permissions:
+php-casbin provides two sets of APIs to manage permissions:
 
-- [Management API](https://github.com/casbin/node-casbin/blob/master/src/main/java/org/casbin/node-casbin/main/ManagementEnforcer.java): the primitive API that provides full support for node-casbin policy management. See [here](https://github.com/casbin/node-casbin/blob/master/src/test/java/org/casbin/node-casbin/main/ManagementAPIUnitTest.java) for examples.
-- [RBAC API](https://github.com/casbin/node-casbin/blob/master/src/main/java/org/casbin/node-casbin/main/Enforcer.java): a more friendly API for RBAC. This API is a subset of Management API. The RBAC users could use this API to simplify the code. See [here](https://github.com/casbin/node-casbin/blob/master/src/test/java/org/casbin/node-casbin/main/RbacAPIUnitTest.java) for examples.
+- [Management API](https://github.com/php-casbin/php-casbin/master/src/main/java/org/casbin/php-casbin/main/ManagementEnforcer.java): the primitive API that provides full support for php-casbin policy management. See [here](https://github.com/php-casbin/php-casbin/master/src/test/java/org/casbin/php-casbin/main/ManagementAPIUnitTest.java) for examples.
+- [RBAC API](https://github.com/php-casbin/php-casbin/master/src/main/java/org/casbin/php-casbin/main/Enforcer.java): a more friendly API for RBAC. This API is a subset of Management API. The RBAC users could use this API to simplify the code. See [here](https://github.com/php-casbin/php-casbin/master/src/test/java/org/casbin/php-casbin/main/RbacAPIUnitTest.java) for examples.
 
 We also provide a web-based UI for model management and policy management:
 
@@ -151,48 +151,46 @@ We also provide a web-based UI for model management and policy management:
 
 ## Policy persistence
 
-In node-casbin, the policy storage is implemented as an adapter (aka middleware for node-casbin). To keep light-weight, we don't put adapter code in the main library (except the default file adapter). A complete list of node-casbin adapters is provided as below. Any 3rd-party contribution on a new adapter is welcomed, please inform us and I will put it in this list:)
+In php-casbin, the policy storage is implemented as an adapter (aka middleware for php-casbin). To keep light-weight, we don't put adapter code in the main library (except the default file adapter). A complete list of php-casbin adapters is provided as below. Any 3rd-party contribution on a new adapter is welcomed, please inform us and I will put it in this list:)
 
 Adapter | Type | Author | Description
 ----|------|----|----
-[File Adapter (built-in)](https://github.com/casbin/casbin/wiki/Policy-persistence#file-adapter) | File | node-casbin | Persistence for [.CSV (Comma-Separated Values)](https://en.wikipedia.org/wiki/Comma-separated_values) files
-[Sequelize Adapter](https://github.com/node-casbin/sequelize-adapter) | ORM | Casbin | MySQL, PostgreSQL, SQLite, Microsoft SQL Server are supported by [Sequelize](https://github.com/sequelize/sequelize)
+[File Adapter (built-in)](https://github.com/casbin/casbin/wiki/Policy-persistence#file-adapter) | File | php-casbin | Persistence for [.CSV (Comma-Separated Values)](https://en.wikipedia.org/wiki/Comma-separated_values) files
+
 
 For details of adapters, please refer to the documentation: https://github.com/casbin/casbin/wiki/Policy-persistence
 
 ## Role manager
 
-The role manager is used to manage the RBAC role hierarchy (user-role mapping) in node-casbin. A role manager can retrieve the role data from node-casbin policy rules or external sources such as LDAP, Okta, Auth0, Azure AD, etc. We support different implementations of a role manager. To keep light-weight, we don't put role manager code in the main library (except the default role manager). A complete list of node-casbin role managers is provided as below. Any 3rd-party contribution on a new role manager is welcomed, please inform us and I will put it in this list:)
+The role manager is used to manage the RBAC role hierarchy (user-role mapping) in php-casbin. A role manager can retrieve the role data from php-casbin policy rules or external sources such as LDAP, Okta, Auth0, Azure AD, etc. We support different implementations of a role manager. To keep light-weight, we don't put role manager code in the main library (except the default role manager). A complete list of php-casbin role managers is provided as below. Any 3rd-party contribution on a new role manager is welcomed, please inform us and I will put it in this list:)
 
 Role manager | Author | Description
 ----|----|----
-[Default Role Manager (built-in)](https://github.com/casbin/node-casbin/blob/master/src/rbac/defaultRoleManager.ts) | node-casbin | Supports role hierarchy stored in node-casbin policy
+[Default Role Manager (built-in)](https://github.com/php-casbin/php-casbin/master/src/rbac/defaultRoleManager.ts) | php-casbin | Supports role hierarchy stored in php-casbin policy
 
-For developers: all role managers must implement the [RoleManager](https://github.com/casbin/node-casbin/blob/master/src/rbac/roleManager.ts) interface. [Default Role Manager](https://github.com/casbin/node-casbin/blob/master/src/rbac/defaultRoleManager.ts) can be used as a reference implementation.
+For developers: all role managers must implement the [RoleManager](https://github.com/php-casbin/php-casbin/master/src/rbac/roleManager.ts) interface. [Default Role Manager](https://github.com/php-casbin/php-casbin/master/src/rbac/defaultRoleManager.ts) can be used as a reference implementation.
 
 ## Examples
 
 Model | Model file | Policy file
 ----|------|----
-ACL | [basic_model.conf](https://github.com/casbin/node-casbin/blob/master/examples/basic_model.conf) | [basic_policy.csv](https://github.com/casbin/node-casbin/blob/master/examples/basic_policy.csv)
-ACL with superuser | [basic_model_with_root.conf](https://github.com/casbin/node-casbin/blob/master/examples/basic_with_root_model.conf) | [basic_policy.csv](https://github.com/casbin/node-casbin/blob/master/examples/basic_policy.csv)
-ACL without users | [basic_model_without_users.conf](https://github.com/casbin/node-casbin/blob/master/examples/basic_without_users_model.conf) | [basic_policy_without_users.csv](https://github.com/casbin/node-casbin/blob/master/examples/basic_without_users_policy.csv)
-ACL without resources | [basic_model_without_resources.conf](https://github.com/casbin/node-casbin/blob/master/examples/basic_without_resources_model.conf) | [basic_policy_without_resources.csv](https://github.com/casbin/node-casbin/blob/master/examples/basic_without_resources_policy.csv)
-RBAC | [rbac_model.conf](https://github.com/casbin/node-casbin/blob/master/examples/rbac_model.conf)  | [rbac_policy.csv](https://github.com/casbin/node-casbin/blob/master/examples/rbac_policy.csv)
-RBAC with resource roles | [rbac_model_with_resource_roles.conf](https://github.com/casbin/node-casbin/blob/master/examples/rbac_with_resource_roles_model.conf)  | [rbac_policy_with_resource_roles.csv](https://github.com/casbin/node-casbin/blob/master/examples/rbac_with_resource_roles_policy.csv)
-RBAC with domains/tenants | [rbac_model_with_domains.conf](https://github.com/casbin/node-casbin/blob/master/examples/rbac_with_domains_model.conf)  | [rbac_policy_with_domains.csv](https://github.com/casbin/node-casbin/blob/master/examples/rbac_with_domains_policy.csv)
-ABAC | [abac_model.conf](https://github.com/casbin/node-casbin/blob/master/examples/abac_model.conf)  | N/A
-RESTful | [keymatch_model.conf](https://github.com/casbin/node-casbin/blob/master/examples/keymatch_model.conf)  | [keymatch_policy.csv](https://github.com/casbin/node-casbin/blob/master/examples/keymatch_policy.csv)
-Deny-override | [rbac_model_with_deny.conf](https://github.com/casbin/node-casbin/blob/master/examples/rbac_with_deny_model.conf)  | [rbac_policy_with_deny.csv](https://github.com/casbin/node-casbin/blob/master/examples/rbac_with_deny_policy.csv)
-Priority | [priority_model.conf](https://github.com/casbin/node-casbin/blob/master/examples/priority_model.conf)  | [priority_policy.csv](https://github.com/casbin/node-casbin/blob/master/examples/priority_policy.csv)
+ACL | [basic_model.conf](https://github.com/php-casbin/php-casbin/master/examples/basic_model.conf) | [basic_policy.csv](https://github.com/php-casbin/php-casbin/master/examples/basic_policy.csv)
+ACL with superuser | [basic_model_with_root.conf](https://github.com/php-casbin/php-casbin/master/examples/basic_with_root_model.conf) | [basic_policy.csv](https://github.com/php-casbin/php-casbin/master/examples/basic_policy.csv)
+ACL without users | [basic_model_without_users.conf](https://github.com/php-casbin/php-casbin/master/examples/basic_without_users_model.conf) | [basic_policy_without_users.csv](https://github.com/php-casbin/php-casbin/master/examples/basic_without_users_policy.csv)
+ACL without resources | [basic_model_without_resources.conf](https://github.com/php-casbin/php-casbin/master/examples/basic_without_resources_model.conf) | [basic_policy_without_resources.csv](https://github.com/php-casbin/php-casbin/master/examples/basic_without_resources_policy.csv)
+RBAC | [rbac_model.conf](https://github.com/php-casbin/php-casbin/master/examples/rbac_model.conf)  | [rbac_policy.csv](https://github.com/php-casbin/php-casbin/master/examples/rbac_policy.csv)
+RBAC with resource roles | [rbac_model_with_resource_roles.conf](https://github.com/php-casbin/php-casbin/master/examples/rbac_with_resource_roles_model.conf)  | [rbac_policy_with_resource_roles.csv](https://github.com/php-casbin/php-casbin/master/examples/rbac_with_resource_roles_policy.csv)
+RBAC with domains/tenants | [rbac_model_with_domains.conf](https://github.com/php-casbin/php-casbin/master/examples/rbac_with_domains_model.conf)  | [rbac_policy_with_domains.csv](https://github.com/php-casbin/php-casbin/master/examples/rbac_with_domains_policy.csv)
+ABAC | [abac_model.conf](https://github.com/php-casbin/php-casbin/master/examples/abac_model.conf)  | N/A
+RESTful | [keymatch_model.conf](https://github.com/php-casbin/php-casbin/master/examples/keymatch_model.conf)  | [keymatch_policy.csv](https://github.com/php-casbin/php-casbin/master/examples/keymatch_policy.csv)
+Deny-override | [rbac_model_with_deny.conf](https://github.com/php-casbin/php-casbin/master/examples/rbac_with_deny_model.conf)  | [rbac_policy_with_deny.csv](https://github.com/php-casbin/php-casbin/master/examples/rbac_with_deny_policy.csv)
+Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/master/examples/priority_model.conf)  | [priority_policy.csv](https://github.com/php-casbin/php-casbin/master/examples/priority_policy.csv)
 
 ## Our adopters
 
 ### Web frameworks
 
-- [Express](https://github.com/expressjs/express): Fast, unopinionated, minimalist web framework for node, via plugin: [express-authz](https://github.com/node-casbin/express-authz)
-- [Koa](https://github.com/koajs/koa): Expressive middleware for node.js using ES2017 async functions, via plugin: [koa-authz](https://github.com/node-casbin/koa-authz)
-- [Egg](https://github.com/eggjs/egg): Born to build better enterprise frameworks and apps with Node.js & Koa , via plugin: [egg-authz](https://github.com/node-casbin/egg-authz)
+- none
 
 ## License
 
@@ -201,6 +199,6 @@ This project is licensed under the [Apache 2.0 license](LICENSE).
 ## Contact
 
 If you have any issues or feature requests, please contact us. PR is welcomed.
-- https://github.com/casbin/node-casbin/issues
+- https://github.com/php-casbin/php-casbin/issues
 - hsluoyz@gmail.com
 - Tencent QQ group: [546057381](//shang.qq.com/wpa/qunwpa?idkey=8ac8b91fc97ace3d383d0035f7aa06f7d670fd8e8d4837347354a31c18fac885)

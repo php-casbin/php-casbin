@@ -4,7 +4,8 @@ namespace Casbin\Model;
 use Casbin\Util\BuiltinOperations;
 
 /**
- *
+ * FunctionMap
+ * @author techlee@qq.com
  */
 class FunctionMap
 {

@@ -3,12 +3,23 @@ namespace Casbin\Effect;
 
 use Casbin\Exceptions\CasbinException;
 
+/**
+ * DefaultEffector
+ * @author techlee@qq.com
+ */
 class DefaultEffector implements Effector
 {
     const ALLOW         = 0;
     const INDETERMINATE = 1;
     const DENY          = 2;
 
+    /**
+     * merges all matching results collected by the enforcer into a single decision.
+     * @param  string $expr
+     * @param  array $effects
+     * @param  array $results
+     * @return boolean
+     */
     public function mergeEffects($expr, $effects, $results)
     {
         $result = false;

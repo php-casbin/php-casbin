@@ -2,7 +2,8 @@
 namespace Casbin\Util;
 
 /**
- *
+ * Log
+ * @author techlee@qq.com
  */
 class Log
 {

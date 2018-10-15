@@ -1,6 +1,10 @@
 <?php
 namespace Casbin\Rbac;
 
+/**
+ * RoleManager
+ * @author techlee@qq.com
+ */
 interface RoleManager
 {
     public function clear();

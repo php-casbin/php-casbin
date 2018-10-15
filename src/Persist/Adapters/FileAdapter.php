@@ -6,7 +6,8 @@ use Casbin\Persist\Adapter;
 use Casbin\Util\Util;
 
 /**
- *
+ * FileAdapter
+ * @author techlee@qq.com
  */
 class FileAdapter implements Adapter
 {

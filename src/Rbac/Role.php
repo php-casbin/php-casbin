@@ -2,7 +2,8 @@
 namespace Casbin\Rbac;
 
 /**
- *
+ * Role
+ * @author techlee@qq.com
  */
 class Role
 {

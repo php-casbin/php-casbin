@@ -4,7 +4,8 @@ namespace Casbin\Model;
 use Casbin\Exceptions\CasbinException;
 
 /**
- *
+ * Assertion
+ * @author techlee@qq.com
  */
 class Assertion
 {

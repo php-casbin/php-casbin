@@ -7,7 +7,8 @@ use Casbin\Rbac\RoleManager as RoleManagerContract;
 use Casbin\Util\Log;
 
 /**
- *
+ * RoleManager
+ * @author techlee@qq.com
  */
 class RoleManager implements RoleManagerContract
 {

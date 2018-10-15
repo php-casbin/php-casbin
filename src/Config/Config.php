@@ -3,6 +3,10 @@ namespace Casbin\Config;
 
 use Casbin\Exceptions\CasbinException;
 
+/**
+ * Config function collections
+ * @author techlee@qq.com
+ */
 class Config implements ConfigContract
 {
     const DEFAULT_SECTION = 'default';

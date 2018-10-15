@@ -1,8 +1,7 @@
 <?php
 namespace Casbin;
 
-use Casbin\Effect\DefaultEffector;
-use Casbin\Effect\DefaultEffector as Effect;
+use Casbin\Effect\DefaultEffector as Effector;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Model\FunctionMap;
 use Casbin\Model\Model;
@@ -14,26 +13,59 @@ use Casbin\Util\Log;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
- *
+ * Enforcer is the main interface for authorization enforcement and policy management.
+ * @author techlee@qq.com
  */
 class Enforcer
 {
+    /**
+     * model path
+     * @var string
+     */
     protected $modelPath;
 
+    /**
+     * Model
+     * @var Model
+     */
     protected $model;
 
+    /**
+     * FunctionMap
+     * @var FunctionMap
+     */
     protected $fm;
 
+    /**
+     * Effector
+     * @var Effector
+     */
     protected $eft;
 
+    /**
+     * Adapter
+     * @var Adapter
+     */
     protected $adapter;
 
     protected $watcher;
 
+    /**
+     * RoleManager
+     * @var RoleManager
+     */
     protected $rm;
 
+    /**
+     * $autoSave
+     * @var boolean
+     */
     protected $autoSave = true;
 
+    /**
+     * $autoBuildRoleLinks
+     * @var boolean
+     */
     protected $autoBuildRoleLinks = true;
 
     public function __construct($model, $policy)
@@ -41,16 +73,22 @@ class Enforcer
         $this->initWithFile($model, $policy);
     }
 
-    // InitWithFile initializes an enforcer with a model file and a policy file.
+    /**
+     * initializes an enforcer with a model file and a policy file.
+     * @param  string  $modelPath
+     * @param  string $policyPath
+     */
     public function initWithFile($modelPath, $policyPath)
     {
-        // a := fileadapter.NewAdapter(policyPath)
         $adapter = new FileAdapter($policyPath);
-        // e.InitWithAdapter(modelPath, a)
         $this->initWithAdapter($modelPath, $adapter);
     }
 
-    // InitWithAdapter initializes an enforcer with a database adapter.
+    /**
+     * initWithAdapter initializes an enforcer with a database adapter.
+     * @param  string  $modelPath
+     * @param  Adapter $adapter
+     */
     public function initWithAdapter($modelPath, Adapter $adapter)
     {
         $m = $this->newModel($modelPath, "");
@@ -78,7 +116,7 @@ class Enforcer
     protected function initialize()
     {
         $this->rm      = new RoleManager(10);
-        $this->eft     = new DefaultEffector();
+        $this->eft     = new Effector();
         $this->watcher = null;
 
         $this->enabled            = true;
@@ -161,12 +199,12 @@ class Enforcer
 
                 if (is_bool($result)) {
                     if (!$result) {
-                        $policyEffects[$i] = Effect::INDETERMINATE;
+                        $policyEffects[$i] = Effector::INDETERMINATE;
                         continue;
                     }
                 } elseif (is_float($result)) {
                     if ($result == 0) {
-                        $policyEffects[$i] = Effect::INDETERMINATE;
+                        $policyEffects[$i] = Effector::INDETERMINATE;
                         continue;
                     } else {
                         $matcherResults[$i] = $result;
@@ -177,14 +215,14 @@ class Enforcer
                 if (isset($parameters['p_eft'])) {
                     $eft = $parameters['p_eft'];
                     if ($eft == "allow") {
-                        $policyEffects[$i] = Effect::ALLOW;
+                        $policyEffects[$i] = Effector::ALLOW;
                     } elseif ($eft == "deny") {
-                        $policyEffects[$i] = Effect::DENY;
+                        $policyEffects[$i] = Effector::DENY;
                     } else {
-                        $policyEffects[$i] = Effect::INDETERMINATE;
+                        $policyEffects[$i] = Effector::INDETERMINATE;
                     }
                 } else {
-                    $policyEffects[$i] = Effect::ALLOW;
+                    $policyEffects[$i] = Effector::ALLOW;
                 }
 
                 if (isset($this->model->model["e"]["e"]) && $this->model->model["e"]["e"]->value == "priority(p_eft) || deny") {
@@ -204,9 +242,9 @@ class Enforcer
             $result = $this->expressionEvaluate($expString, $parameters, $functions);
 
             if ($result) {
-                $policyEffects[0] = Effect::ALLOW;
+                $policyEffects[0] = Effector::ALLOW;
             } else {
-                $policyEffects[0] = Effect::INDETERMINATE;
+                $policyEffects[0] = Effector::INDETERMINATE;
             }
         }
 
@@ -222,7 +260,7 @@ class Enforcer
         return $result;
     }
 
-    public function expressionEvaluate($expString, $parameters, $functions)
+    protected function expressionEvaluate($expString, $parameters, $functions)
     {
         $expressionLanguage = new ExpressionLanguage();
         foreach ($functions as $key => $func) {
