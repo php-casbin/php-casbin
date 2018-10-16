@@ -4,6 +4,7 @@ namespace Casbin\Persist\Adapters;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Persist\Adapter;
 use Casbin\Util\Util;
+use Casbin\Persist\AdapterHelper;
 
 /**
  * FileAdapter
@@ -11,6 +12,8 @@ use Casbin\Util\Util;
  */
 class FileAdapter implements Adapter
 {
+    use AdapterHelper;
+
     protected $filePath;
 
     public function __construct($filePath)
@@ -66,26 +69,6 @@ class FileAdapter implements Adapter
     public function savePolicyFile($text)
     {
         return file_put_contents($this->filePath, $text, FILE_APPEND | LOCK_EX);
-    }
-
-    public function loadPolicyLine($line, $model)
-    {
-        if ($line == '') {
-            return;
-        }
-
-        if (substr($line, 0, 1) == '#') {
-            return;
-        }
-
-        $tokens = explode(', ', $line);
-        $key    = $tokens[0];
-        $sec    = $key[0];
-
-        if (!isset($model->model[$sec][$key])) {
-            return;
-        }
-        $model->model[$sec][$key]->policy[] = array_slice($tokens, 1);
     }
 
     public function addPolicy($sec, $ptype, $rule)

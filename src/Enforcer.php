@@ -70,7 +70,11 @@ class Enforcer
 
     public function __construct($model, $policy)
     {
-        $this->initWithFile($model, $policy);
+        if (is_string($policy)) {
+            $this->initWithFile($model, $policy);
+        } else {
+            $this->initWithAdapter($model, $policy);
+        }
     }
 
     /**
