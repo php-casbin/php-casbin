@@ -1,6 +1,10 @@
 php-casbin
 ====
 
+[![language](https://img.shields.io/badge/php-%3E%3D5.6-blue.svg)](https://github.com/php-casbin/php-casbin)
+[![downloads](https://img.shields.io/badge/downloads-120k-green.svg)](https://packagist.org/packages/casbin/casbin)
+[![LICENSE](https://img.shields.io/badge/licence-Apache--2.0-green.svg)](LICENSE)
+
 
 php-casbin is a powerful and efficient open-source access control library for php projects. It provides support for enforcing authorization based on various [access control models](https://en.wikipedia.org/wiki/Computer_security_model).
 
@@ -38,7 +42,7 @@ if ($e->enforce($sub, $obj, $act) === true) {
 
 - Golang: [Casbin](https://github.com/casbin/casbin) (production-ready)
 - Java: [jCasbin](https://github.com/casbin/jcasbin) (production-ready)
-- Node.js: [php-casbin](https://github.com/casbin/php-casbin) (production-ready)
+- Node.js: [node-casbin](https://github.com/casbin/node-casbin) (production-ready)
 - PHP: [PHP-Casbin](https://github.com/php-casbin/php-casbin) (experimental)
 - C++: xCasbin (WIP)
 
@@ -156,7 +160,7 @@ In php-casbin, the policy storage is implemented as an adapter (aka middleware f
 Adapter | Type | Author | Description
 ----|------|----|----
 [File Adapter (built-in)](https://github.com/casbin/casbin/wiki/Policy-persistence#file-adapter) | File | php-casbin | Persistence for [.CSV (Comma-Separated Values)](https://en.wikipedia.org/wiki/Comma-separated_values) files
-
+[Database Adapter](https://github.com/php-casbin/database-adapter) | Database | php-casbin | MySQL, PostgreSQL, SQLite, Microsoft SQL Server are supported by Database Adapter
 
 For details of adapters, please refer to the documentation: https://github.com/casbin/casbin/wiki/Policy-persistence
 
@@ -200,5 +204,5 @@ This project is licensed under the [Apache 2.0 license](LICENSE).
 
 If you have any issues or feature requests, please contact us. PR is welcomed.
 - https://github.com/php-casbin/php-casbin/issues
-- hsluoyz@gmail.com
+- techlee@qq.com
 - Tencent QQ group: [546057381](//shang.qq.com/wpa/qunwpa?idkey=8ac8b91fc97ace3d383d0035f7aa06f7d670fd8e8d4837347354a31c18fac885)
