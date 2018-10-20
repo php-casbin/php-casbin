@@ -4,7 +4,8 @@ php-casbin
 [![language](https://img.shields.io/badge/php-%3E%3D5.6-blue.svg)](https://github.com/php-casbin/php-casbin)
 [![downloads](https://img.shields.io/badge/downloads-120k-green.svg)](https://packagist.org/packages/casbin/casbin)
 [![LICENSE](https://img.shields.io/badge/licence-Apache--2.0-green.svg)](LICENSE)
-
+[![Release](https://img.shields.io/github/release/php-casbin/php-casbin.svg)](https://github.com/php-casbin/php-casbin/releases/latest)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/casbin/lobby)
 
 php-casbin is a powerful and efficient open-source access control library for php projects. It provides support for enforcing authorization based on various [access control models](https://en.wikipedia.org/wiki/Computer_security_model).
 
