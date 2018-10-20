@@ -156,10 +156,10 @@ In php-casbin, the policy storage is implemented as an adapter (aka middleware f
 
 Adapter | Type | Author | Description
 ----|------|----|----
-[File Adapter (built-in)](https://github.com/casbin/casbin/wiki/Policy-persistence#file-adapter) | File | php-casbin | Persistence for [.CSV (Comma-Separated Values)](https://en.wikipedia.org/wiki/Comma-separated_values) files
+[File Adapter (built-in)](https://casbin.org/docs/en/policy-storage#file-adapter-built-in) | File | php-casbin | Persistence for [.CSV (Comma-Separated Values)](https://en.wikipedia.org/wiki/Comma-separated_values) files
 [Database Adapter](https://github.com/php-casbin/database-adapter) | Database | php-casbin | MySQL, PostgreSQL, SQLite, Microsoft SQL Server are supported by Database Adapter
 
-For details of adapters, please refer to the documentation: https://github.com/casbin/casbin/wiki/Policy-persistence
+For details of adapters, please refer to the documentation: https://casbin.org/docs/en/policy-storage
 
 ## Role manager
 
