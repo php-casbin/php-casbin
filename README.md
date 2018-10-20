@@ -127,7 +127,7 @@ What php-casbin does NOT do:
 
 ## Documentation
 
-For documentation, please see: [Our Wiki](https://github.com/php-casbin/php-casbin/wiki)
+https://casbin.org/docs/en/overview
 
 ## Online editor
 
