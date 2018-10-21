@@ -1,6 +1,8 @@
 php-casbin
 ====
 
+[![Build Status](https://travis-ci.org/php-casbin/php-casbin.svg?branch=master)](https://travis-ci.org/php-casbin/php-casbin)
+[![Coverage Status](https://coveralls.io/repos/github/php-casbin/php-casbin/badge.svg)](https://coveralls.io/github/php-casbin/php-casbin)
 [![Latest Stable Version](https://poser.pugx.org/casbin/casbin/v/stable)](https://packagist.org/packages/casbin/casbin)
 [![Total Downloads](https://poser.pugx.org/casbin/casbin/downloads)](https://packagist.org/packages/casbin/casbin)
 [![License](https://poser.pugx.org/casbin/casbin/license)](https://packagist.org/packages/casbin/casbin)
