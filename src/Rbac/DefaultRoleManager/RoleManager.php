@@ -138,7 +138,6 @@ class RoleManager implements RoleManagerContract
                 $line[] = $text;
             }
         }, $this->allRoles);
-
         Log::logPrint(implode(', ', $line));
     }
 }

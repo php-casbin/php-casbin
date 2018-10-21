@@ -105,4 +105,8 @@ class Model
         }
     }
 
+    public static function loadFunctionMap(){
+        return FunctionMap::loadFunctionMap();
+    }
+
 }

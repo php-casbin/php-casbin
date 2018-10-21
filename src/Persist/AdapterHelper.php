@@ -5,7 +5,8 @@ namespace Casbin\Persist;
  * AdapterHelper
  * @author techlee@qq.com
  */
-trait AdapterHelper{
+trait AdapterHelper
+{
 
     public function loadPolicyLine($line, $model)
     {

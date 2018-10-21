@@ -1,13 +1,15 @@
 <?php
 namespace Casbin;
 
-use Casbin\Effect\DefaultEffector as Effector;
+use Casbin\Effect\DefaultEffector;
+use Casbin\Effect\Effector;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Model\FunctionMap;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\Adapters\FileAdapter;
-use Casbin\Rbac\DefaultRoleManager\RoleManager;
+use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
+use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use Casbin\Util\Log;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
@@ -57,16 +59,22 @@ class Enforcer
     protected $rm;
 
     /**
+     * $enabled
+     * @var boolean
+     */
+    protected $enabled;
+
+    /**
      * $autoSave
      * @var boolean
      */
-    protected $autoSave = true;
+    protected $autoSave;
 
     /**
      * $autoBuildRoleLinks
      * @var boolean
      */
-    protected $autoBuildRoleLinks = true;
+    protected $autoBuildRoleLinks;
 
     public function __construct($model, $policy)
     {
@@ -95,20 +103,20 @@ class Enforcer
      */
     public function initWithAdapter($modelPath, Adapter $adapter)
     {
-        $m = $this->newModel($modelPath, "");
+        $m = self::newModel($modelPath, "");
         $this->initWithModelAndAdapter($m, $adapter);
 
         $this->modelPath = $modelPath;
     }
 
-    public function initWithModelAndAdapter($m, Adapter $adapter)
+    public function initWithModelAndAdapter(Model $m, Adapter $adapter)
     {
         $this->adapter = $adapter;
 
         $this->model = $m;
         $this->model->printModel();
 
-        $this->fm = FunctionMap::loadFunctionMap();
+        $this->fm = Model::loadFunctionMap();
 
         $this->initialize();
 
@@ -119,8 +127,8 @@ class Enforcer
 
     protected function initialize()
     {
-        $this->rm      = new RoleManager(10);
-        $this->eft     = new Effector();
+        $this->rm      = new DefaultRoleManager(10);
+        $this->eft     = new DefaultEffector();
         $this->watcher = null;
 
         $this->enabled            = true;
@@ -128,7 +136,7 @@ class Enforcer
         $this->autoBuildRoleLinks = true;
     }
 
-    public function newModel(...$text)
+    public static function newModel(...$text)
     {
         $model = new Model();
         if (count($text) == 2) {
@@ -144,6 +152,55 @@ class Enforcer
         return $model;
     }
 
+    public function loadModel()
+    {
+        $this->model = self::newModel();
+        $this->model->loadModel($this->modelPath);
+        $this->model->printModel();
+        $this->fm = Model::LoadFunctionMap();
+    }
+
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    public function setModel(Model $model)
+    {
+        $this->model = $model;
+        $this->fm    = $this->model->loadFunctionMap();
+    }
+
+    public function getAdapter()
+    {
+        return $this->adapter;
+    }
+
+    public function setAdapter(Adapter $adapter)
+    {
+        $this->adapter = $adapter;
+    }
+
+    public function setWatcher($watcher)
+    {
+
+    }
+
+    public function setRoleManager(RoleManager $rm)
+    {
+        $this->rm = $rm;
+    }
+
+    public function setEffector(Effector $eft)
+    {
+        $this->eft = $eft;
+    }
+
+    public function clearPolicy()
+    {
+        $this->model->clearPolicy();
+    }
+
     public function loadPolicy()
     {
         $this->model->clearPolicy();
@@ -154,6 +211,41 @@ class Enforcer
         if ($this->autoBuildRoleLinks) {
             $this->buildRoleLinks();
         }
+    }
+
+    public function loadFilteredPolicy()
+    {
+
+    }
+
+    public function isFiltered()
+    {
+
+    }
+
+    public function savePolicy()
+    {
+
+    }
+
+    public function enableEnforce($enabled = true)
+    {
+        $this->enabled = $enabled;
+    }
+
+    public function enableLog($enabled = true)
+    {
+        Log::$enableLog = $enabled;
+    }
+
+    public function enableAutoSave($autoSave = true)
+    {
+        $this->autoSave = $autoSave;
+    }
+
+    public function enableAutoBuildRoleLinks($autoBuildRoleLinks = true)
+    {
+        $this->autoBuildRoleLinks = $autoBuildRoleLinks;
     }
 
     public function buildRoleLinks()
@@ -179,6 +271,7 @@ class Enforcer
                 $functions[$key] = BuiltinOperations::GenerateGFunction($rm);
             }
         }
+
         if (!isset($this->model->model['m']['m'])) {
             throw new CasbinException('model is undefined');
         }
@@ -203,12 +296,12 @@ class Enforcer
 
                 if (is_bool($result)) {
                     if (!$result) {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
+                        $policyEffects[$i] = DefaultEffector::INDETERMINATE;
                         continue;
                     }
                 } elseif (is_float($result)) {
                     if ($result == 0) {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
+                        $policyEffects[$i] = DefaultEffector::INDETERMINATE;
                         continue;
                     } else {
                         $matcherResults[$i] = $result;
@@ -219,14 +312,14 @@ class Enforcer
                 if (isset($parameters['p_eft'])) {
                     $eft = $parameters['p_eft'];
                     if ($eft == "allow") {
-                        $policyEffects[$i] = Effector::ALLOW;
+                        $policyEffects[$i] = DefaultEffector::ALLOW;
                     } elseif ($eft == "deny") {
-                        $policyEffects[$i] = Effector::DENY;
+                        $policyEffects[$i] = DefaultEffector::DENY;
                     } else {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
+                        $policyEffects[$i] = DefaultEffector::INDETERMINATE;
                     }
                 } else {
-                    $policyEffects[$i] = Effector::ALLOW;
+                    $policyEffects[$i] = DefaultEffector::ALLOW;
                 }
 
                 if (isset($this->model->model["e"]["e"]) && $this->model->model["e"]["e"]->value == "priority(p_eft) || deny") {
@@ -246,9 +339,9 @@ class Enforcer
             $result = $this->expressionEvaluate($expString, $parameters, $functions);
 
             if ($result) {
-                $policyEffects[0] = Effector::ALLOW;
+                $policyEffects[0] = DefaultEffector::ALLOW;
             } else {
-                $policyEffects[0] = Effector::INDETERMINATE;
+                $policyEffects[0] = DefaultEffector::INDETERMINATE;
             }
         }
 

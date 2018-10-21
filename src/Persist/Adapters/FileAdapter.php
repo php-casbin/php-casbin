@@ -3,8 +3,8 @@ namespace Casbin\Persist\Adapters;
 
 use Casbin\Exceptions\CasbinException;
 use Casbin\Persist\Adapter;
-use Casbin\Util\Util;
 use Casbin\Persist\AdapterHelper;
+use Casbin\Util\Util;
 
 /**
  * FileAdapter

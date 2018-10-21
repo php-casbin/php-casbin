@@ -65,15 +65,17 @@ class Role
 
     public function toString()
     {
+
         if (count($this->roles) == 0) {
             return "";
         }
-        $names = $this->name . ', ' . implode(', ', $this->getRoles());
+
+        $names = implode(', ', $this->getRoles());
 
         if (count($this->roles) == 1) {
-            return $this->name+" < "+$names;
+            return $this->name . ' < ' . $names;
         } else {
-            return $this->name+" < ("+$names+")";
+            return $this->name . ' < (' . $names . ')';
         }
     }
 

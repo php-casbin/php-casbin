@@ -40,7 +40,7 @@ trait Policy
                 return;
             }
             foreach ($this->model[$sec] as $key => $ast) {
-                $this->model[$sec][$key]->policy = null;
+                $this->model[$sec][$key]->policy = [];
             }
         }
     }

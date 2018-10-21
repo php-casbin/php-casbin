@@ -7,7 +7,7 @@ namespace Casbin\Util;
  */
 class Log
 {
-    public static $enableLog = true;
+    public static $enableLog = false;
 
     public static function logPrint(...$v)
     {

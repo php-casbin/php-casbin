@@ -2,6 +2,8 @@
 namespace Casbin\Util;
 
 use Casbin\Rbac\RoleManager;
+use IPTools\IP;
+use IPTools\Range;
 
 /**
  * BuiltinOperations
@@ -30,15 +32,19 @@ class BuiltinOperations
 
     public static function keyMatch2($key1, $key2)
     {
-        $key2 = str_replace('/*', '/.*', $key2);
+        $key2 = str_replace(['/', '/*'], ['\/', '/.*'], $key2);
 
-        $pattern = '/(.*):[^/]+(.*)/g';
-        for (;;) {
-            if (!strstr($key2, '/:')) {
-                break;
-            }
-            $key2 = "^" . preg_replace($pattern, '$1[^/]+$2') . "$";
-        }
+        $pattern = '/(:[a-zA-Z0-9-_]+)/';
+        $key2    = preg_replace_callback(
+            $pattern,
+            function ($m) {
+                return "[a-zA-Z0-9-_]+";
+            },
+            $key2
+        );
+
+        $key2 = '^' . $key2 . '$';
+
         return self::regexMatch($key1, $key2);
     }
 
@@ -53,14 +59,14 @@ class BuiltinOperations
 
     public function keyMatch3($key1, $key2)
     {
-        $key2 = str_replace('/*', '/.*', $key2);
+        $key2 = str_replace(['/', '/*'], ['\/', '/.*'], $key2);
 
         $pattern = '/(.*)\{[^/]+\}(.*)/g';
         for (;;) {
             if (!strstr($key2, '/{')) {
                 break;
             }
-            $key2 = "^" . preg_replace($pattern, '$1[^/]+$2') . "$";
+            $key2 = "^" . preg_replace($pattern, '$1[^/]+$2', $key2) . "$";
         }
         return self::regexMatch($key1, $key2);
 
@@ -89,7 +95,11 @@ class BuiltinOperations
 
     public static function iPMatch($ip1, $ip2)
     {
-        return false;
+        $objIP1 = IP::parse($ip1);
+
+        $objIP2 = Range::parse($ip2);
+
+        return $objIP2->contains($objIP1);
     }
 
     public static function iPMatchFunc(...$args)
@@ -112,7 +122,7 @@ class BuiltinOperations
                 $res = $rm->hasLink($name1, $name2);
                 return $res;
             } else {
-                $domain = (string) $args[1];
+                $domain = (string) $args[2];
                 $res    = $rm->hasLink($name1, $name2, $domain);
                 return $res;
             }

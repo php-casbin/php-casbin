@@ -2,6 +2,7 @@
 namespace Casbin\Model;
 
 use Casbin\Exceptions\CasbinException;
+use Casbin\Util\Log;
 
 /**
  * Assertion
@@ -19,6 +20,7 @@ class Assertion
     {
         $this->rM = $rm;
         $count    = substr_count($this->value, '_');
+
         foreach ($this->policy as $rule) {
             if ($count < 2) {
                 throw new CasbinException("the number of \"_\" in role definition should be at least 2");
@@ -36,6 +38,7 @@ class Assertion
             }
         }
 
+        Log::logPrint("Role links for: " . $this->key);
         $this->rM->printRoles();
     }
 }
