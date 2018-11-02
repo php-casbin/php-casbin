@@ -193,7 +193,7 @@ Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/master
 
 ### Web frameworks
 
-- none
+- [Laravel](https://laravel.com/): The PHP framework for web artisans, via plugin: [laravel-casbin](https://github.com/php-casbin/laravel-casbin)
 
 ## License
 
