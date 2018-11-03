@@ -2,9 +2,9 @@
 
 namespace Casbin\Tests\Feature;
 
-use PHPUnit\Framework\TestCase;
-use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Model\Model;
+use Casbin\Persist\Adapters\FileAdapter;
+use PHPUnit\Framework\TestCase;
 
 /**
  * EnforcerTest.

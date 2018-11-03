@@ -3,8 +3,8 @@
 namespace Casbin\Model;
 
 use Casbin\Exceptions\CasbinException;
-use Casbin\Util\Log;
 use Casbin\Rbac\RoleManager;
+use Casbin\Util\Log;
 
 /**
  * Assertion.
