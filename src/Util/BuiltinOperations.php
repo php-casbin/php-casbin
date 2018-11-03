@@ -63,7 +63,7 @@ class BuiltinOperations
         $key2 = str_replace(['/', '/*'], ['\/', '/.*'], $key2);
 
         $pattern = '/(.*)\{[^/]+\}(.*)/g';
-        for (;;) {
+        for (; ;) {
             if (!strstr($key2, '/{')) {
                 break;
             }
