@@ -71,13 +71,13 @@ class Config implements ConfigContract
         $buf = preg_replace('/[\r\n]+/', PHP_EOL, $buf);
         $buf = explode(PHP_EOL, $buf);
 
-        for ($i = 0; $i <= \count($buf); ++$i) {
+        for ($i = 0; $i <= \count($buf); $i++) {
             if ($canWrite) {
                 $this->write($section, $lineNum, $buffer);
                 $canWrite = false;
             }
 
-            ++$lineNum;
+            $lineNum++;
             $line = isset($buf[$i]) ? $buf[$i] : '';
             if ($i == \count($buf)) {
                 if (\strlen($buffer) > 0) {
@@ -128,8 +128,6 @@ class Config implements ConfigContract
         $this->addConfig($section, $option, $value);
 
         $b = '';
-
-        return;
     }
 
     public function getString($key)

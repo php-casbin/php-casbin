@@ -1,20 +1,22 @@
 <?php
+
 namespace Casbin\Tests;
 
 use Casbin\Enforcer;
 use PHPUnit\Framework\TestCase;
 
 /**
- * EnforcerTest
+ * EnforcerTest.
+ *
  * @author techlee@qq.com
  */
 class EnforcerTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__ . '/../examples/modelandpolicy';
+    private $modelAndPolicyPath = __DIR__.'/../examples/modelandpolicy';
 
     public function testEnforceBasic()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/basic_model.conf', $this->modelAndPolicyPath.'/basic_policy.csv');
 
         $this->assertEquals($e->enforce('alice', 'data1', 'read'), true);
         $this->assertEquals($e->enforce('alice', 'data2', 'read'), false);
@@ -24,14 +26,14 @@ class EnforcerTest extends TestCase
 
     public function testEnforceBasicWithRoot()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/basic_with_root_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/basic_with_root_model.conf', $this->modelAndPolicyPath.'/basic_policy.csv');
 
         $this->assertEquals($e->enforce('root', 'any', 'any'), true);
     }
 
     public function testEnforceBasicWithoutResources()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/basic_without_resources_model.conf', $this->modelAndPolicyPath . '/basic_without_resources_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/basic_without_resources_model.conf', $this->modelAndPolicyPath.'/basic_without_resources_policy.csv');
 
         $this->assertEquals($e->enforce('alice', 'read'), true);
         $this->assertEquals($e->enforce('alice', 'write'), false);
@@ -41,7 +43,7 @@ class EnforcerTest extends TestCase
 
     public function testEnforceBasicWithoutUsers()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/basic_without_users_model.conf', $this->modelAndPolicyPath . '/basic_without_users_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/basic_without_users_model.conf', $this->modelAndPolicyPath.'/basic_without_users_policy.csv');
 
         $this->assertEquals($e->enforce('data1', 'read'), true);
         $this->assertEquals($e->enforce('data1', 'write'), false);
@@ -51,7 +53,7 @@ class EnforcerTest extends TestCase
 
     public function testEnforceIpMatch()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/ipmatch_model.conf', $this->modelAndPolicyPath . '/ipmatch_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/ipmatch_model.conf', $this->modelAndPolicyPath.'/ipmatch_policy.csv');
 
         $this->assertEquals($e->enforce('192.168.2.1', 'data1', 'read'), true);
         $this->assertEquals($e->enforce('192.168.3.1', 'data1', 'read'), false);
@@ -59,7 +61,7 @@ class EnforcerTest extends TestCase
 
     public function testEnforceKeyMatch()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/keymatch_model.conf', $this->modelAndPolicyPath . '/keymatch_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/keymatch_model.conf', $this->modelAndPolicyPath.'/keymatch_policy.csv');
 
         $this->assertEquals($e->enforce('alice', '/alice_data/test', 'GET'), true);
         $this->assertEquals($e->enforce('alice', '/bob_data/test', 'GET'), false);
@@ -70,7 +72,7 @@ class EnforcerTest extends TestCase
 
     public function testEnforceKeyMatch2()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/keymatch2_model.conf', $this->modelAndPolicyPath . '/keymatch2_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/keymatch2_model.conf', $this->modelAndPolicyPath.'/keymatch2_policy.csv');
 
         $this->assertEquals($e->enforce('alice', '/alice_data/resource', 'GET'), true);
         $this->assertEquals($e->enforce('alice', '/alice_data2/123/using/456', 'GET'), true);
@@ -78,7 +80,7 @@ class EnforcerTest extends TestCase
 
     public function testEnforcePriority()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/priority_model.conf', $this->modelAndPolicyPath . '/priority_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/priority_model.conf', $this->modelAndPolicyPath.'/priority_policy.csv');
 
         $this->assertEquals($e->enforce('alice', 'data1', 'read'), true);
         $this->assertEquals($e->enforce('alice', 'data1', 'write'), false);
@@ -93,14 +95,14 @@ class EnforcerTest extends TestCase
 
     public function testEnforcePriorityIndeterminate()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/priority_model.conf', $this->modelAndPolicyPath . '/priority_indeterminate_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/priority_model.conf', $this->modelAndPolicyPath.'/priority_indeterminate_policy.csv');
 
         $this->assertEquals($e->enforce('alice', 'data1', 'read'), false);
     }
 
     public function testEnforceRbac()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_model.conf', $this->modelAndPolicyPath.'/rbac_policy.csv');
         $this->assertEquals($e->enforce('alice', 'data1', 'read'), true);
         $this->assertEquals($e->enforce('bob', 'data2', 'write'), true);
         $this->assertEquals($e->enforce('alice', 'data2', 'read'), true);
@@ -109,7 +111,7 @@ class EnforcerTest extends TestCase
 
     public function testEnforceRbacWithDeny()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_deny_model.conf', $this->modelAndPolicyPath . '/rbac_with_deny_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_deny_model.conf', $this->modelAndPolicyPath.'/rbac_with_deny_policy.csv');
         $this->assertEquals($e->enforce('alice', 'data1', 'read'), true);
         $this->assertEquals($e->enforce('bob', 'data2', 'write'), true);
         $this->assertEquals($e->enforce('alice', 'data2', 'read'), true);
@@ -118,7 +120,7 @@ class EnforcerTest extends TestCase
 
     public function testEnforceRbacWithDomains()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_domains_model.conf', $this->modelAndPolicyPath.'/rbac_with_domains_policy.csv');
 
         $this->assertEquals($e->enforce('alice', 'domain1', 'data1', 'read'), true);
         $this->assertEquals($e->enforce('alice', 'domain1', 'data1', 'write'), true);
@@ -132,14 +134,14 @@ class EnforcerTest extends TestCase
 
     public function testEnforceRbacWithNotDeny()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_not_deny_model.conf', $this->modelAndPolicyPath . '/rbac_with_deny_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_not_deny_model.conf', $this->modelAndPolicyPath.'/rbac_with_deny_policy.csv');
 
         $this->assertEquals($e->enforce('alice', 'data2', 'write'), false);
     }
 
     public function testEnforceRbacWithResourceRoles()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_resource_roles_model.conf', $this->modelAndPolicyPath . '/rbac_with_resource_roles_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_resource_roles_model.conf', $this->modelAndPolicyPath.'/rbac_with_resource_roles_policy.csv');
 
         $this->assertEquals($e->enforce('alice', 'data1', 'read'), true);
         $this->assertEquals($e->enforce('alice', 'data1', 'write'), true);

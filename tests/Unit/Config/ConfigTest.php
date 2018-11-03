@@ -2,8 +2,8 @@
 
 namespace Casbin\Tests\Feature;
 
-use PHPUnit\Framework\TestCase;
 use Casbin\Config\Config;
+use PHPUnit\Framework\TestCase;
 
 /**
  * EnforcerTest.
