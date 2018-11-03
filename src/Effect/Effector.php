@@ -1,11 +1,17 @@
 <?php
+
 namespace Casbin\Effect;
 
 /**
- * Effector
+ * Effector.
+ *
  * @author techlee@qq.com
  */
-interface Effector
+abstract class Effector
 {
-    public function mergeEffects($expr, $effects, $results);
+    const ALLOW = 0;
+    const INDETERMINATE = 1;
+    const DENY = 2;
+
+    abstract public function mergeEffects($expr, array $effects, array $results);
 }

@@ -1,8 +1,10 @@
 <?php
+
 namespace Casbin\Persist;
 
 /**
- * Adapter interface
+ * Adapter interface.
+ *
  * @author techlee@qq.com
  */
 interface Adapter

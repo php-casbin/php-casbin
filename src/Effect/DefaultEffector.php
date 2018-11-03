@@ -1,66 +1,65 @@
 <?php
+
 namespace Casbin\Effect;
 
 use Casbin\Exceptions\CasbinException;
 
 /**
- * DefaultEffector
+ * DefaultEffector.
+ *
  * @author techlee@qq.com
  */
-class DefaultEffector implements Effector
+class DefaultEffector extends Effector
 {
-    const ALLOW         = 0;
-    const INDETERMINATE = 1;
-    const DENY          = 2;
-
     /**
      * merges all matching results collected by the enforcer into a single decision.
-     * @param  string $expr
-     * @param  array $effects
-     * @param  array $results
-     * @return boolean
+     *
+     * @param string $expr
+     * @param array  $effects
+     * @param array  $results
+     *
+     * @return bool
      */
-    public function mergeEffects($expr, $effects, $results)
+    public function mergeEffects($expr, array $effects, array $results)
     {
         $result = false;
-        if ($expr == "some(where (p_eft == allow))") {
+        if ('some(where (p_eft == allow))' == $expr) {
             foreach ($effects as $eft) {
-                if ($eft == self::ALLOW) {
+                if (self::ALLOW == $eft) {
                     $result = true;
                     break;
                 }
             }
-        } elseif ($expr == "!some(where (p_eft == deny))") {
+        } elseif ('!some(where (p_eft == deny))' == $expr) {
             $result = true;
             foreach ($effects as $eft) {
-                if ($eft == self::DENY) {
+                if (self::DENY == $eft) {
                     $result = false;
                     break;
                 }
             }
-        } elseif ($expr == "some(where (p_eft == allow)) && !some(where (p_eft == deny))") {
+        } elseif ('some(where (p_eft == allow)) && !some(where (p_eft == deny))' == $expr) {
             foreach ($effects as $eft) {
-                if ($eft == self::ALLOW) {
+                if (self::ALLOW == $eft) {
                     $result = true;
-                } elseif ($eft == self::DENY) {
+                } elseif (self::DENY == $eft) {
                     $result = false;
                     break;
                 }
             }
-        } elseif ($expr == "priority(p_eft) || deny") {
+        } elseif ('priority(p_eft) || deny' == $expr) {
             foreach ($effects as $eft) {
-                if ($eft != self::INDETERMINATE) {
-                    if ($eft == self::ALLOW) {
+                if (self::INDETERMINATE != $eft) {
+                    if (self::ALLOW == $eft) {
                         $result = true;
                     } else {
                         $result = false;
                     }
                     break;
                 }
-
             }
         } else {
-            throw new CasbinException("unsupported effect");
+            throw new CasbinException('unsupported effect');
         }
 
         return $result;

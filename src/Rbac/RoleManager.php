@@ -1,8 +1,10 @@
 <?php
+
 namespace Casbin\Rbac;
 
 /**
- * RoleManager
+ * RoleManager.
+ *
  * @author techlee@qq.com
  */
 interface RoleManager

@@ -5,6 +5,3 @@
 
 # coverage report
 /coverage
-
-composer.phar
-composer.lock

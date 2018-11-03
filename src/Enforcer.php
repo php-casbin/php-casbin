@@ -1,4 +1,5 @@
 <?php
+
 namespace Casbin;
 
 use Casbin\Effect\DefaultEffector;
@@ -8,6 +9,8 @@ use Casbin\Model\FunctionMap;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\Adapters\FileAdapter;
+use Casbin\Persist\FilteredAdapter;
+use Casbin\Persist\Watcher;
 use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
@@ -16,69 +19,84 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
  * Enforcer is the main interface for authorization enforcement and policy management.
+ *
  * @author techlee@qq.com
  */
 class Enforcer
 {
     /**
-     * model path
+     * model path.
+     *
      * @var string
      */
     protected $modelPath;
 
     /**
-     * Model
+     * Model.
+     *
      * @var Model
      */
     protected $model;
 
     /**
-     * FunctionMap
+     * FunctionMap.
+     *
      * @var FunctionMap
      */
     protected $fm;
 
     /**
-     * Effector
+     * Effector.
+     *
      * @var Effector
      */
     protected $eft;
 
     /**
-     * Adapter
+     * Adapter.
+     *
      * @var Adapter
      */
     protected $adapter;
 
+    /**
+     * Watcher.
+     *
+     * @var watcher
+     */
     protected $watcher;
 
     /**
-     * RoleManager
+     * RoleManager.
+     *
      * @var RoleManager
      */
     protected $rm;
 
     /**
-     * $enabled
-     * @var boolean
+     * $enabled.
+     *
+     * @var bool
      */
     protected $enabled;
 
     /**
-     * $autoSave
-     * @var boolean
+     * $autoSave.
+     *
+     * @var bool
      */
     protected $autoSave;
 
     /**
-     * $autoBuildRoleLinks
-     * @var boolean
+     * $autoBuildRoleLinks.
+     *
+     * @var bool
      */
     protected $autoBuildRoleLinks;
 
     public function __construct($model, $policy)
     {
-        if (is_string($policy)) {
+        if (\is_string($policy)) {
             $this->initWithFile($model, $policy);
         } else {
             $this->initWithAdapter($model, $policy);
@@ -87,8 +105,9 @@ class Enforcer
 
     /**
      * initializes an enforcer with a model file and a policy file.
-     * @param  string  $modelPath
-     * @param  string $policyPath
+     *
+     * @param string $modelPath
+     * @param string $policyPath
      */
     public function initWithFile($modelPath, $policyPath)
     {
@@ -98,12 +117,13 @@ class Enforcer
 
     /**
      * initWithAdapter initializes an enforcer with a database adapter.
-     * @param  string  $modelPath
-     * @param  Adapter $adapter
+     *
+     * @param string  $modelPath
+     * @param Adapter $adapter
      */
     public function initWithAdapter($modelPath, Adapter $adapter)
     {
-        $m = self::newModel($modelPath, "");
+        $m = self::newModel($modelPath, '');
         $this->initWithModelAndAdapter($m, $adapter);
 
         $this->modelPath = $modelPath;
@@ -120,33 +140,33 @@ class Enforcer
 
         $this->initialize();
 
-        if (!is_null($this->adapter)) {
+        if (null !== $this->adapter) {
             $this->loadPolicy();
         }
     }
 
     protected function initialize()
     {
-        $this->rm      = new DefaultRoleManager(10);
-        $this->eft     = new DefaultEffector();
+        $this->rm = new DefaultRoleManager(10);
+        $this->eft = new DefaultEffector();
         $this->watcher = null;
 
-        $this->enabled            = true;
-        $this->autoSave           = true;
+        $this->enabled = true;
+        $this->autoSave = true;
         $this->autoBuildRoleLinks = true;
     }
 
     public static function newModel(...$text)
     {
         $model = new Model();
-        if (count($text) == 2) {
-            if ($text[0] != "") {
+        if (2 == \count($text)) {
+            if ('' != $text[0]) {
                 $model->loadModel($text[0]);
             }
-        } elseif (count($text) == 1) {
+        } elseif (1 == \count($text)) {
             $model->loadModel($text[0]);
-        } elseif (count($text) != 0) {
-            throw new CasbinException("Invalid parameters for model.");
+        } elseif (0 != \count($text)) {
+            throw new CasbinException('Invalid parameters for model.');
         }
 
         return $model;
@@ -168,7 +188,7 @@ class Enforcer
     public function setModel(Model $model)
     {
         $this->model = $model;
-        $this->fm    = $this->model->loadFunctionMap();
+        $this->fm = $this->model->loadFunctionMap();
     }
 
     public function getAdapter()
@@ -181,9 +201,12 @@ class Enforcer
         $this->adapter = $adapter;
     }
 
-    public function setWatcher($watcher)
+    public function setWatcher(Watcher $watcher)
     {
-
+        $this->watcher = $watcher;
+        $this->watcher->setUpdateCallback(function () {
+            $this->loadPolicy();
+        });
     }
 
     public function setRoleManager(RoleManager $rm)
@@ -207,25 +230,49 @@ class Enforcer
         $this->adapter->loadPolicy($this->model);
 
         $this->model->printPolicy();
-
         if ($this->autoBuildRoleLinks) {
             $this->buildRoleLinks();
         }
     }
 
-    public function loadFilteredPolicy()
+    public function loadFilteredPolicy($filter)
     {
+        $this->model->clearPolicy();
 
+        if ($this->adapter instanceof FilteredAdapter) {
+            $filteredAdapter = $this->adapter;
+        } else {
+            throw new CasbinException('filtered policies are not supported by this adapter');
+        }
+        $filteredAdapter->loadFilteredPolicy($this0->model, $filter);
+
+        $this->model->printPolicy();
+        if ($this->autoBuildRoleLinks) {
+            $this->buildRoleLinks();
+        }
     }
 
     public function isFiltered()
     {
+        if (!$this->adapter instanceof FilteredAdapter) {
+            return false;
+        }
 
+        $filteredAdapter = $this->adapter;
+        $filteredAdapter->isFiltered();
     }
 
     public function savePolicy()
     {
+        if ($this->isFiltered()) {
+            throw new CasbinException('cannot save a filtered policy');
+        }
 
+        $this->adapter->savePolicy($this->model);
+
+        if (null !== $this->watcher) {
+            return $this->watcher->update();
+        }
     }
 
     public function enableEnforce($enabled = true)
@@ -267,7 +314,7 @@ class Enforcer
 
         if (isset($this->model->model['g'])) {
             foreach ($this->model->model['g'] as $key => $ast) {
-                $rm              = $ast->rM;
+                $rm = $ast->rM;
                 $functions[$key] = BuiltinOperations::GenerateGFunction($rm);
             }
         }
@@ -277,12 +324,12 @@ class Enforcer
         }
         $expString = $this->model->model['m']['m']->value;
 
-        $policyEffects  = [];
+        $policyEffects = [];
         $matcherResults = [];
 
-        $policyLen = count($this->model->model['p']['p']->policy);
+        $policyLen = \count($this->model->model['p']['p']->policy);
 
-        if ($policyLen != 0) {
+        if (0 != $policyLen) {
             foreach ($this->model->model['p']['p']->policy as $i => $pvals) {
                 $parameters = [];
                 foreach ($this->model->model['r']['r']->tokens as $j => $token) {
@@ -294,35 +341,35 @@ class Enforcer
                 }
                 $result = $this->expressionEvaluate($expString, $parameters, $functions);
 
-                if (is_bool($result)) {
+                if (\is_bool($result)) {
                     if (!$result) {
-                        $policyEffects[$i] = DefaultEffector::INDETERMINATE;
+                        $policyEffects[$i] = Effector::INDETERMINATE;
                         continue;
                     }
-                } elseif (is_float($result)) {
-                    if ($result == 0) {
-                        $policyEffects[$i] = DefaultEffector::INDETERMINATE;
+                } elseif (\is_float($result)) {
+                    if (0 == $result) {
+                        $policyEffects[$i] = Effector::INDETERMINATE;
                         continue;
                     } else {
                         $matcherResults[$i] = $result;
                     }
                 } else {
-                    throw new CasbinException("matcher result should be bool, int or float");
+                    throw new CasbinException('matcher result should be bool, int or float');
                 }
                 if (isset($parameters['p_eft'])) {
                     $eft = $parameters['p_eft'];
-                    if ($eft == "allow") {
-                        $policyEffects[$i] = DefaultEffector::ALLOW;
-                    } elseif ($eft == "deny") {
-                        $policyEffects[$i] = DefaultEffector::DENY;
+                    if ('allow' == $eft) {
+                        $policyEffects[$i] = Effector::ALLOW;
+                    } elseif ('deny' == $eft) {
+                        $policyEffects[$i] = Effector::DENY;
                     } else {
-                        $policyEffects[$i] = DefaultEffector::INDETERMINATE;
+                        $policyEffects[$i] = Effector::INDETERMINATE;
                     }
                 } else {
-                    $policyEffects[$i] = DefaultEffector::ALLOW;
+                    $policyEffects[$i] = Effector::ALLOW;
                 }
 
-                if (isset($this->model->model["e"]["e"]) && $this->model->model["e"]["e"]->value == "priority(p_eft) || deny") {
+                if (isset($this->model->model['e']['e']) && 'priority(p_eft) || deny' == $this->model->model['e']['e']->value) {
                     break;
                 }
             }
@@ -339,21 +386,22 @@ class Enforcer
             $result = $this->expressionEvaluate($expString, $parameters, $functions);
 
             if ($result) {
-                $policyEffects[0] = DefaultEffector::ALLOW;
+                $policyEffects[0] = Effector::ALLOW;
             } else {
-                $policyEffects[0] = DefaultEffector::INDETERMINATE;
+                $policyEffects[0] = Effector::INDETERMINATE;
             }
         }
 
-        $result = $this->eft->mergeEffects($this->model->model["e"]["e"]->value, $policyEffects, $matcherResults);
+        $result = $this->eft->mergeEffects($this->model->model['e']['e']->value, $policyEffects, $matcherResults);
 
         if (Log::$enableLog) {
-            $reqStr = "Request: ";
+            $reqStr = 'Request: ';
             $reqStr .= implode(', ', array_values($rvals));
 
-            $reqStr .= sprintf(" ---> %s", (string) $result);
+            $reqStr .= sprintf(' ---> %s', (string) $result);
             Log::logPrint($reqStr);
         }
+
         return $result;
     }
 
@@ -362,7 +410,7 @@ class Enforcer
         $expressionLanguage = new ExpressionLanguage();
         foreach ($functions as $key => $func) {
             $expressionLanguage->register($key, function (...$args) use ($key) {
-                return sprintf($key . '(%1$s)', implode(',', $args));
+                return sprintf($key.'(%1$s)', implode(',', $args));
             }, function ($arguments, ...$args) use ($func) {
                 return $func(...$args);
             });

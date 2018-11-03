@@ -1,10 +1,12 @@
 <?php
+
 namespace Casbin\Model;
 
 use Casbin\Util\BuiltinOperations;
 
 /**
- * FunctionMap
+ * FunctionMap.
+ *
  * @author techlee@qq.com
  */
 class FunctionMap
@@ -18,18 +20,18 @@ class FunctionMap
 
     public static function loadFunctionMap()
     {
-        $fm = new FunctionMap();
+        $fm = new self();
 
-        $fm->addFunction("keyMatch", function (...$args) {
+        $fm->addFunction('keyMatch', function (...$args) {
             return BuiltinOperations::keyMatchFunc(...$args);
         });
-        $fm->addFunction("keyMatch2", function (...$args) {
+        $fm->addFunction('keyMatch2', function (...$args) {
             return BuiltinOperations::keyMatch2Func(...$args);
         });
-        $fm->addFunction("regexMatch", function (...$args) {
+        $fm->addFunction('regexMatch', function (...$args) {
             return BuiltinOperations::regexMatchFunc(...$args);
         });
-        $fm->addFunction("ipMatch", function (...$args) {
+        $fm->addFunction('ipMatch', function (...$args) {
             return BuiltinOperations::iPMatchFunc(...$args);
         });
 

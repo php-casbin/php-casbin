@@ -1,13 +1,15 @@
 <?php
+
 namespace Casbin\Rbac;
 
 /**
- * Role
+ * Role.
+ *
  * @author techlee@qq.com
  */
 class Role
 {
-    public $name   = '';
+    public $name = '';
     private $roles = [];
 
     public function __construct($name)
@@ -15,7 +17,7 @@ class Role
         $this->name = $name;
     }
 
-    public function addRole(Role $role)
+    public function addRole(self $role)
     {
         foreach ($this->roles as $rr) {
             if ($rr->name == $role->name) {
@@ -25,11 +27,12 @@ class Role
         $this->roles[] = $role;
     }
 
-    public function deleteRole(Role $role)
+    public function deleteRole(self $role)
     {
         foreach ($this->roles as $key => $rr) {
             if ($rr->name == $role->name) {
                 unset($this->roles[$key]);
+
                 return;
             }
         }
@@ -60,22 +63,22 @@ class Role
                 return true;
             }
         }
+
         return false;
     }
 
     public function toString()
     {
-
-        if (count($this->roles) == 0) {
-            return "";
+        if (0 == \count($this->roles)) {
+            return '';
         }
 
         $names = implode(', ', $this->getRoles());
 
-        if (count($this->roles) == 1) {
-            return $this->name . ' < ' . $names;
+        if (1 == \count($this->roles)) {
+            return $this->name.' < '.$names;
         } else {
-            return $this->name . ' < (' . $names . ')';
+            return $this->name.' < ('.$names.')';
         }
     }
 

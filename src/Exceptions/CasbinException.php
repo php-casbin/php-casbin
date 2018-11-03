@@ -1,11 +1,12 @@
 <?php
+
 namespace Casbin\Exceptions;
 
 /**
- * CasbinException
+ * CasbinException.
+ *
  * @author techlee@qq.com
  */
 class CasbinException extends \Exception
 {
-
 }

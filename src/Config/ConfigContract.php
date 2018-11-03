@@ -1,11 +1,12 @@
 <?php
+
 namespace Casbin\Config;
 
 /**
- * ConfigContract
+ * ConfigContract.
+ *
  * @author techlee@qq.com
  */
 interface ConfigContract
 {
-
 }

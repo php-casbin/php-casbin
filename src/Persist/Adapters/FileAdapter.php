@@ -1,4 +1,5 @@
 <?php
+
 namespace Casbin\Persist\Adapters;
 
 use Casbin\Exceptions\CasbinException;
@@ -7,7 +8,8 @@ use Casbin\Persist\AdapterHelper;
 use Casbin\Util\Util;
 
 /**
- * FileAdapter
+ * FileAdapter.
+ *
  * @author techlee@qq.com
  */
 class FileAdapter implements Adapter
@@ -24,7 +26,7 @@ class FileAdapter implements Adapter
     public function loadPolicy($model)
     {
         if (!file_exists($this->filePath)) {
-            throw new CasbinException("invalid file path, file path cannot be empty");
+            throw new CasbinException('invalid file path, file path cannot be empty');
         }
 
         $this->loadPolicyFile($model);
@@ -32,25 +34,29 @@ class FileAdapter implements Adapter
 
     public function savePolicy($model)
     {
-        if (!file_exists($this->filePath)) {
-            throw new CasbinException("invalid file path, file path cannot be empty");
+        if ('' == $this->filePath) {
+            throw new CasbinException('invalid file path, file path cannot be empty');
         }
 
         $writeString = '';
 
-        foreach ($model->model['p'] as $ptype => $ast) {
-            foreach ($ast->policy as $rule) {
-                $writeString .= $ptype . ',';
-                $writeString .= Util::arrayToString($rule);
-                $writeString .= PHP_EOL;
+        if (isset($model->model['p'])) {
+            foreach ($model->model['p'] as $ptype => $ast) {
+                foreach ($ast->policy as $rule) {
+                    $writeString .= $ptype.',';
+                    $writeString .= Util::arrayToString($rule);
+                    $writeString .= PHP_EOL;
+                }
             }
         }
 
-        foreach ($model->model['g'] as $ptype => $ast) {
-            foreach ($ast->policy as $rule) {
-                $writeString .= $ptype . ',';
-                $writeString .= Util::arrayToString($rule);
-                $writeString .= PHP_EOL;
+        if (isset($model->model['g'])) {
+            foreach ($model->model['g'] as $ptype => $ast) {
+                foreach ($ast->policy as $rule) {
+                    $writeString .= $ptype.',';
+                    $writeString .= Util::arrayToString($rule);
+                    $writeString .= PHP_EOL;
+                }
             }
         }
 
@@ -59,7 +65,7 @@ class FileAdapter implements Adapter
 
     public function loadPolicyFile($model)
     {
-        $file = fopen($this->filePath, 'r');
+        $file = fopen($this->filePath, 'rb');
         while ($line = fgets($file)) {
             $this->loadPolicyLine(trim($line), $model);
         }
@@ -68,22 +74,21 @@ class FileAdapter implements Adapter
 
     public function savePolicyFile($text)
     {
-        return file_put_contents($this->filePath, $text, FILE_APPEND | LOCK_EX);
+        return file_put_contents($this->filePath, $text, LOCK_EX);
     }
 
     public function addPolicy($sec, $ptype, $rule)
     {
-        throw new CasbinException("not implemented");
+        throw new CasbinException('not implemented');
     }
 
     public function removePolicy($sec, $ptype, $rule)
     {
-        throw new CasbinException("not implemented");
+        throw new CasbinException('not implemented');
     }
 
     public function removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
     {
-        throw new CasbinException("not implemented");
+        throw new CasbinException('not implemented');
     }
-
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Casbin\Rbac\DefaultRoleManager;
 
 use Casbin\Exceptions\CasbinException;
@@ -7,7 +8,8 @@ use Casbin\Rbac\RoleManager as RoleManagerContract;
 use Casbin\Util\Log;
 
 /**
- * RoleManager
+ * RoleManager.
+ *
  * @author techlee@qq.com
  */
 class RoleManager implements RoleManagerContract
@@ -18,7 +20,7 @@ class RoleManager implements RoleManagerContract
 
     public function __construct($maxHierarchyLevel)
     {
-        $this->allRoles          = [];
+        $this->allRoles = [];
         $this->maxHierarchyLevel = $maxHierarchyLevel;
     }
 
@@ -43,11 +45,11 @@ class RoleManager implements RoleManagerContract
 
     public function addLink($name1, $name2, ...$domain)
     {
-        if (count($domain) == 1) {
-            $name1 = $domain[0] . "::" . $name1;
-            $name2 = $domain[0] . "::" . $name2;
-        } elseif (count($domain) > 1) {
-            throw new CasbinException("error: domain should be 1 parameter");
+        if (1 == \count($domain)) {
+            $name1 = $domain[0].'::'.$name1;
+            $name2 = $domain[0].'::'.$name2;
+        } elseif (\count($domain) > 1) {
+            throw new CasbinException('error: domain should be 1 parameter');
         }
 
         $role1 = $this->createRole($name1);
@@ -57,15 +59,15 @@ class RoleManager implements RoleManagerContract
 
     public function deleteLink($name1, $name2, ...$domain)
     {
-        if (count($domain) == 1) {
-            $name1 = $domain[0] . "::" . $name1;
-            $name2 = $domain[0] . "::" . $name2;
-        } elseif (count($domain) > 1) {
-            throw new CasbinException("error: domain should be 1 parameter");
+        if (1 == \count($domain)) {
+            $name1 = $domain[0].'::'.$name1;
+            $name2 = $domain[0].'::'.$name2;
+        } elseif (\count($domain) > 1) {
+            throw new CasbinException('error: domain should be 1 parameter');
         }
 
         if (!$this->hasRole($name1) || !$this->hasRole($name2)) {
-            throw new CasbinException("error: name1 or name2 does not exist");
+            throw new CasbinException('error: name1 or name2 does not exist');
         }
 
         $role1 = $this->createRole($name1);
@@ -75,11 +77,11 @@ class RoleManager implements RoleManagerContract
 
     public function hasLink($name1, $name2, ...$domain)
     {
-        if (count($domain) == 1) {
-            $name1 = $domain[0] . "::" . $name1;
-            $name2 = $domain[0] . "::" . $name2;
-        } elseif (count($domain) > 1) {
-            throw new CasbinException("error: domain should be 1 parameter");
+        if (1 == \count($domain)) {
+            $name1 = $domain[0].'::'.$name1;
+            $name2 = $domain[0].'::'.$name2;
+        } elseif (\count($domain) > 1) {
+            throw new CasbinException('error: domain should be 1 parameter');
         }
 
         if ($name1 == $name2) {
@@ -91,15 +93,16 @@ class RoleManager implements RoleManagerContract
         }
 
         $role1 = $this->createRole($name1);
+
         return $role1->hasRole($name2, $this->maxHierarchyLevel);
     }
 
     public function getRoles($name, ...$domain)
     {
-        if (count($domain) == 1) {
-            $name = $domain[0] . "::" . $name;
-        } elseif (count($domain) > 1) {
-            throw new CasbinException("error: domain should be 1 parameter");
+        if (1 == \count($domain)) {
+            $name = $domain[0].'::'.$name;
+        } elseif (\count($domain) > 1) {
+            throw new CasbinException('error: domain should be 1 parameter');
         }
 
         if (!$this->hasRole($name)) {
@@ -107,18 +110,19 @@ class RoleManager implements RoleManagerContract
         }
 
         $roles = $this->createRole($name)->getRoles();
-        if (count($domain) == 1) {
+        if (1 == \count($domain)) {
             foreach ($roles as $key => $value) {
-                $roles[$key] = array_slice($roles[$key], strlen($domain[0]) + 2);
+                $roles[$key] = \array_slice($roles[$key], \strlen($domain[0]) + 2);
             }
         }
+
         return $roles;
     }
 
     public function getUsers($name, ...$domain)
     {
         if (!$this->hasRole($name)) {
-            throw new CasbinException("error: name does not exist");
+            throw new CasbinException('error: name does not exist');
         }
 
         $names = [];
@@ -127,6 +131,7 @@ class RoleManager implements RoleManagerContract
                 $names[] = $role->name;
             }
         }, $this->allRoles);
+
         return $names;
     }
 

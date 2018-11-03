@@ -1,10 +1,13 @@
 <?php
+
 namespace Casbin\Model;
 
 use Casbin\Util\Log;
+use Casbin\Util\Util;
 
 /**
- * Policy
+ * Policy.
+ *
  * @author techlee@qq.com
  */
 trait Policy
@@ -21,15 +24,14 @@ trait Policy
 
     public function printPolicy()
     {
-        Log::logPrint("Policy:");
+        Log::logPrint('Policy:');
         foreach (['p', 'g'] as $sec) {
             if (!isset($this->model[$sec])) {
                 return;
             }
             foreach ($this->model[$sec] as $key => $ast) {
-                Log::logPrint($key, ": ", $ast->value, ": ", $ast->policy);
+                Log::logPrint($key, ': ', $ast->value, ': ', $ast->policy);
             }
-
         }
     }
 
@@ -52,41 +54,87 @@ trait Policy
 
     public function hasPolicy($sec, $ptype, $rule)
     {
+        if (!isset($this->model[$sec][$ptype])) {
+            return false;
+        }
+
         foreach ($this->model[$sec][$ptype]->policy as $r) {
             if (empty(array_diff($rule, $r))) {
                 return true;
             }
         }
+
         return false;
     }
 
-    public function addPolicy($sec, $ptype, $rule)
+    public function addPolicy($sec, $ptype, array $rule)
     {
         if (!$this->hasPolicy($sec, $ptype, $rule)) {
             $this->model[$sec][$ptype]->policy[] = $rule;
+
             return true;
         }
+
         return false;
     }
 
-    public function removePolicy($sec, $ptype, $rule)
+    public function removePolicy($sec, $ptype, array $rule)
     {
         foreach ($this->model[$sec][$ptype]->policy as $i => $r) {
             if (empty(array_diff($rule, $r))) {
                 unset($this->model[$sec][$ptype]->policy[$i]);
+
                 return true;
             }
         }
+
         return false;
     }
 
     public function removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
     {
+        $tmp = [];
+        $res = false;
 
+        if (!isset($this->model[$sec][$ptype])) {
+            return $res;
+        }
+
+        foreach ($this->model[$sec][$ptype]->policy as $rule) {
+            $matched = true;
+            foreach ($fieldValues as $i => $fieldValue) {
+                if ('' != $fieldValue && $rule[$fieldIndex + $i] != $fieldValue) {
+                    $matched = false;
+                    break;
+                }
+            }
+
+            if ($matched) {
+                $res = true;
+            } else {
+                $tmp = array_merge($tmp, $rule);
+            }
+        }
+
+        $this->model[$sec][$ptype]->policy = $tmp;
+
+        return $res;
     }
 
-    public function GetValuesForFieldInPolicy($sec, $ptype, $fieldIndex)
+    public function getValuesForFieldInPolicy($sec, $ptype, $fieldIndex)
     {
+        $values = [];
 
+        if (!isset($this->model[$sec][$ptype])) {
+            return $values;
+        }
+
+        foreach ($this->model[$sec][$ptype]->policy as $rule) {
+            $values[] = $rule[$fieldIndex];
+        }
+
+        Util::arrayRemoveDuplicates($values);
+
+        return $values;
     }
 }

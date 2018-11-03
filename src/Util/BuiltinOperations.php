@@ -1,4 +1,5 @@
 <?php
+
 namespace Casbin\Util;
 
 use Casbin\Rbac\RoleManager;
@@ -6,20 +7,21 @@ use IPTools\IP;
 use IPTools\Range;
 
 /**
- * BuiltinOperations
+ * BuiltinOperations.
+ *
  * @author techlee@qq.com
  */
 class BuiltinOperations
 {
     public static function keyMatch($key1, $key2)
     {
-
         if (false === strpos($key2, '*')) {
             return $key1 == $key2;
         }
 
         $needle = rtrim($key2, '*');
-        return substr($key1, 0, strlen($needle)) === (string) $needle;
+
+        return substr($key1, 0, \strlen($needle)) === (string) $needle;
     }
 
     public static function keyMatchFunc(...$args)
@@ -35,15 +37,15 @@ class BuiltinOperations
         $key2 = str_replace(['/', '/*'], ['\/', '/.*'], $key2);
 
         $pattern = '/(:[a-zA-Z0-9-_]+)/';
-        $key2    = preg_replace_callback(
+        $key2 = preg_replace_callback(
             $pattern,
             function ($m) {
-                return "[a-zA-Z0-9-_]+";
+                return '[a-zA-Z0-9-_]+';
             },
             $key2
         );
 
-        $key2 = '^' . $key2 . '$';
+        $key2 = '^'.$key2.'$';
 
         return self::regexMatch($key1, $key2);
     }
@@ -54,7 +56,6 @@ class BuiltinOperations
         $name2 = $args[1];
 
         return self::keyMatch2($name1, $name2);
-
     }
 
     public function keyMatch3($key1, $key2)
@@ -66,10 +67,10 @@ class BuiltinOperations
             if (!strstr($key2, '/{')) {
                 break;
             }
-            $key2 = "^" . preg_replace($pattern, '$1[^/]+$2', $key2) . "$";
+            $key2 = '^'.preg_replace($pattern, '$1[^/]+$2', $key2).'$';
         }
-        return self::regexMatch($key1, $key2);
 
+        return self::regexMatch($key1, $key2);
     }
 
     public function keyMatch3Func(...$args)
@@ -82,7 +83,7 @@ class BuiltinOperations
 
     public static function regexMatch($key1, $key2)
     {
-        return preg_match('/' . $key2 . '/', $key1);
+        return preg_match('/'.$key2.'/', $key1);
     }
 
     public static function regexMatchFunc(...$args)
@@ -116,17 +117,18 @@ class BuiltinOperations
             $name1 = $args[0];
             $name2 = $args[1];
 
-            if (is_null($rm)) {
+            if (null === $rm) {
                 return $name1 == $name2;
-            } elseif (count($args) == 2) {
+            } elseif (2 == \count($args)) {
                 $res = $rm->hasLink($name1, $name2);
+
                 return $res;
             } else {
                 $domain = (string) $args[2];
-                $res    = $rm->hasLink($name1, $name2, $domain);
+                $res = $rm->hasLink($name1, $name2, $domain);
+
                 return $res;
             }
         };
     }
-
 }

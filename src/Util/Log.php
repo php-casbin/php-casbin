@@ -1,8 +1,10 @@
 <?php
+
 namespace Casbin\Util;
 
 /**
- * Log
+ * Log.
+ *
  * @author techlee@qq.com
  */
 class Log
@@ -14,9 +16,9 @@ class Log
         if (self::$enableLog) {
             echo date('Y-m-d H:i:s ');
             foreach ($v as $value) {
-                if (is_array($value)) {
+                if (\is_array($value)) {
                     $value = json_encode($value);
-                } elseif (is_object($value)) {
+                } elseif (\is_object($value)) {
                     $value = json_encode($value);
                 }
                 echo $value;
