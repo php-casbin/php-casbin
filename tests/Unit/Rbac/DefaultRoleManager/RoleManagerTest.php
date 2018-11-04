@@ -2,9 +2,9 @@
 
 namespace Casbin\Tests\Unit\Rbac\DefaultRoleManager;
 
-use PHPUnit\Framework\TestCase;
-use Casbin\Rbac\DefaultRoleManager\RoleManager;
 use Casbin\Exceptions\CasbinException;
+use Casbin\Rbac\DefaultRoleManager\RoleManager;
+use PHPUnit\Framework\TestCase;
 
 /**
  * RoleManagerTest.

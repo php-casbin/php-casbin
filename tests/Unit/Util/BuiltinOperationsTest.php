@@ -2,8 +2,8 @@
 
 namespace Casbin\Tests\Unit\Util;
 
-use PHPUnit\Framework\TestCase;
 use Casbin\Util\BuiltinOperations;
+use PHPUnit\Framework\TestCase;
 
 /**
  * RoleManagerTest.
