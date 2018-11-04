@@ -121,7 +121,7 @@ class Enforcer
             if (\is_bool($params[\count($params) - 1])) {
                 $enableLog = $params[\count($params) - 1];
                 $this->enableLog($enableLog);
-                ++$parsedParamLen;
+                $parsedParamLen++;
             }
         }
 

@@ -2,8 +2,8 @@
 
 namespace Casbin\Tests\Unit\Model;
 
-use Casbin\Model\Model;
 use Casbin\Enforcer;
+use Casbin\Model\Model;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -17,7 +17,7 @@ class ModelTest extends TestCase
 
     public function testLoadModelFromText()
     {
-        $text = <<<EOT
+        $text = <<<'EOT'
 [request_definition]
 r = sub, obj, act
 
