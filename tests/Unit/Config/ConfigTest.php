@@ -1,12 +1,12 @@
 <?php
 
-namespace Casbin\Tests\Feature;
+namespace Casbin\Tests\Unit\Config;
 
 use Casbin\Config\Config;
 use PHPUnit\Framework\TestCase;
 
 /**
- * EnforcerTest.
+ * ConfigTest.
  *
  * @author techlee@qq.com
  */

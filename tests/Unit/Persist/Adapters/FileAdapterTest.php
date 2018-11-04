@@ -1,13 +1,13 @@
 <?php
 
-namespace Casbin\Tests\Feature;
+namespace Casbin\Tests\Unit\Persist\Adapters;
 
 use Casbin\Model\Model;
 use Casbin\Persist\Adapters\FileAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**
- * EnforcerTest.
+ * FileAdapterTest.
  *
  * @author techlee@qq.com
  */
@@ -24,6 +24,9 @@ class FileAdapterTest extends TestCase
         $rule = ['admin', 'domain1', 'data1', 'read2'];
 
         $m->addPolicy('p', 'p', $rule);
+
+        $rule = ['alice', 'data2_admin'];
+        $m->addPolicy('g', 'g', $rule);
 
         $res = $adapter->savePolicy($m);
 

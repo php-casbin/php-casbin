@@ -34,18 +34,22 @@ class BuiltinOperations
 
     public static function keyMatch2($key1, $key2)
     {
-        $key2 = str_replace(['/', '/*'], ['\/', '/.*'], $key2);
+        $key2 = str_replace(['/*'], ['/.*'], $key2);
 
-        $pattern = '/(:[a-zA-Z0-9-_]+)/';
-        $key2 = preg_replace_callback(
-            $pattern,
-            function ($m) {
-                return '[a-zA-Z0-9-_]+';
-            },
-            $key2
-        );
-
-        $key2 = '^'.$key2.'$';
+        $pattern = '/(.*):[^\/]+(.*)/';
+        for (;;) {
+            if (false === strpos($key2, '/:')) {
+                break;
+            }
+            $key2 = preg_replace_callback(
+                $pattern,
+                function ($m) {
+                    return $m[1].'[^\/]+'.$m[2];
+                },
+                $key2
+            );
+            $key2 = '^'.$key2.'$';
+        }
 
         return self::regexMatch($key1, $key2);
     }
@@ -58,22 +62,28 @@ class BuiltinOperations
         return self::keyMatch2($name1, $name2);
     }
 
-    public function keyMatch3($key1, $key2)
+    public static function keyMatch3($key1, $key2)
     {
-        $key2 = str_replace(['/', '/*'], ['\/', '/.*'], $key2);
+        $key2 = str_replace(['/*'], ['/.*'], $key2);
 
-        $pattern = '/(.*)\{[^/]+\}(.*)/g';
-        for (; ;) {
-            if (!strstr($key2, '/{')) {
+        $pattern = '/(.*)\{[^\/]+\}(.*)/';
+        for (;;) {
+            if (false === strpos($key2, '/{')) {
                 break;
             }
-            $key2 = '^'.preg_replace($pattern, '$1[^/]+$2', $key2).'$';
+            $key2 = preg_replace_callback(
+                $pattern,
+                function ($m) {
+                    return $m[1].'[^\/]+'.$m[2];
+                },
+                $key2
+            );
         }
 
         return self::regexMatch($key1, $key2);
     }
 
-    public function keyMatch3Func(...$args)
+    public static function keyMatch3Func(...$args)
     {
         $name1 = $args[0];
         $name2 = $args[1];
@@ -83,7 +93,7 @@ class BuiltinOperations
 
     public static function regexMatch($key1, $key2)
     {
-        return preg_match('/'.$key2.'/', $key1);
+        return preg_match('~'.$key2.'~', $key1);
     }
 
     public static function regexMatchFunc(...$args)

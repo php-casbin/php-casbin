@@ -43,7 +43,7 @@ class FileAdapter implements Adapter
         if (isset($model->model['p'])) {
             foreach ($model->model['p'] as $ptype => $ast) {
                 foreach ($ast->policy as $rule) {
-                    $writeString .= $ptype.',';
+                    $writeString .= $ptype.', ';
                     $writeString .= Util::arrayToString($rule);
                     $writeString .= PHP_EOL;
                 }
@@ -53,7 +53,7 @@ class FileAdapter implements Adapter
         if (isset($model->model['g'])) {
             foreach ($model->model['g'] as $ptype => $ast) {
                 foreach ($ast->policy as $rule) {
-                    $writeString .= $ptype.',';
+                    $writeString .= $ptype.', ';
                     $writeString .= Util::arrayToString($rule);
                     $writeString .= PHP_EOL;
                 }

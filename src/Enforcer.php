@@ -94,12 +94,64 @@ class Enforcer
      */
     protected $autoBuildRoleLinks;
 
-    public function __construct($model, $policy)
+    /**
+     * Creates an enforcer via file or DB.
+     *
+     * File:
+     * $e = new Enforcer("path/to/basic_model.conf", "path/to/basic_policy.csv")
+     * MySQL DB:
+     * $a = DatabaseAdapter::newAdapter([
+     *      'type'     => 'mysql', // mysql,pgsql,sqlite,sqlsrv
+     *      'hostname' => '127.0.0.1',
+     *      'database' => 'test',
+     *      'username' => 'root',
+     *      'password' => '123456',
+     *      'hostport' => '3306',
+     *  ]);
+     * $e = new Enforcer("path/to/basic_model.conf", $a).
+     *
+     * @author techlee@qq.com
+     *
+     * @param [type] $params [description]
+     */
+    public function __construct(...$params)
     {
-        if (\is_string($policy)) {
-            $this->initWithFile($model, $policy);
+        $parsedParamLen = 0;
+        if (\count($params) >= 1) {
+            if (\is_bool($params[\count($params) - 1])) {
+                $enableLog = $params[\count($params) - 1];
+                $this->enableLog($enableLog);
+                ++$parsedParamLen;
+            }
+        }
+
+        if (2 == \count($params) - $parsedParamLen) {
+            $p0 = $params[0];
+            if (\is_string($p0)) {
+                $p1 = $params[1];
+                if (\is_string($p1)) {
+                    $this->initWithFile($p0, $p1);
+                } else {
+                    $this->initWithAdapter($p0, $p1);
+                }
+            } else {
+                if (\is_string($params[1])) {
+                    throw new CasbinException('Invalid parameters for enforcer.');
+                } else {
+                    $this->initWithModelAndAdapter($p0, $params[1]);
+                }
+            }
+        } elseif (1 == \count($params) - $parsedParamLen) {
+            $p0 = $params[0];
+            if (\is_string($p0)) {
+                $this->initWithFile($p0, '');
+            } else {
+                $this->initWithModelAndAdapter($p0, null);
+            }
+        } elseif (0 == \count($params) - $parsedParamLen) {
+            $this->initWithFile('', '');
         } else {
-            $this->initWithAdapter($model, $policy);
+            throw new CasbinException('Invalid parameters for enforcer.');
         }
     }
 
@@ -129,7 +181,13 @@ class Enforcer
         $this->modelPath = $modelPath;
     }
 
-    public function initWithModelAndAdapter(Model $m, Adapter $adapter)
+    /**
+     * initWithModelAndAdapter initializes an enforcer with a model and a database adapter.
+     *
+     * @param Model        $m
+     * @param Adapter|null $adapter
+     */
+    public function initWithModelAndAdapter(Model $m, $adapter)
     {
         $this->adapter = $adapter;
 
@@ -164,7 +222,7 @@ class Enforcer
                 $model->loadModel($text[0]);
             }
         } elseif (1 == \count($text)) {
-            $model->loadModel($text[0]);
+            $model->loadModelFromText($text[0]);
         } elseif (0 != \count($text)) {
             throw new CasbinException('Invalid parameters for model.');
         }

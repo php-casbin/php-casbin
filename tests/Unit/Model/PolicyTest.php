@@ -1,12 +1,12 @@
 <?php
 
-namespace Casbin\Tests\Feature;
+namespace Casbin\Tests\Unit\Model;
 
 use Casbin\Model\Model;
 use PHPUnit\Framework\TestCase;
 
 /**
- * EnforcerTest.
+ * PolicyTest.
  *
  * @author techlee@qq.com
  */
@@ -23,7 +23,7 @@ class PolicyTest extends TestCase
 
         $m->addPolicy('p', 'p', $rule);
 
-        $this->assertTrue($m->hasPolicy('p', 'p', $rule));
+        $this->assertTrue($m->getPolicy('p', 'p') == [$rule]);
     }
 
     public function testHasPolicy()
@@ -65,6 +65,8 @@ class PolicyTest extends TestCase
         $m->removePolicy('p', 'p1', $rule);
 
         $this->assertFalse($m->hasPolicy('p', 'p1', $rule));
+
+        $this->assertFalse($m->removePolicy('p', 'p1', $rule));
     }
 
     public function testRemoveFilteredPolicy()
