@@ -2,9 +2,9 @@
 
 namespace Casbin\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Enforcer;
+use Casbin\Persist\Adapters\FileAdapter;
+use PHPUnit\Framework\TestCase;
 
 /**
  * EnforcerTest.
@@ -20,7 +20,7 @@ class EnforcerTest extends TestCase
         $e = new Enforcer();
 
         $m = Enforcer::newModel(
-            <<<EOT
+            <<<'EOT'
 [request_definition]
 r = sub, obj, act
 
