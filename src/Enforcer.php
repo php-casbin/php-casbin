@@ -199,7 +199,11 @@ class Enforcer
         $this->initialize();
 
         if (null !== $this->adapter) {
-            $this->loadPolicy();
+            try {
+                $this->loadPolicy();
+            } catch (\Exception $e) {
+                // error intentionally ignored
+            }
         }
     }
 
