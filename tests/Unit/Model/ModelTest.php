@@ -18,15 +18,19 @@ class ModelTest extends TestCase
     public function testLoadModelFromText()
     {
         $text = <<<'EOT'
+# Request definition
 [request_definition]
 r = sub, obj, act
 
+# Policy definition
 [policy_definition]
 p = sub, obj, act
 
+# Policy effect
 [policy_effect]
 e = some(where (p.eft == allow))
 
+# Matchers
 [matchers]
 m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
 EOT;

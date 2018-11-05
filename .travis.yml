@@ -5,13 +5,12 @@ php:
   - 7.1
   - 7.2
 
-before_script:
- - wget http://getcomposer.org/composer.phar
- - php composer.phar install --dev --no-interaction
+install:
+ - composer install --prefer-dist --dev --no-interaction
 
 script:
  - mkdir -p build/logs
- - phpunit --coverage-clover build/logs/clover.xml
+ - phpunit
 
 after_script:
- - php vendor/bin/php-coveralls
+ - travis_retry vendor/bin/php-coveralls -v

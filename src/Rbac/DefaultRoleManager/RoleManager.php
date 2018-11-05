@@ -70,8 +70,6 @@ class RoleManager implements RoleManagerContract
             throw new CasbinException('error: name1 or name2 does not exist');
         }
 
-        var_dump($this->hasRole($name1));
-
         $role1 = $this->createRole($name1);
         $role2 = $this->createRole($name2);
         $role1->deleteRole($role2);

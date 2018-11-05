@@ -12,8 +12,4 @@ use PHPUnit\Framework\TestCase;
 class EnforcerTest extends TestCase
 {
     private $modelAndPolicyPath = __DIR__.'/../examples/modelandpolicy';
-
-    public function testEnforceBasic()
-    {
-    }
 }

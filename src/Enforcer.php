@@ -121,7 +121,7 @@ class Enforcer
             if (\is_bool($params[\count($params) - 1])) {
                 $enableLog = $params[\count($params) - 1];
                 $this->enableLog($enableLog);
-                $parsedParamLen++;
+                ++$parsedParamLen;
             }
         }
 
@@ -465,6 +465,14 @@ class Enforcer
 
     protected function expressionEvaluate($expString, $parameters, $functions)
     {
+        $expString = preg_replace_callback(
+            '/([\s\S]*in\s+)\(([\s\S]+)\)([\s\S]*)/',
+            function ($m) {
+                return $m[1].'['.$m[2].']'.$m[3];
+            },
+            $expString
+        );
+
         $expressionLanguage = new ExpressionLanguage();
         foreach ($functions as $key => $func) {
             $expressionLanguage->register($key, function (...$args) use ($key) {
