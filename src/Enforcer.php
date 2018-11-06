@@ -306,7 +306,7 @@ class Enforcer
         } else {
             throw new CasbinException('filtered policies are not supported by this adapter');
         }
-        $filteredAdapter->loadFilteredPolicy($this0->model, $filter);
+        $filteredAdapter->loadFilteredPolicy($this->model, $filter);
 
         $this->model->printPolicy();
         if ($this->autoBuildRoleLinks) {
