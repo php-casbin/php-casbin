@@ -62,6 +62,7 @@ trait Policy
             foreach ($fieldValues as $i => $fieldValue) {
                 if ('' != $fieldValue && $rule[$fieldIndex + $i] != $fieldValue) {
                     $matched = false;
+
                     break;
                 }
             }
@@ -127,6 +128,7 @@ trait Policy
             foreach ($fieldValues as $i => $fieldValue) {
                 if ('' != $fieldValue && $rule[$fieldIndex + $i] != $fieldValue) {
                     $matched = false;
+
                     break;
                 }
             }

@@ -75,7 +75,7 @@ class Model
             if (!$this->loadAssertion($cfg, $sec, $sec.$this->getKeySuffix($i))) {
                 break;
             } else {
-                $i++;
+                ++$i;
             }
         }
     }

@@ -71,24 +71,26 @@ class Config implements ConfigContract
         $buf = preg_replace('/[\r\n]+/', PHP_EOL, $buf);
         $buf = explode(PHP_EOL, $buf);
 
-        for ($i = 0; $i <= \count($buf); $i++) {
+        for ($i = 0; $i <= \count($buf); ++$i) {
             if ($canWrite) {
                 $this->write($section, $lineNum, $buffer);
                 $canWrite = false;
             }
 
-            $lineNum++;
+            ++$lineNum;
             $line = isset($buf[$i]) ? $buf[$i] : '';
             if ($i == \count($buf)) {
                 if (\strlen($buffer) > 0) {
                     $this->write($section, $lineNum, $buffer);
                 }
+
                 break;
             }
             $line = trim($line);
 
             if ('' == $line || self::DEFAULT_COMMENT == substr($line, 0, 1) || self::DEFAULT_COMMENT_SEM == substr($line, 0, 1)) {
                 $canWrite = true;
+
                 continue;
             } elseif ('[' == substr($line, 0, 1) && ']' == substr($line, -1)) {
                 if (\strlen($buffer) > 0) {
