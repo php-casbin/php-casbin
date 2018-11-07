@@ -13,7 +13,7 @@ class FunctionMap
 {
     private $functions = [];
 
-    public function addFunction($name, $func)
+    public function addFunction($name, \Closure $func)
     {
         $this->functions[$name] = $func;
     }

@@ -24,6 +24,8 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
  */
 class Enforcer
 {
+    use InternalApi, ManagementApi;
+
     /**
      * model path.
      *
@@ -121,7 +123,7 @@ class Enforcer
             if (\is_bool($params[\count($params) - 1])) {
                 $enableLog = $params[\count($params) - 1];
                 $this->enableLog($enableLog);
-                $parsedParamLen++;
+                ++$parsedParamLen;
             }
         }
 

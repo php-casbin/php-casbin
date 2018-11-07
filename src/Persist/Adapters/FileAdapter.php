@@ -3,6 +3,7 @@
 namespace Casbin\Persist\Adapters;
 
 use Casbin\Exceptions\CasbinException;
+use Casbin\Exceptions\NotImplementedException;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\AdapterHelper;
 use Casbin\Util\Util;
@@ -79,16 +80,16 @@ class FileAdapter implements Adapter
 
     public function addPolicy($sec, $ptype, $rule)
     {
-        throw new CasbinException('not implemented');
+        throw new NotImplementedException('not implemented');
     }
 
     public function removePolicy($sec, $ptype, $rule)
     {
-        throw new CasbinException('not implemented');
+        throw new NotImplementedException('not implemented');
     }
 
     public function removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
     {
-        throw new CasbinException('not implemented');
+        throw new NotImplementedException('not implemented');
     }
 }

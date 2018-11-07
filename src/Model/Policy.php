@@ -52,6 +52,28 @@ trait Policy
         return $this->model[$sec][$ptype]->policy;
     }
 
+    // GetFilteredPolicy gets rules based on field filters from a policy.
+    public function getFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
+    {
+        $res = [];
+
+        foreach ($this->model[$sec][$ptype]->policy as $rule) {
+            $matched = true;
+            foreach ($fieldValues as $i => $fieldValue) {
+                if ('' != $fieldValue && $rule[$fieldIndex + $i] != $fieldValue) {
+                    $matched = false;
+                    break;
+                }
+            }
+
+            if ($matched) {
+                $res[] = $rule;
+            }
+        }
+
+        return $res;
+    }
+
     public function hasPolicy($sec, $ptype, $rule)
     {
         if (!isset($this->model[$sec][$ptype])) {
@@ -82,7 +104,7 @@ trait Policy
     {
         foreach ($this->model[$sec][$ptype]->policy as $i => $r) {
             if (empty(array_diff($rule, $r))) {
-                unset($this->model[$sec][$ptype]->policy[$i]);
+                array_splice($this->model[$sec][$ptype]->policy, $i, 1);
 
                 return true;
             }
@@ -112,7 +134,7 @@ trait Policy
             if ($matched) {
                 $res = true;
             } else {
-                $tmp = array_merge($tmp, $rule);
+                $tmp[] = $rule;
             }
         }
 
