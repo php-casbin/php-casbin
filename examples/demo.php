@@ -13,7 +13,7 @@ $sub = 'alice'; // 想要访问资源的用户。$cfg
 $obj = 'data1'; // 将被访问的资源。buildRoleLinks
 $act = 'read'; // 用户对资源执行的操作。
 
-if ($e->enforce($sub, $obj, $act) === true) {
+if (true === $e->enforce($sub, $obj, $act)) {
     // 允许 alice 读取 data1
     echo '允许 alice 读取 data1';
 } else {

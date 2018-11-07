@@ -408,11 +408,13 @@ class Enforcer
                 if (\is_bool($result)) {
                     if (!$result) {
                         $policyEffects[$i] = Effector::INDETERMINATE;
+
                         continue;
                     }
                 } elseif (\is_float($result)) {
                     if (0 == $result) {
                         $policyEffects[$i] = Effector::INDETERMINATE;
+
                         continue;
                     } else {
                         $matcherResults[$i] = $result;
