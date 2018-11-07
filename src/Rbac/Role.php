@@ -10,6 +10,7 @@ namespace Casbin\Rbac;
 class Role
 {
     public $name = '';
+
     private $roles = [];
 
     public function __construct($name)

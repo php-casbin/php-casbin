@@ -27,6 +27,7 @@ class DefaultEffector extends Effector
             foreach ($effects as $eft) {
                 if (self::ALLOW == $eft) {
                     $result = true;
+
                     break;
                 }
             }
@@ -35,6 +36,7 @@ class DefaultEffector extends Effector
             foreach ($effects as $eft) {
                 if (self::DENY == $eft) {
                     $result = false;
+
                     break;
                 }
             }
@@ -44,6 +46,7 @@ class DefaultEffector extends Effector
                     $result = true;
                 } elseif (self::DENY == $eft) {
                     $result = false;
+
                     break;
                 }
             }
@@ -55,6 +58,7 @@ class DefaultEffector extends Effector
                     } else {
                         $result = false;
                     }
+
                     break;
                 }
             }
