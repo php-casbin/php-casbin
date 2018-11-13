@@ -194,6 +194,7 @@ Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/master
 ### Web frameworks
 
 - [Laravel](https://laravel.com/): The PHP framework for web artisans, via plugin: [laravel-casbin](https://github.com/php-casbin/laravel-casbin)
+- [ThinkPHP](http://www.thinkphp.cn/): The ThinkPHP framework, via plugin: [think-casbin](https://github.com/php-casbin/think-casbin)
 
 ## License
 

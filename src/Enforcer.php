@@ -114,7 +114,7 @@ class Enforcer
      *
      * @author techlee@qq.com
      *
-     * @param [type] $params [description]
+     * @param array|mixed ...$params
      */
     public function __construct(...$params)
     {
