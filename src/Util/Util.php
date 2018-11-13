@@ -37,7 +37,7 @@ class Util
             if (!isset($found[$x])) {
                 $found[$x] = true;
                 $s[$j] = $s[$i];
-                $j++;
+                ++$j;
             }
         }
         $s = \array_slice($s, 0, $j);
