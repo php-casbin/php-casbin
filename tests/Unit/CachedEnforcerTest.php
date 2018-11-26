@@ -12,7 +12,7 @@ use Casbin\CachedEnforcer;
  */
 class CachedEnforcerTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../examples/modelandpolicy';
+    private $modelAndPolicyPath = __DIR__.'/../../examples';
 
     public function testEnforce()
     {

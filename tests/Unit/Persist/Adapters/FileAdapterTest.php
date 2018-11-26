@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class FileAdapterTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../../../examples/modelandpolicy';
+    private $modelAndPolicyPath = __DIR__.'/../../../../examples';
 
     public function testSavePolicy()
     {

@@ -12,7 +12,7 @@ use Casbin\Enforcer;
  */
 class ManagementApiTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../examples/modelandpolicy';
+    private $modelAndPolicyPath = __DIR__.'/../../examples';
 
     public function testGetList()
     {

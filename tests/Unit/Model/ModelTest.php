@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class ModelTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../../examples/modelandpolicy';
+    private $modelAndPolicyPath = __DIR__.'/../../../examples';
 
     public function testLoadModelFromText()
     {
