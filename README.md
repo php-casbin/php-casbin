@@ -1,4 +1,4 @@
-php-casbin
+PHP-Casbin
 ====
 
 [![StyleCI](https://github.styleci.io/repos/153135401/shield?branch=master)](https://github.styleci.io/repos/153135401)
@@ -9,7 +9,7 @@ php-casbin
 [![License](https://poser.pugx.org/casbin/casbin/license)](https://packagist.org/packages/casbin/casbin)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/casbin/lobby)
 
-php-casbin is a powerful and efficient open-source access control library for PHP projects. It provides support for enforcing authorization based on various [access control models](https://en.wikipedia.org/wiki/Computer_security_model).
+**PHP-Casbin** is a powerful and efficient open-source access control library for PHP projects. It provides support for enforcing authorization based on various [access control models](https://en.wikipedia.org/wiki/Computer_security_model).
 
 ## All the languages supported by Casbin:
 
@@ -20,29 +20,33 @@ production-ready | production-ready | production-ready | production-ready
 
 ## Installation
 
+Require this package in the `composer.json` of your project. This will download the package:
+
 ```
 composer require casbin/casbin
 ```
 
 ## Get started
 
-```php
+1. New a Casbin enforcer with a model file and a policy file:
 
+```php
 require_once './vendor/autoload.php';
 
 use Casbin\Enforcer;
-use Casbin\Util\Log;
 
-Log::$enableLog = true;
+$e = new Enforcer("path/to/model.conf", "path/to/policy.csv");
+```
 
-$e = new Enforcer(__DIR__ . '/examples/modelandpolicy/basic_model.conf', __DIR__ . "/examples/modelandpolicy/basic_policy.csv");
+2. Add an enforcement hook into your code right before the access happens:
 
+```php
 $sub = "alice"; // the user that wants to access a resource.
 $obj = "data1"; // the resource that is going to be accessed.
 $act = "read"; // the operation that the user performs on the resource.
 
 if ($e->enforce($sub, $obj, $act) === true) {
-    // permit alice to read data1x
+    // permit alice to read data1
 } else {
     // deny the request, show an error
 }
@@ -143,8 +147,8 @@ https://casbin.org/docs/en/tutorials
 
 php-casbin provides two sets of APIs to manage permissions:
 
-- [Management API](https://github.com/php-casbin/php-casbin/master/src/main/java/org/casbin/php-casbin/main/ManagementEnforcer.java): the primitive API that provides full support for php-casbin policy management. See [here](https://github.com/php-casbin/php-casbin/master/src/test/java/org/casbin/php-casbin/main/ManagementAPIUnitTest.java) for examples.
-- [RBAC API](https://github.com/php-casbin/php-casbin/master/src/main/java/org/casbin/php-casbin/main/Enforcer.java): a more friendly API for RBAC. This API is a subset of Management API. The RBAC users could use this API to simplify the code. See [here](https://github.com/php-casbin/php-casbin/master/src/test/java/org/casbin/php-casbin/main/RbacAPIUnitTest.java) for examples.
+- [Management API](https://github.com/php-casbin/php-casbin/blob/master/src/ManagementApi.php): the primitive API that provides full support for php-casbin policy management. See [here](https://github.com/php-casbin/php-casbin/blob/master/tests/Unit/ManagementApiTest.php) for examples.
+- [RBAC API](https://github.com/php-casbin/php-casbin/blob/master/src/Enforcer.php): a more friendly API for RBAC. This API is a subset of Management API. The RBAC users could use this API to simplify the code. See [here](https://github.com/php-casbin/php-casbin/blob/master/tests/Unit/EnforcerTest.php) for examples.
 
 We also provide a web-based UI for model management and policy management:
 
@@ -169,9 +173,9 @@ The role manager is used to manage the RBAC role hierarchy (user-role mapping) i
 
 Role manager | Author | Description
 ----|----|----
-[Default Role Manager (built-in)](https://github.com/php-casbin/php-casbin/master/src/rbac/defaultRoleManager.ts) | php-casbin | Supports role hierarchy stored in php-casbin policy
+[Default Role Manager (built-in)](https://github.com/php-casbin/php-casbin/blob/master/src/Rbac/DefaultRoleManager/RoleManager.php) | php-casbin | Supports role hierarchy stored in php-casbin policy
 
-For developers: all role managers must implement the [RoleManager](https://github.com/php-casbin/php-casbin/master/src/rbac/roleManager.ts) interface. [Default Role Manager](https://github.com/php-casbin/php-casbin/master/src/rbac/defaultRoleManager.ts) can be used as a reference implementation.
+For developers: all role managers must implement the [RoleManager](https://github.com/php-casbin/php-casbin/blob/master/src/Rbac/RoleManager.php) interface. [Default Role Manager](https://github.com/php-casbin/php-casbin/blob/master/src/Rbac/DefaultRoleManager/RoleManager.php) can be used as a reference implementation.
 
 ## Examples
 
