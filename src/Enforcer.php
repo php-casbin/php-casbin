@@ -24,7 +24,7 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
  */
 class Enforcer
 {
-    use InternalApi, ManagementApi;
+    use InternalApi, ManagementApi, RbacApi;
 
     /**
      * model path.
