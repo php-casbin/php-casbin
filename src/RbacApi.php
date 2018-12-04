@@ -25,6 +25,7 @@ trait RbacApi
         foreach ($roles as $r) {
             if ($r == $role) {
                 $hasRole = true;
+
                 break;
             }
         }
