@@ -128,8 +128,8 @@ trait RbacApi
         return $this->hasPolicy($params);
     }
 
-    // GetImplicitRolesForUser gets implicit roles that a user has.
-    // Compared to GetRolesForUser(), this function retrieves indirect roles besides direct roles.
+    // getImplicitRolesForUser gets implicit roles that a user has.
+    // Compared to getRolesForUser(), this function retrieves indirect roles besides direct roles.
     // For example:
     // g, alice, role:admin
     // g, role:admin, role:user
@@ -169,7 +169,7 @@ trait RbacApi
     // p, alice, data2, read
     // g, alice, admin
     //
-    // petPermissionsForUser("alice") can only get: [["alice", "data2", "read"]].
+    // getPermissionsForUser("alice") can only get: [["alice", "data2", "read"]].
     // But getImplicitPermissionsForUser("alice") will get: [["admin", "data1", "read"], ["alice", "data2", "read"]].
     public function getImplicitPermissionsForUser($user)
     {
