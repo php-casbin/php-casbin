@@ -161,8 +161,6 @@ Casbin 提供两组 API 来管理权限:
 
 ## Policy持久化
 
-In php-casbin, the policy storage is implemented as an adapter (aka middleware for php-casbin). To keep light-weight, we don't put adapter code in the main library (except the default file adapter). 
-
 在`Casbin`中，适配器(`adapter`，`Casbin`的中间件)实现了`policy`规则写入持久层的细节。 `Casbin`的用户可以调用`adapter`的`loadPolicy()`方法从持久层中加载`policy`规则， 同样也可以调用`savePolicy()`方法将`Policy`规则保存到持久层中。 为了保持代码轻量, 我们没有将`adapter`的代码放在主库中。
 
 以下是`PHP-Casbin`支持的适配器：（欢迎更多新的第三方贡献的适配器，可以联系我们添加在下面)
