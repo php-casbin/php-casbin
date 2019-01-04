@@ -27,11 +27,11 @@ class DefaultLoggerTest extends TestCase
         if (file_exists($logfile)) {
             unlink($logfile);
         }
-        $logger->print('testing logger');
+        $logger->write('testing logger');
 
-        $logger->print(['testing', 'logger']);
+        $logger->write(['testing', 'logger']);
 
-        $logger->printf('testing %s', 'DefaultLogger');
+        $logger->writef('testing %s', 'DefaultLogger');
 
         $this->assertTrue(file_exists($logfile));
     }

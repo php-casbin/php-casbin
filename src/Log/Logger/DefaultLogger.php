@@ -40,7 +40,7 @@ class DefaultLogger implements Logger
         return $this->enable;
     }
 
-    public function print(...$v)
+    public function write(...$v)
     {
         if ($this->enable) {
             $content = date('Y-m-d H:i:s ');
@@ -53,21 +53,21 @@ class DefaultLogger implements Logger
                 $content .= $value;
             }
             $content .= PHP_EOL;
-            $this->write($content);
+            $this->save($content);
         }
     }
 
-    public function printf($format, ...$v)
+    public function writef($format, ...$v)
     {
         if ($this->enable) {
             $content = date('Y-m-d H:i:s ');
             $content .= sprintf($format, ...$v);
             $content .= PHP_EOL;
-            $this->write($content);
+            $this->save($content);
         }
     }
 
-    public function write($content)
+    public function save($content)
     {
         $file = $this->path.DIRECTORY_SEPARATOR.$this->name;
         file_put_contents($file, $content, FILE_APPEND | LOCK_EX);

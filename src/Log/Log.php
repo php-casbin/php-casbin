@@ -43,7 +43,7 @@ class Log
      */
     public static function logPrint(...$v)
     {
-        self::$logger->print(...$v);
+        self::$logger->write(...$v);
     }
 
     /**
@@ -54,7 +54,7 @@ class Log
      */
     public static function logPrintf($format, ...$v)
     {
-        self::$logger->printf($format, ...$v);
+        self::$logger->writef($format, ...$v);
     }
 }
 

@@ -13,9 +13,9 @@ interface Logger
     //IsEnabled returns if logger is enabled.
     public function isEnabled();
 
-    //Print formats using the default formats for its operands and logs the message.
-    public function print(...$v);
+    //write formats using the default formats for its operands and logs the message.
+    public function write(...$v);
 
-    //Printf formats according to a format specifier and logs the message.
-    public function printf($format, ...$v);
+    //writef formats according to a format specifier and logs the message.
+    public function writef($format, ...$v);
 }
