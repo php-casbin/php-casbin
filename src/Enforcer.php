@@ -14,7 +14,7 @@ use Casbin\Persist\Watcher;
 use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
-use Casbin\Util\Log;
+use Casbin\Log\Log;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
@@ -346,7 +346,7 @@ class Enforcer
 
     public function enableLog($enabled = true)
     {
-        Log::$enableLog = $enabled;
+        Log::getLogger()->enableLog($enabled);
     }
 
     public function enableAutoSave($autoSave = true)
@@ -460,7 +460,7 @@ class Enforcer
 
         $result = $this->eft->mergeEffects($this->model->model['e']['e']->value, $policyEffects, $matcherResults);
 
-        if (Log::$enableLog) {
+        if (Log::getLogger()->isEnabled()) {
             $reqStr = 'Request: ';
             $reqStr .= implode(', ', array_values($rvals));
 

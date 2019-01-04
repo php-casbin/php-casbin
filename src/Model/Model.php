@@ -3,7 +3,7 @@
 namespace Casbin\Model;
 
 use Casbin\Config\Config;
-use Casbin\Util\Log;
+use Casbin\Log\Log;
 use Casbin\Util\Util;
 
 /**
@@ -71,7 +71,7 @@ class Model
     private function loadSection($cfg, $sec)
     {
         $i = 1;
-        for (; ;) {
+        for (;;) {
             if (!$this->loadAssertion($cfg, $sec, $sec.$this->getKeySuffix($i))) {
                 break;
             } else {

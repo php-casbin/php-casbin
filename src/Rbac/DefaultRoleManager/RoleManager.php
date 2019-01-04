@@ -5,7 +5,7 @@ namespace Casbin\Rbac\DefaultRoleManager;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Rbac\Role;
 use Casbin\Rbac\RoleManager as RoleManagerContract;
-use Casbin\Util\Log;
+use Casbin\Log\Log;
 
 /**
  * RoleManager.

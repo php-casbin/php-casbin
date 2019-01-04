@@ -2,7 +2,7 @@
 
 namespace Casbin\Model;
 
-use Casbin\Util\Log;
+use Casbin\Log\Log;
 use Casbin\Util\Util;
 
 /**

@@ -4,7 +4,7 @@ namespace Casbin\Model;
 
 use Casbin\Exceptions\CasbinException;
 use Casbin\Rbac\RoleManager;
-use Casbin\Util\Log;
+use Casbin\Log\Log;
 
 /**
  * Assertion.
