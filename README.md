@@ -203,6 +203,8 @@ Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/blob/m
 
 - [Yii PHP Framework](https://www.yiiframework.com/): A fast, secure, and efficient PHP framework, via plugin: [yii-casbin](https://github.com/php-casbin/yii-casbin)
 
+- [CakePHP](https://cakephp.org/): Build fast, grow solid | PHP Framework, via plugin: [cake-casbin](https://github.com/php-casbin/cake-casbin)
+
 - [ThinkPHP](http://www.thinkphp.cn/): The ThinkPHP framework, via plugin: [think-casbin](https://github.com/php-casbin/think-casbin)
 
 ## License
