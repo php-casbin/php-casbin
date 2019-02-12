@@ -14,10 +14,15 @@ PHP-Casbin
 
 ## Casbin支持的编程语言:
 
-[![golang](https://casbin.org/docs/assets/langs/golang.png)](https://github.com/casbin/casbin) | [![java](https://casbin.org/docs/assets/langs/java.png)](https://github.com/casbin/jcasbin) | [![nodejs](https://casbin.org/docs/assets/langs/nodejs.png)](https://github.com/casbin/node-casbin) | [![php](https://casbin.org/docs/assets/langs/php.png)](https://github.com/php-casbin/php-casbin)
+[![golang](https://casbin.org/img/langs/golang.png)](https://github.com/casbin/casbin) | [![java](https://casbin.org/img/langs/java.png)](https://github.com/casbin/jcasbin) | [![nodejs](https://casbin.org/img/langs/nodejs.png)](https://github.com/casbin/node-casbin) | [![php](https://casbin.org/img/langs/php.png)](https://github.com/php-casbin/php-casbin)
 ----|----|----|----
 [Casbin](https://github.com/casbin/casbin) | [jCasbin](https://github.com/casbin/jcasbin) | [node-Casbin](https://github.com/casbin/node-casbin) | [PHP-Casbin](https://github.com/php-casbin/php-casbin)
 可用于生产环境 | 可用于生产环境 | 可用于生产环境 | 可用于生产环境
+
+[![python](https://casbin.org/img/langs/python.png)](https://github.com/casbin/pycasbin) | [![delphi](https://casbin.org/img/langs/delphi.png)](https://github.com/casbin4d/Casbin4D) | [![dotnet](https://casbin.org/img/langs/dotnet.png)](https://github.com/Devolutions/casbin-net) | [![rust](https://casbin.org/img/langs/rust.png)](https://github.com/Devolutions/casbin-rs)
+----|----|----|----
+[PyCasbin](https://github.com/casbin/pycasbin) | [Casbin4D](https://github.com/casbin4d/Casbin4D) | [Casbin-Net](https://github.com/Devolutions/casbin-net) | [Casbin-RS](https://github.com/Devolutions/casbin-rs)
+可用于生产环境 | experimental | WIP | WIP
 
 ## 安装
 
@@ -65,7 +70,7 @@ if ($e->enforce($sub, $obj, $act) === true) {
 - [Policy持久化](#Policy持久化)
 - [Role管理](#Role管理)
 - [例子](#例子)
-- [支持的适配器](#支持的适配器)
+- [我们的采用者](#我们的采用者)
 - [协议](#协议)
 - [联系](#联系)
 
@@ -198,13 +203,15 @@ RESTful | [keymatch_model.conf](https://github.com/php-casbin/php-casbin/blob/ma
 Deny-override | [rbac_model_with_deny.conf](https://github.com/php-casbin/php-casbin/blob/master/examples/rbac_with_deny_model.conf)  | [rbac_policy_with_deny.csv](https://github.com/php-casbin/php-casbin/blob/master/examples/rbac_with_deny_policy.csv)
 Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/blob/master/examples/priority_model.conf)  | [priority_policy.csv](https://github.com/php-casbin/php-casbin/blob/master/examples/priority_policy.csv)
 
-## 支持的适配器
+## 我们的采用者
 
 ### Web框架
 
 - [Laravel](https://laravel.com/): 为WEB艺术家创造的PHP框架, 通过这个扩展: [laravel-casbin](https://github.com/php-casbin/laravel-casbin)
 
 - [Yii PHP Framework](https://www.yiiframework.com/): 一个高性能的，适用于开发WEB2.0应用的PHP框架, 通过这个扩展: [yii-casbin](https://github.com/php-casbin/yii-casbin)
+
+- [CakePHP](https://cakephp.org/): 快速、稳定的PHP框架, 通过这个扩展: [cake-casbin](https://github.com/php-casbin/cake-casbin)
 
 - [ThinkPHP](http://www.thinkphp.cn/): 一个免费开源的，快速、简单的面向对象的轻量级PHP开发框架, 通过这个扩展: [think-casbin](https://github.com/php-casbin/think-casbin)
 
