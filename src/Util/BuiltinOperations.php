@@ -37,7 +37,7 @@ class BuiltinOperations
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/(.*):[^\/]+(.*)/';
-        for (;;) {
+        for (; ;) {
             if (false === strpos($key2, '/:')) {
                 break;
             }
@@ -67,7 +67,7 @@ class BuiltinOperations
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/(.*)\{[^\/]+\}(.*)/';
-        for (;;) {
+        for (; ;) {
             if (false === strpos($key2, '/{')) {
                 break;
             }
