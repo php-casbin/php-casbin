@@ -37,7 +37,7 @@ class BuiltinOperations
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/(.*):[^\/]+(.*)/';
-        for (; ;) {
+        for (;;) {
             if (false === strpos($key2, '/:')) {
                 break;
             }
@@ -67,7 +67,7 @@ class BuiltinOperations
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/(.*)\{[^\/]+\}(.*)/';
-        for (; ;) {
+        for (;;) {
             if (false === strpos($key2, '/{')) {
                 break;
             }
@@ -121,7 +121,7 @@ class BuiltinOperations
         return self::iPMatch($ip1, $ip2);
     }
 
-    public static function generateGFunction(RoleManager $rm)
+    public static function generateGFunction(RoleManager $rm = null)
     {
         return function (...$args) use ($rm) {
             $name1 = $args[0];

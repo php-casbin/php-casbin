@@ -3,6 +3,7 @@
 namespace Casbin\Tests;
 
 use Casbin\Enforcer;
+use Casbin\Persist\Adapters\Fileadapter;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,6 +15,57 @@ class EnforcerTest extends TestCase
 {
     private $modelAndPolicyPath = __DIR__.'/../examples';
 
+    public function testKeyMatchModelInMemory()
+    {
+        $m = Enforcer::newModel();
+        $m->addDef('r', 'r', 'sub, obj, act');
+        $m->addDef('p', 'p', 'sub, obj, act');
+        $m->addDef('e', 'e', 'some(where (p.eft == allow))');
+        $m->addDef('m', 'm', 'r.sub == p.sub && keyMatch(r.obj, p.obj) && regexMatch(r.act, p.act)');
+
+        $a = new Fileadapter($this->modelAndPolicyPath.'/keymatch_policy.csv');
+
+        $e = new Enforcer($m, $a);
+
+        $this->assertTrue($e->enforce('alice', '/alice_data/resource1', 'GET'));
+        $this->assertFalse($e->enforce('bob', '/alice_data/resource1', 'GET'));
+
+        $e = new Enforcer($m);
+        $this->assertTrue($e->enforce('alice', '/alice_data/resource1', 'GET'));
+        $this->assertFalse($e->enforce('bob', '/alice_data/resource1', 'GET'));
+    }
+
+    public function testKeyMatchModelInMemoryDeny()
+    {
+        $m = Enforcer::newModel();
+        $m->addDef('r', 'r', 'sub, obj, act');
+        $m->addDef('p', 'p', 'sub, obj, act');
+        $m->addDef('e', 'e', '!some(where (p.eft == deny))');
+        $m->addDef('m', 'm', 'r.sub == p.sub && keyMatch(r.obj, p.obj) && regexMatch(r.act, p.act)');
+
+        $a = new Fileadapter($this->modelAndPolicyPath.'/keymatch_policy.csv');
+
+        $e = new Enforcer($m, $a);
+
+        $this->assertTrue($e->enforce('alice', '/alice_data/resource1', 'GET'));
+    }
+
+    public function testRBACModelInMemoryIndeterminate()
+    {
+        $m = Enforcer::newModel();
+        $m->addDef('r', 'r', 'sub, obj, act');
+        $m->addDef('p', 'p', 'sub, obj, act');
+        $m->addDef('g', 'g', '_, _');
+        $m->addDef('e', 'e', 'some(where (p.eft == allow))');
+        $m->addDef('m', 'm', 'g(r.sub, p.sub) && r.obj == p.obj && r.act == p.act');
+
+        $e = new Enforcer($m);
+
+        $e->addPermissionForUser('alice', 'data1', 'invalid');
+
+        $this->assertFalse($e->enforce('alice', 'data1', 'read'));
+    }
+
     public function testEnforceBasic()
     {
         $e = new Enforcer($this->modelAndPolicyPath.'/basic_model.conf', $this->modelAndPolicyPath.'/basic_policy.csv');
@@ -24,11 +76,38 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->enforce('bob', 'data1', 'write'), false);
     }
 
+    public function testEnforceBasicNoPolicy()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath.'/basic_model.conf');
+
+        $this->assertEquals($e->enforce('alice', 'data1', 'read'), false);
+        $this->assertEquals($e->enforce('alice', 'data2', 'read'), false);
+        $this->assertEquals($e->enforce('bob', 'data2', 'write'), false);
+        $this->assertEquals($e->enforce('bob', 'data1', 'write'), false);
+    }
+
     public function testEnforceBasicWithRoot()
     {
         $e = new Enforcer($this->modelAndPolicyPath.'/basic_with_root_model.conf', $this->modelAndPolicyPath.'/basic_policy.csv');
 
         $this->assertEquals($e->enforce('root', 'any', 'any'), true);
+    }
+
+    public function testEnforceBasicWithRootNoPolicy()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath.'/basic_with_root_model.conf');
+        $this->assertFalse($e->enforce('alice', 'data1', 'read'));
+        $this->assertFalse($e->enforce('alice', 'data1', 'write'));
+        $this->assertFalse($e->enforce('alice', 'data2', 'read'));
+        $this->assertFalse($e->enforce('alice', 'data2', 'write'));
+        $this->assertFalse($e->enforce('bob', 'data1', 'read'));
+        $this->assertFalse($e->enforce('bob', 'data1', 'write'));
+        $this->assertFalse($e->enforce('bob', 'data2', 'read'));
+        $this->assertFalse($e->enforce('bob', 'data2', 'write'));
+        $this->assertTrue($e->enforce('root', 'data1', 'read'));
+        $this->assertTrue($e->enforce('root', 'data1', 'write'));
+        $this->assertTrue($e->enforce('root', 'data2', 'read'));
+        $this->assertTrue($e->enforce('root', 'data2', 'write'));
     }
 
     public function testEnforceBasicWithoutResources()
