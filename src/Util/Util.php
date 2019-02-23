@@ -11,8 +11,16 @@ class Util
 {
     public static function escapeAssertion($s)
     {
-        $s = str_replace('r.', 'r_', $s);
-        $s = str_replace('p.', 'p_', $s);
+        if (0 === strpos($s, 'r.')) {
+            $s = substr_replace($s, 'r_', 0, 2);
+        }
+        if (0 === strpos($s, 'p.')) {
+            $s = substr_replace($s, 'p_', 0, 2);
+        }
+
+        $s = preg_replace_callback("~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)(r|p)(\.)~", function ($m) {
+            return $m[1].$m[2].'_';
+        }, $s);
 
         return $s;
     }
