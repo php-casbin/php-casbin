@@ -153,8 +153,10 @@ class Config implements ConfigContract
             throw new CasbinException('key is empty');
         }
 
+        $section = '';
+
         $keys = explode('::', strtolower($key));
-        if (\strlen($key) >= 2) {
+        if (\count($keys) >= 2) {
             $section = $keys[0];
             $option = $keys[1];
         } else {

@@ -3,6 +3,7 @@
 namespace Casbin\Tests\Unit\Config;
 
 use Casbin\Config\Config;
+use Casbin\Exceptions\CasbinException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -12,23 +13,32 @@ use PHPUnit\Framework\TestCase;
  */
 class ConfigTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../../examples';
-
     public function testNewConfig()
     {
-        $cfg = Config::newConfig($this->modelAndPolicyPath.'/basic_model.conf');
-        $this->assertTrue($cfg instanceof Config);
+        $cfg = Config::newConfig(__DIR__.'/test.ini');
+        $this->getAndSetConfig($cfg);
     }
 
     public function testNewConfigFromText()
     {
         $cfg = Config::newConfigFromText(file_get_contents(__DIR__.'/test.ini'));
-        $this->assertTrue($cfg instanceof Config);
+        $this->getAndSetConfig($cfg);
+
+        try {
+            $cfg = Config::newConfigFromText(<<<EOT
+[mysql]
+mysql.dev.host = 127.0.0.1
+mysql.dev.user
+EOT
+            );
+        } catch (\Exception $e) {
+            $this->assertTrue($e instanceof CasbinException);
+        }
     }
 
-    public function testGetString()
+    private function getAndSetConfig(Config $cfg)
     {
-        $cfg = Config::newConfigFromText(file_get_contents(__DIR__.'/test.ini'));
+        // $cfg = Config::newConfigFromText(file_get_contents(__DIR__.'/test.ini'));
         $this->assertEquals('act.wiki', $cfg->getString('url'));
 
         $v = $cfg->getStrings('redis::redis.key');
@@ -55,5 +65,17 @@ class ConfigTest extends TestCase
 
         $v = $cfg->getString('multi5::name');
         $this->assertEquals('r.sub==p.sub&&r.obj==p.obj', $v);
+
+        $v = $cfg->getStrings('noexist');
+        $this->assertEquals([], $v);
+
+        try {
+            $cfg->set('', '');
+        } catch (\Exception $e) {
+            $this->assertTrue($e instanceof CasbinException);
+        }
+
+        $cfg->set('nosec', 'nosec');
+        $this->assertEquals('nosec', $cfg->getString('nosec'));
     }
 }
