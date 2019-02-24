@@ -21,7 +21,7 @@ class RoleManager implements RoleManagerContract
     protected $allRoles;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $maxHierarchyLevel;
 
