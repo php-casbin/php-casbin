@@ -4,9 +4,22 @@ namespace Casbin;
 
 use Casbin\Exceptions\NotImplementedException;
 
+/**
+ * Trait InternalApi.
+ *
+ * @author techlee@qq.com
+ */
 trait InternalApi
 {
-    // addPolicy adds a rule to the current policy.
+    /**
+     * adds a rule to the current policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rule
+     *
+     * @return mixed
+     */
     protected function addPolicyInternal($sec, $ptype, array $rule)
     {
         $ruleAdded = $this->model->addPolicy($sec, $ptype, $rule);
@@ -29,7 +42,15 @@ trait InternalApi
         return $ruleAdded;
     }
 
-    // removePolicy removes a rule from the current policy.
+    /**
+     * removes a rule from the current policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rule
+     *
+     * @return mixed
+     */
     protected function removePolicyInternal($sec, $ptype, array $rule)
     {
         $ruleRemoved = $this->model->removePolicy($sec, $ptype, $rule);
@@ -52,7 +73,16 @@ trait InternalApi
         return $ruleRemoved;
     }
 
-    // removeFilteredPolicy removes rules based on field filters from the current policy.
+    /**
+     * removes rules based on field filters from the current policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param int    $fieldIndex
+     * @param mixed  ...$fieldValues
+     *
+     * @return bool
+     */
     protected function removeFilteredPolicyInternal($sec, $ptype, $fieldIndex, ...$fieldValues)
     {
         $ruleRemoved = $this->model->removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);

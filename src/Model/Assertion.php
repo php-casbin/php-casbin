@@ -7,7 +7,8 @@ use Casbin\Rbac\RoleManager;
 use Casbin\Log\Log;
 
 /**
- * Assertion.
+ * Class Assertion
+ * represents an expression in a section of the model.
  *
  * @author techlee@qq.com
  */
@@ -48,6 +49,11 @@ class Assertion
      */
     public $rM;
 
+    /**
+     * @param RoleManager $rm
+     *
+     * @throws CasbinException
+     */
     public function buildRoleLinks(RoleManager $rm)
     {
         $this->rM = $rm;

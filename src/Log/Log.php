@@ -5,7 +5,9 @@ namespace Casbin\Log;
 use Casbin\Log\Logger\DefaultLogger;
 
 /**
- * Log.
+ * Class Log.
+ *
+ * @author techlee@qq.com
  */
 class Log
 {
@@ -17,7 +19,7 @@ class Log
     public static $logger;
 
     /**
-     * setLogger sets the current logger.
+     * sets the current logger.
      *
      * @param Logger $l
      */
@@ -27,7 +29,7 @@ class Log
     }
 
     /**
-     * getLogger returns the current logger.
+     * returns the current logger.
      *
      * @return Logger
      */
@@ -37,9 +39,9 @@ class Log
     }
 
     /**
-     * logPrint prints the log.
+     * prints the log.
      *
-     * @param mix $v
+     * @param mix ...$v
      */
     public static function logPrint(...$v)
     {
@@ -47,10 +49,10 @@ class Log
     }
 
     /**
-     * logPrintf prints the log with the format.
+     * prints the log with the format.
      *
-     * @param string $format
-     * @param mix    $v
+     * @param $format
+     * @param mixed ...$v
      */
     public static function logPrintf($format, ...$v)
     {

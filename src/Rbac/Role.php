@@ -4,20 +4,35 @@ namespace Casbin\Rbac;
 
 /**
  * Role.
+ * represents the data structure for a role in RBAC.
  *
  * @author techlee@qq.com
  */
 class Role
 {
+    /**
+     * @var string
+     */
     public $name = '';
 
+    /**
+     * @var array
+     */
     private $roles = [];
 
+    /**
+     * Role constructor.
+     *
+     * @param string $name
+     */
     public function __construct($name)
     {
         $this->name = $name;
     }
 
+    /**
+     * @param self $role
+     */
     public function addRole(self $role)
     {
         foreach ($this->roles as $rr) {
@@ -28,6 +43,9 @@ class Role
         $this->roles[] = $role;
     }
 
+    /**
+     * @param self $role
+     */
     public function deleteRole(self $role)
     {
         foreach ($this->roles as $key => $rr) {
@@ -39,6 +57,12 @@ class Role
         }
     }
 
+    /**
+     * @param string $name
+     * @param int    $hierarchyLevel
+     *
+     * @return bool
+     */
     public function hasRole($name, $hierarchyLevel)
     {
         if ($name == $this->name) {
@@ -57,6 +81,11 @@ class Role
         return false;
     }
 
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
     public function hasDirectRole($name)
     {
         foreach ($this->roles as $role) {
@@ -68,6 +97,9 @@ class Role
         return false;
     }
 
+    /**
+     * @return string
+     */
     public function toString()
     {
         if (0 == \count($this->roles)) {
@@ -83,6 +115,9 @@ class Role
         }
     }
 
+    /**
+     * @return array
+     */
     public function getRoles()
     {
         return array_map(function ($role) {

@@ -3,7 +3,7 @@
 namespace Casbin\Exceptions;
 
 /**
- * CasbinException.
+ * Class NotImplementedException.
  *
  * @author techlee@qq.com
  */

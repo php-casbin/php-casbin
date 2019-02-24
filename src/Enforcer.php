@@ -18,7 +18,8 @@ use Casbin\Log\Log;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
- * Enforcer is the main interface for authorization enforcement and policy management.
+ * Class Enforcer
+ * the main interface for authorization enforcement and policy management.
  *
  * @author techlee@qq.com
  */
@@ -97,8 +98,8 @@ class Enforcer
     protected $autoBuildRoleLinks;
 
     /**
+     * Enforcer constructor.
      * Creates an enforcer via file or DB.
-     *
      * File:
      * $e = new Enforcer("path/to/basic_model.conf", "path/to/basic_policy.csv")
      * MySQL DB:
@@ -112,9 +113,9 @@ class Enforcer
      *  ]);
      * $e = new Enforcer("path/to/basic_model.conf", $a).
      *
-     * @author techlee@qq.com
+     * @param mixed ...$params
      *
-     * @param array|mixed ...$params
+     * @throws CasbinException
      */
     public function __construct(...$params)
     {
@@ -160,8 +161,10 @@ class Enforcer
     /**
      * initializes an enforcer with a model file and a policy file.
      *
-     * @param string $modelPath
-     * @param string $policyPath
+     * @param $modelPath
+     * @param $policyPath
+     *
+     * @throws CasbinException
      */
     public function initWithFile($modelPath, $policyPath)
     {
@@ -170,10 +173,12 @@ class Enforcer
     }
 
     /**
-     * initWithAdapter initializes an enforcer with a database adapter.
+     * initializes an enforcer with a database adapter.
      *
-     * @param string  $modelPath
+     * @param $modelPath
      * @param Adapter $adapter
+     *
+     * @throws CasbinException
      */
     public function initWithAdapter($modelPath, Adapter $adapter)
     {
@@ -209,6 +214,9 @@ class Enforcer
         }
     }
 
+    /**
+     * initializes an enforcer with a database adapter.
+     */
     protected function initialize()
     {
         $this->rm = new DefaultRoleManager(10);
@@ -220,6 +228,15 @@ class Enforcer
         $this->autoBuildRoleLinks = true;
     }
 
+    /**
+     * creates a model.
+     *
+     * @param mixed ...$text
+     *
+     * @return Model
+     *
+     * @throws CasbinException
+     */
     public static function newModel(...$text)
     {
         $model = new Model();
@@ -236,6 +253,12 @@ class Enforcer
         return $model;
     }
 
+    /**
+     * reloads the model from the model CONF file.
+     * Because the policy is attached to a model, so the policy is invalidated and needs to be reloaded by calling LoadPolicy().
+     *
+     * @throws CasbinException
+     */
     public function loadModel()
     {
         $this->model = self::newModel();
@@ -244,27 +267,52 @@ class Enforcer
         $this->fm = Model::LoadFunctionMap();
     }
 
+    /**
+     * gets the current model.
+     *
+     * @return Model
+     */
     public function getModel()
     {
         return $this->model;
     }
 
+    /**
+     * sets the current model.
+     *
+     * @param Model $model
+     */
     public function setModel(Model $model)
     {
         $this->model = $model;
         $this->fm = $this->model->loadFunctionMap();
     }
 
+    /**
+     * gets the current adapter.
+     *
+     * @return Adapter
+     */
     public function getAdapter()
     {
         return $this->adapter;
     }
 
+    /**
+     * sets the current adapter.
+     *
+     * @param Adapter $adapter
+     */
     public function setAdapter(Adapter $adapter)
     {
         $this->adapter = $adapter;
     }
 
+    /**
+     * sets the current watcher.
+     *
+     * @param Watcher $watcher
+     */
     public function setWatcher(Watcher $watcher)
     {
         $this->watcher = $watcher;
@@ -273,21 +321,37 @@ class Enforcer
         });
     }
 
+    /**
+     * sets the current role manager.
+     *
+     * @param RoleManager $rm
+     */
     public function setRoleManager(RoleManager $rm)
     {
         $this->rm = $rm;
     }
 
+    /**
+     * sets the current effector.
+     *
+     * @param Effector $eft
+     */
     public function setEffector(Effector $eft)
     {
         $this->eft = $eft;
     }
 
+    /**
+     * clears all policy.
+     */
     public function clearPolicy()
     {
         $this->model->clearPolicy();
     }
 
+    /**
+     * reloads the policy from file/database.
+     */
     public function loadPolicy()
     {
         $this->model->clearPolicy();
@@ -299,6 +363,13 @@ class Enforcer
         }
     }
 
+    /**
+     * reloads a filtered policy from file/database.
+     *
+     * @param $filter
+     *
+     * @throws CasbinException
+     */
     public function loadFilteredPolicy($filter)
     {
         $this->model->clearPolicy();
@@ -316,6 +387,11 @@ class Enforcer
         }
     }
 
+    /**
+     * returns true if the loaded policy has been filtered.
+     *
+     * @return bool
+     */
     public function isFiltered()
     {
         if (!$this->adapter instanceof FilteredAdapter) {
@@ -326,6 +402,13 @@ class Enforcer
         $filteredAdapter->isFiltered();
     }
 
+    /**
+     * saves the current policy (usually after changed with Casbin API) back to file/database.
+     *
+     * @return mixed
+     *
+     * @throws CasbinException
+     */
     public function savePolicy()
     {
         if ($this->isFiltered()) {
@@ -339,32 +422,64 @@ class Enforcer
         }
     }
 
+    /**
+     * changes the enforcing state of Casbin, when Casbin is disabled, all access will be allowed by the Enforce() function.
+     *
+     * @param bool $enabled
+     */
     public function enableEnforce($enabled = true)
     {
         $this->enabled = $enabled;
     }
 
+    /**
+     * changes whether Casbin will log messages to the Logger.
+     *
+     * @param bool $enabled
+     */
     public function enableLog($enabled = true)
     {
         Log::getLogger()->enableLog($enabled);
     }
 
+    /**
+     * controls whether to save a policy rule automatically to the adapter when it is added or removed.
+     *
+     * @param bool $autoSave
+     */
     public function enableAutoSave($autoSave = true)
     {
         $this->autoSave = $autoSave;
     }
 
+    /**
+     * controls whether to rebuild the role inheritance relations when a role is added or deleted.
+     *
+     * @param bool $autoBuildRoleLinks
+     */
     public function enableAutoBuildRoleLinks($autoBuildRoleLinks = true)
     {
         $this->autoBuildRoleLinks = $autoBuildRoleLinks;
     }
 
+    /**
+     * manually rebuild the role inheritance relations.
+     */
     public function buildRoleLinks()
     {
         $this->rm->clear();
         $this->model->buildRoleLinks($this->rm);
     }
 
+    /**
+     * decides whether a "subject" can access a "object" with the operation "action", input parameters are usually: (sub, obj, act).
+     *
+     * @param mixed ...$rvals
+     *
+     * @return bool|mixed
+     *
+     * @throws CasbinException
+     */
     public function enforce(...$rvals)
     {
         if (!$this->enabled) {
@@ -471,6 +586,13 @@ class Enforcer
         return $result;
     }
 
+    /**
+     * @param $expString
+     * @param $parameters
+     * @param $functions
+     *
+     * @return mixed
+     */
     protected function expressionEvaluate($expString, $parameters, $functions)
     {
         $expString = preg_replace_callback(
@@ -489,7 +611,6 @@ class Enforcer
                 return $func(...$args);
             });
         }
-        $expressionLanguage->evaluate($expString, $parameters);
         // $expressionLanguage->compile($expString, array_keys($parameters));
         return $expressionLanguage->evaluate($expString, $parameters);
     }

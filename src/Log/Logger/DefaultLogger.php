@@ -5,7 +5,9 @@ namespace Casbin\Log\Logger;
 use Casbin\Log\Logger;
 
 /**
- * DefaultLogger.
+ * Class DefaultLogger.
+ *
+ * @author techlee@qq.com
  */
 class DefaultLogger implements Logger
 {
@@ -16,10 +18,19 @@ class DefaultLogger implements Logger
      */
     public $enable = false;
 
+    /**
+     * @var string
+     */
     public $name = 'casbin.log';
 
+    /**
+     * @var string
+     */
     public $path = '/tmp';
 
+    /**
+     * DefaultLogger constructor.
+     */
     public function __construct()
     {
         $this->path = sys_get_temp_dir();
@@ -35,11 +46,17 @@ class DefaultLogger implements Logger
         $this->enable = $enable;
     }
 
+    /**
+     * @return bool
+     */
     public function isEnabled()
     {
         return $this->enable;
     }
 
+    /**
+     * @param mixed ...$v
+     */
     public function write(...$v)
     {
         if ($this->enable) {
@@ -57,6 +74,10 @@ class DefaultLogger implements Logger
         }
     }
 
+    /**
+     * @param $format
+     * @param mixed ...$v
+     */
     public function writef($format, ...$v)
     {
         if ($this->enable) {
@@ -67,6 +88,9 @@ class DefaultLogger implements Logger
         }
     }
 
+    /**
+     * @param $content
+     */
     public function save($content)
     {
         $file = $this->path.DIRECTORY_SEPARATOR.$this->name;

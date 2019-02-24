@@ -2,21 +2,45 @@
 
 namespace Casbin;
 
+/**
+ * Trait RbacApi.
+ *
+ * @author techlee@qq.com
+ */
 trait RbacApi
 {
-    // getRolesForUser gets the roles that a user has.
+    /**
+     * gets the roles that a user has.
+     *
+     * @param string $name
+     *
+     * @return array
+     */
     public function getRolesForUser($name)
     {
         return $this->model->model['g']['g']->rM->getRoles($name);
     }
 
-    // getUsersForRole gets the users that has a role.
+    /**
+     * gets the users that has a role.
+     *
+     * @param string $name
+     *
+     * @return array
+     */
     public function getUsersForRole($name)
     {
         return $this->model->model['g']['g']->rM->getUsers($name);
     }
 
-    // hasRoleForUser determines whether a user has a role.
+    /**
+     * determines whether a user has a role.
+     *
+     * @param string $name
+     * @param string $role
+     *
+     * @return bool
+     */
     public function hasRoleForUser($name, $role)
     {
         $roles = $this->getRolesForUser($name);
@@ -33,50 +57,93 @@ trait RbacApi
         return $hasRole;
     }
 
-    // AddRoleForUser adds a role for a user.
-    // Returns false if the user already has the role (aka not affected).
+    /**
+     * adds a role for a user.
+     * returns false if the user already has the role (aka not affected).
+     *
+     * @param string $user
+     * @param string $role
+     *
+     * @return bool
+     */
     public function addRoleForUser($user, $role)
     {
         return $this->addGroupingPolicy($user, $role);
     }
 
-    // DeleteRoleForUser deletes a role for a user.
-    // Returns false if the user does not have the role (aka not affected).
+    /**
+     * deletes a role for a user.
+     * returns false if the user does not have the role (aka not affected).
+     *
+     * @param string $user
+     * @param string $role
+     *
+     * @return bool
+     */
     public function deleteRoleForUser($user, $role)
     {
         return $this->removeGroupingPolicy($user, $role);
     }
 
-    // DeleteRolesForUser deletes all roles for a user.
-    // Returns false if the user does not have any roles (aka not affected).
+    /**
+     * deletes all roles for a user.
+     * returns false if the user does not have any roles (aka not affected).
+     *
+     * @param string $user
+     *
+     * @return bool
+     */
     public function deleteRolesForUser($user)
     {
         return $this->removeFilteredGroupingPolicy(0, $user);
     }
 
-    // DeleteUser deletes a user.
-    // Returns false if the user does not exist (aka not affected).
+    /**
+     * deletes a user.
+     * returns false if the user does not exist (aka not affected).
+     *
+     * @param string $user
+     *
+     * @return bool
+     */
     public function deleteUser($user)
     {
         return $this->removeFilteredGroupingPolicy(0, $user);
     }
 
-    // DeleteRole deletes a role.
+    /**
+     * deletes a role.
+     *
+     * @param string $role
+     */
     public function deleteRole($role)
     {
         $this->removeFilteredGroupingPolicy(1, $role);
         $this->removeFilteredPolicy(0, $role);
     }
 
-    // DeletePermission deletes a permission.
-    // Returns false if the permission does not exist (aka not affected).
+    /**
+     * deletes a permission.
+     * returns false if the permission does not exist (aka not affected).
+     *
+     * @param string ...$permission
+     *
+     * @return bool
+     */
     public function deletePermission(...$permission)
     {
         return $this->removeFilteredPolicy(1, ...$permission);
     }
 
-    // AddPermissionForUser adds a permission for a user or role.
-    // Returns false if the user or role already has the permission (aka not affected).
+    /**
+     * adds a permission for a user or role.
+     * returns false if the user or role already has the permission (aka not affected).
+     *
+     * @param string $user
+     * @param string ...$permission
+     *
+     * @return bool
+     */
     public function addPermissionForUser($user, ...$permission)
     {
         $params = [];
@@ -89,8 +156,15 @@ trait RbacApi
         return $this->addPolicy(...$params);
     }
 
-    // DeletePermissionForUser deletes a permission for a user or role.
-    // Returns false if the user or role does not have the permission (aka not affected).
+    /**
+     * deletes a permission for a user or role.
+     * returns false if the user or role does not have the permission (aka not affected).
+     *
+     * @param string $user
+     * @param string ...$permission
+     *
+     * @return bool
+     */
     public function deletePermissionForUser($user, ...$permission)
     {
         $params = [];
@@ -103,20 +177,39 @@ trait RbacApi
         return $this->removePolicy(...$params);
     }
 
-    // DeletePermissionsForUser deletes permissions for a user or role.
-    // Returns false if the user or role does not have any permissions (aka not affected).
+    /**
+     * deletes permissions for a user or role.
+     * returns false if the user or role does not have any permissions (aka not affected).
+     *
+     * @param string $user
+     *
+     * @return bool
+     */
     public function deletePermissionsForUser($user)
     {
         return $this->removeFilteredPolicy(0, $user);
     }
 
-    // GetPermissionsForUser gets permissions for a user or role.
+    /**
+     * gets permissions for a user or role.
+     *
+     * @param string $user
+     *
+     * @return array
+     */
     public function getPermissionsForUser($user)
     {
         return $this->getFilteredPolicy(0, $user);
     }
 
-    // HasPermissionForUser determines whether a user has a permission.
+    /**
+     * determines whether a user has a permission.
+     *
+     * @param string $user
+     * @param string ...$permission
+     *
+     * @return bool
+     */
     public function hasPermissionForUser($user, ...$permission)
     {
         $params = [];
@@ -129,14 +222,20 @@ trait RbacApi
         return $this->hasPolicy($params);
     }
 
-    // getImplicitRolesForUser gets implicit roles that a user has.
-    // Compared to getRolesForUser(), this function retrieves indirect roles besides direct roles.
-    // For example:
-    // g, alice, role:admin
-    // g, role:admin, role:user
-    //
-    // getRolesForUser("alice") can only get: ["role:admin"].
-    // But getImplicitRolesForUser("alice") will get: ["role:admin", "role:user"].
+    /**
+     * gets implicit roles that a user has.
+     * Compared to getRolesForUser(), this function retrieves indirect roles besides direct roles.
+     * For example:
+     * g, alice, role:admin
+     * g, role:admin, role:user.
+     *
+     * getRolesForUser("alice") can only get: ["role:admin"].
+     * But getImplicitRolesForUser("alice") will get: ["role:admin", "role:user"].
+     *
+     * @param string $name
+     *
+     * @return array
+     */
     public function getImplicitRolesForUser($name)
     {
         $res = [];
@@ -163,15 +262,21 @@ trait RbacApi
         return $res;
     }
 
-    // getImplicitPermissionsForUser gets implicit permissions for a user or role.
-    // Compared to getPermissionsForUser(), this function retrieves permissions for inherited roles.
-    // For example:
-    // p, admin, data1, read
-    // p, alice, data2, read
-    // g, alice, admin
-    //
-    // getPermissionsForUser("alice") can only get: [["alice", "data2", "read"]].
-    // But getImplicitPermissionsForUser("alice") will get: [["admin", "data1", "read"], ["alice", "data2", "read"]].
+    /**
+     * gets implicit permissions for a user or role.
+     * Compared to getPermissionsForUser(), this function retrieves permissions for inherited roles.
+     * For example:
+     * p, admin, data1, read
+     * p, alice, data2, read
+     * g, alice, admin.
+     *
+     * getPermissionsForUser("alice") can only get: [["alice", "data2", "read"]].
+     * But getImplicitPermissionsForUser("alice") will get: [["admin", "data1", "read"], ["alice", "data2", "read"]].
+     *
+     * @param string $user
+     *
+     * @return array
+     */
     public function getImplicitPermissionsForUser($user)
     {
         $roles[] = $user;

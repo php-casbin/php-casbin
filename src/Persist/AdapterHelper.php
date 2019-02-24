@@ -3,12 +3,16 @@
 namespace Casbin\Persist;
 
 /**
- * AdapterHelper.
+ * Trait AdapterHelper.
  *
  * @author techlee@qq.com
  */
 trait AdapterHelper
 {
+    /**
+     * @param string              $line
+     * @param \Casbin\Model\Model $model
+     */
     public function loadPolicyLine($line, $model)
     {
         if ('' == $line) {

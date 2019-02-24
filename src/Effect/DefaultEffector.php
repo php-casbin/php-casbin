@@ -5,7 +5,7 @@ namespace Casbin\Effect;
 use Casbin\Exceptions\CasbinException;
 
 /**
- * DefaultEffector.
+ * Class DefaultEffector.
  *
  * @author techlee@qq.com
  */
@@ -14,11 +14,13 @@ class DefaultEffector extends Effector
     /**
      * merges all matching results collected by the enforcer into a single decision.
      *
-     * @param string $expr
-     * @param array  $effects
-     * @param array  $results
+     * @param $expr
+     * @param array $effects
+     * @param array $results
      *
      * @return bool
+     *
+     * @throws CasbinException
      */
     public function mergeEffects($expr, array $effects, array $results)
     {

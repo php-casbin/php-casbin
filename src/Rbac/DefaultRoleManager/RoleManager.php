@@ -8,27 +8,49 @@ use Casbin\Rbac\RoleManager as RoleManagerContract;
 use Casbin\Log\Log;
 
 /**
- * RoleManager.
+ * Class RoleManager.
+ * provides a default implementation for the RoleManager interface.
  *
  * @author techlee@qq.com
  */
 class RoleManager implements RoleManagerContract
 {
+    /**
+     * @var array
+     */
     protected $allRoles;
 
+    /**
+     * @var integer
+     */
     protected $maxHierarchyLevel;
 
+    /**
+     * RoleManager constructor.
+     *
+     * @param $maxHierarchyLevel
+     */
     public function __construct($maxHierarchyLevel)
     {
         $this->allRoles = [];
         $this->maxHierarchyLevel = $maxHierarchyLevel;
     }
 
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
     protected function hasRole($name)
     {
         return isset($this->allRoles[$name]);
     }
 
+    /**
+     * @param string $name
+     *
+     * @return mixed
+     */
     protected function createRole($name)
     {
         if (!isset($this->allRoles[$name])) {
@@ -38,11 +60,25 @@ class RoleManager implements RoleManagerContract
         return $this->allRoles[$name];
     }
 
+    /**
+     * clears all stored data and resets the role manager to the initial state.
+     */
     public function clear()
     {
         $this->allRoles = [];
     }
 
+    /**
+     * adds the inheritance link between role: name1 and role: name2.
+     * aka role: name1 inherits role: name2.
+     * domain is a prefix to the roles.
+     *
+     * @param string $name1
+     * @param string $name2
+     * @param mixed  ...$domain
+     *
+     * @throws CasbinException
+     */
     public function addLink($name1, $name2, ...$domain)
     {
         if (1 == \count($domain)) {
@@ -57,6 +93,17 @@ class RoleManager implements RoleManagerContract
         $role1->addRole($role2);
     }
 
+    /**
+     * deletes the inheritance link between role: name1 and role: name2.
+     * aka role: name1 does not inherit role: name2 any more.
+     * domain is a prefix to the roles.
+     *
+     * @param string $name1
+     * @param string $name2
+     * @param mixed  ...$domain
+     *
+     * @throws CasbinException
+     */
     public function deleteLink($name1, $name2, ...$domain)
     {
         if (1 == \count($domain)) {
@@ -75,6 +122,18 @@ class RoleManager implements RoleManagerContract
         $role1->deleteRole($role2);
     }
 
+    /**
+     * determines whether role: name1 inherits role: name2.
+     * domain is a prefix to the roles.
+     *
+     * @param string $name1
+     * @param string $name2
+     * @param mixed  ...$domain
+     *
+     * @return bool
+     *
+     * @throws CasbinException
+     */
     public function hasLink($name1, $name2, ...$domain)
     {
         if (1 == \count($domain)) {
@@ -97,6 +156,17 @@ class RoleManager implements RoleManagerContract
         return $role1->hasRole($name2, $this->maxHierarchyLevel);
     }
 
+    /**
+     * gets the roles that a subject inherits.
+     * domain is a prefix to the roles.
+     *
+     * @param string $name
+     * @param mixed  ...$domain
+     *
+     * @return array
+     *
+     * @throws CasbinException
+     */
     public function getRoles($name, ...$domain)
     {
         if (1 == \count($domain)) {
@@ -119,6 +189,17 @@ class RoleManager implements RoleManagerContract
         return $roles;
     }
 
+    /**
+     * gets the users that inherits a subject.
+     * domain is an unreferenced parameter here, may be used in other implementations.
+     *
+     * @param string $name
+     * @param mixed  ...$domain
+     *
+     * @return array
+     *
+     * @throws CasbinException
+     */
     public function getUsers($name, ...$domain)
     {
         if (!$this->hasRole($name)) {
@@ -135,6 +216,9 @@ class RoleManager implements RoleManagerContract
         return $names;
     }
 
+    /**
+     * prints all the roles to log.
+     */
     public function printRoles()
     {
         $line = [];

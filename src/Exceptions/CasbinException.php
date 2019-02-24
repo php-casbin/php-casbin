@@ -3,7 +3,7 @@
 namespace Casbin\Exceptions;
 
 /**
- * CasbinException.
+ * Class CasbinException.
  *
  * @author techlee@qq.com
  */

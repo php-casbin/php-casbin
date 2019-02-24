@@ -25,7 +25,7 @@ class ConfigTest extends TestCase
         $this->getAndSetConfig($cfg);
 
         try {
-            $cfg = Config::newConfigFromText(<<<EOT
+            $cfg = Config::newConfigFromText(<<<'EOT'
 [mysql]
 mysql.dev.host = 127.0.0.1
 mysql.dev.user

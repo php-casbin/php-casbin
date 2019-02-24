@@ -3,12 +3,19 @@
 namespace Casbin\Util;
 
 /**
- * Util.
+ * Class Util.
  *
  * @author techlee@qq.com
  */
 class Util
 {
+    /**
+     * escapes the dots in the assertion, because the expression evaluation doesn't support such variable names.
+     *
+     * @param string $s
+     *
+     * @return string
+     */
     public static function escapeAssertion($s)
     {
         if (0 === strpos($s, 'r.')) {
@@ -25,6 +32,13 @@ class Util
         return $s;
     }
 
+    /**
+     * removes the comments starting with # in the text.
+     *
+     * @param string $s
+     *
+     * @return string
+     */
     public static function removeComments($s)
     {
         $pos = strpos($s, '#');
@@ -32,11 +46,23 @@ class Util
         return false === $pos ? $s : trim(substr($s, 0, $pos));
     }
 
+    /**
+     * gets a printable string for a string array.
+     *
+     * @param array $s
+     *
+     * @return string
+     */
     public static function arrayToString($s)
     {
         return implode(', ', $s);
     }
 
+    /**
+     * removes any duplicated elements in a string array.
+     *
+     * @param array $s
+     */
     public static function arrayRemoveDuplicates(&$s)
     {
         $found = [];

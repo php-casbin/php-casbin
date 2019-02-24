@@ -5,7 +5,7 @@ namespace Casbin\Model;
 use Casbin\Util\BuiltinOperations;
 
 /**
- * FunctionMap.
+ * Class FunctionMap.
  *
  * @author techlee@qq.com
  */
@@ -13,11 +13,20 @@ class FunctionMap
 {
     private $functions = [];
 
+    /**
+     * @param $name
+     * @param \Closure $func
+     */
     public function addFunction($name, \Closure $func)
     {
         $this->functions[$name] = $func;
     }
 
+    /**
+     * loads an initial function map.
+     *
+     * @return FunctionMap
+     */
     public static function loadFunctionMap()
     {
         $fm = new self();
@@ -38,6 +47,9 @@ class FunctionMap
         return $fm;
     }
 
+    /**
+     * @return array
+     */
     public function getFunctions()
     {
         return $this->functions;

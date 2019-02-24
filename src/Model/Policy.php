@@ -3,15 +3,21 @@
 namespace Casbin\Model;
 
 use Casbin\Log\Log;
+use Casbin\Rbac\RoleManager;
 use Casbin\Util\Util;
 
 /**
- * Policy.
+ * Trait Policy.
  *
  * @author techlee@qq.com
  */
 trait Policy
 {
+    /**
+     * initializes the roles in RBAC.
+     *
+     * @param RoleManager $rm
+     */
     public function buildRoleLinks($rm)
     {
         if (!isset($this->model['g'])) {
@@ -22,6 +28,9 @@ trait Policy
         }
     }
 
+    /**
+     * prints the policy to log.
+     */
     public function printPolicy()
     {
         Log::logPrint('Policy:');
@@ -35,6 +44,9 @@ trait Policy
         }
     }
 
+    /**
+     * clears all current policy.
+     */
     public function clearPolicy()
     {
         foreach (['p', 'g'] as $sec) {
@@ -47,12 +59,29 @@ trait Policy
         }
     }
 
+    /**
+     * gets all rules in a policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     *
+     * @return array
+     */
     public function getPolicy($sec, $ptype)
     {
         return $this->model[$sec][$ptype]->policy;
     }
 
-    // GetFilteredPolicy gets rules based on field filters from a policy.
+    /**
+     * gets rules based on field filters from a policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param int    $fieldIndex
+     * @param mixed  ...$fieldValues
+     *
+     * @return array
+     */
     public function getFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
     {
         $res = [];
@@ -75,6 +104,15 @@ trait Policy
         return $res;
     }
 
+    /**
+     * determines whether a model has the specified policy rule.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rule
+     *
+     * @return bool
+     */
     public function hasPolicy($sec, $ptype, $rule)
     {
         if (!isset($this->model[$sec][$ptype])) {
@@ -90,6 +128,15 @@ trait Policy
         return false;
     }
 
+    /**
+     * adds a policy rule to the model.
+     *
+     * @param $sec
+     * @param $ptype
+     * @param array $rule
+     *
+     * @return bool
+     */
     public function addPolicy($sec, $ptype, array $rule)
     {
         if (!$this->hasPolicy($sec, $ptype, $rule)) {
@@ -101,6 +148,15 @@ trait Policy
         return false;
     }
 
+    /**
+     * removes a policy rule from the model.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rule
+     *
+     * @return bool
+     */
     public function removePolicy($sec, $ptype, array $rule)
     {
         foreach ($this->model[$sec][$ptype]->policy as $i => $r) {
@@ -114,6 +170,16 @@ trait Policy
         return false;
     }
 
+    /**
+     * removes policy rules based on field filters from the model.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param int    $fieldIndex
+     * @param mixed  ...$fieldValues
+     *
+     * @return bool
+     */
     public function removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
     {
         $tmp = [];
@@ -145,6 +211,15 @@ trait Policy
         return $res;
     }
 
+    /**
+     * gets all values for a field for all rules in a policy, duplicated values are removed.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param int    $fieldIndex
+     *
+     * @return array
+     */
     public function getValuesForFieldInPolicy($sec, $ptype, $fieldIndex)
     {
         $values = [];
