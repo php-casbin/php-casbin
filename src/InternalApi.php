@@ -92,7 +92,7 @@ trait InternalApi
 
         if (!is_null($this->adapter) && $this->autoSave) {
             try {
-                $this->adapter->removeFilteredPolicy($sec, $ptype, $fieldIndex, $fieldValues);
+                $this->adapter->removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
             } catch (NotImplementedException $e) {
             }
 
