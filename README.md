@@ -11,6 +11,8 @@ PHP-Casbin
 
 [中文文档](https://github.com/php-casbin/php-casbin/blob/master/README_CN.md)
 
+**Breaking News**: [Laravel-authz](https://github.com/php-casbin/laravel-authz) is now available, an authorization library for the Laravel framework.
+
 **PHP-Casbin** is a powerful and efficient open-source access control library for PHP projects. It provides support for enforcing authorization based on various [access control models](https://en.wikipedia.org/wiki/Computer_security_model).
 
 ## All the languages supported by Casbin:
