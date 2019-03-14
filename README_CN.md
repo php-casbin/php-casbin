@@ -9,6 +9,7 @@ PHP-Casbin
 [![License](https://poser.pugx.org/casbin/casbin/license)](https://packagist.org/packages/casbin/casbin)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/casbin/lobby)
 
+**好消息**: [Laravel-authz](https://github.com/php-casbin/laravel-authz) 现已发布，一个专为Laravel打造的授权库.
 
 **PHP-Casbin** 是一个强大的、高效的开源访问控制框架，它支持基于各种[访问控制模型](https://en.wikipedia.org/wiki/Computer_security_model)的权限管理。
 
