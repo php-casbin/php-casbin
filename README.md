@@ -167,14 +167,7 @@ We also provide a web-based UI for model management and policy management:
 
 ## Policy persistence
 
-In php-casbin, the policy storage is implemented as an adapter (aka middleware for php-casbin). To keep light-weight, we don't put adapter code in the main library (except the default file adapter). A complete list of php-casbin adapters is provided as below. Any 3rd-party contribution on a new adapter is welcomed, please inform us and I will put it in this list:)
-
-Adapter | Type | Author | Description
-----|------|----|----
-[File Adapter (built-in)](https://casbin.org/docs/en/policy-storage#file-adapter-built-in) | File | php-casbin | Persistence for [.CSV (Comma-Separated Values)](https://en.wikipedia.org/wiki/Comma-separated_values) files
-[Database Adapter](https://github.com/php-casbin/database-adapter) | Database | php-casbin | MySQL, PostgreSQL, SQLite, Microsoft SQL Server are supported by Database Adapter
-
-For details of adapters, please refer to the documentation: https://casbin.org/docs/en/policy-storage
+https://casbin.org/docs/en/adapters
 
 ## Role manager
 
