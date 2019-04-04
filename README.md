@@ -73,6 +73,7 @@ if ($e->enforce($sub, $obj, $act) === true) {
 - [Policy persistence](#policy-persistence)
 - [Role manager](#role-manager)
 - [Examples](#examples)
+- [Middlewares](#middlewares)
 - [Our adopters](#our-adopters)
 
 ## Supported models
@@ -189,17 +190,13 @@ RESTful | [keymatch_model.conf](https://github.com/php-casbin/php-casbin/blob/ma
 Deny-override | [rbac_model_with_deny.conf](https://github.com/php-casbin/php-casbin/blob/master/examples/rbac_with_deny_model.conf)  | [rbac_policy_with_deny.csv](https://github.com/php-casbin/php-casbin/blob/master/examples/rbac_with_deny_policy.csv)
 Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/blob/master/examples/priority_model.conf)  | [priority_policy.csv](https://github.com/php-casbin/php-casbin/blob/master/examples/priority_policy.csv)
 
+## Middlewares
+
+Authz middlewares for web frameworks: https://casbin.org/docs/en/middlewares
+
 ## Our adopters
 
-### Web frameworks
-
-- [Laravel](https://laravel.com/): The PHP framework for web artisans, via plugin: [laravel-casbin](https://github.com/php-casbin/laravel-casbin)
-
-- [Yii PHP Framework](https://www.yiiframework.com/): A fast, secure, and efficient PHP framework, via plugin: [yii-casbin](https://github.com/php-casbin/yii-casbin)
-
-- [CakePHP](https://cakephp.org/): Build fast, grow solid | PHP Framework, via plugin: [cake-casbin](https://github.com/php-casbin/cake-casbin)
-
-- [ThinkPHP](http://www.thinkphp.cn/): The ThinkPHP framework, via plugin: [think-casbin](https://github.com/php-casbin/think-casbin)
+https://casbin.org/docs/en/adopters
 
 ## License
 
