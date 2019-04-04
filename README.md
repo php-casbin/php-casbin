@@ -171,13 +171,7 @@ https://casbin.org/docs/en/adapters
 
 ## Role manager
 
-The role manager is used to manage the RBAC role hierarchy (user-role mapping) in php-casbin. A role manager can retrieve the role data from php-casbin policy rules or external sources such as LDAP, Okta, Auth0, Azure AD, etc. We support different implementations of a role manager. To keep light-weight, we don't put role manager code in the main library (except the default role manager). A complete list of php-casbin role managers is provided as below. Any 3rd-party contribution on a new role manager is welcomed, please inform us and I will put it in this list:)
-
-Role manager | Author | Description
-----|----|----
-[Default Role Manager (built-in)](https://github.com/php-casbin/php-casbin/blob/master/src/Rbac/DefaultRoleManager/RoleManager.php) | php-casbin | Supports role hierarchy stored in php-casbin policy
-
-For developers: all role managers must implement the [RoleManager](https://github.com/php-casbin/php-casbin/blob/master/src/Rbac/RoleManager.php) interface. [Default Role Manager](https://github.com/php-casbin/php-casbin/blob/master/src/Rbac/DefaultRoleManager/RoleManager.php) can be used as a reference implementation.
+https://casbin.org/docs/en/role-managers
 
 ## Examples
 
