@@ -201,7 +201,7 @@ https://casbin.org/docs/en/adopters
 ## Contributors
 
 This project exists thanks to all the people who contribute. 
-<a href="https://github.com/php-casbin/php-casbin/graphs/contributors"><img src="https://opencollective.com/pycasbin/contributors.svg?width=890&button=false" /></a>
+<a href="https://github.com/php-casbin/php-casbin/graphs/contributors"><img src="https://opencollective.com/php-casbin/contributors.svg?width=890&button=false" /></a>
 
 ## Backers
 
