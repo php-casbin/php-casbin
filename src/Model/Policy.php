@@ -119,7 +119,7 @@ trait Policy
             return false;
         }
 
-        return in_array($rule, $this->model[$sec][$ptype]->policy);
+        return in_array($rule, $this->model[$sec][$ptype]->policy, true);
     }
 
     /**
@@ -156,10 +156,10 @@ trait Policy
         if (!isset($this->model[$sec][$ptype])) {
             return false;
         }
-        
-        $offset = array_search($rule, $this->model[$sec][$ptype]->policy);
 
-        if ($offset === false){
+        $offset = array_search($rule, $this->model[$sec][$ptype]->policy, true);
+
+        if (false === $offset) {
             return false;
         }
 
