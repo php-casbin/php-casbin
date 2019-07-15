@@ -65,15 +65,6 @@ class Util
      */
     public static function arrayRemoveDuplicates(&$s)
     {
-        $found = [];
-        $j = 0;
-        foreach ($s as $i => $x) {
-            if (!isset($found[$x])) {
-                $found[$x] = true;
-                $s[$j] = $s[$i];
-                ++$j;
-            }
-        }
-        $s = \array_slice($s, 0, $j);
+        $s = array_keys(array_flip($s));
     }
 }

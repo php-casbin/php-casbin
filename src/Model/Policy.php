@@ -119,13 +119,7 @@ trait Policy
             return false;
         }
 
-        foreach ($this->model[$sec][$ptype]->policy as $r) {
-            if (empty(array_diff($rule, $r))) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($rule, $this->model[$sec][$ptype]->policy);
     }
 
     /**
@@ -159,15 +153,19 @@ trait Policy
      */
     public function removePolicy($sec, $ptype, array $rule)
     {
-        foreach ($this->model[$sec][$ptype]->policy as $i => $r) {
-            if (empty(array_diff($rule, $r))) {
-                array_splice($this->model[$sec][$ptype]->policy, $i, 1);
+        if (!isset($this->model[$sec][$ptype])) {
+            return false;
+        }
+        
+        $offset = array_search($rule, $this->model[$sec][$ptype]->policy);
 
-                return true;
-            }
+        if ($offset === false){
+            return false;
         }
 
-        return false;
+        array_splice($this->model[$sec][$ptype]->policy, $offset, 1);
+
+        return true;
     }
 
     /**
