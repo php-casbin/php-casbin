@@ -30,9 +30,10 @@ class UtilTest extends TestCase
         $this->assertEquals(Util::escapeAssertion('(r.attp.value || p.attr)p.u'), '(r_attp.value || p_attr)p_u');
     }
 
-    public function testArrayRemoveDuplicates(){
-        $a = ["green", "red", "green", "blue", "red"];
+    public function testArrayRemoveDuplicates()
+    {
+        $a = ['green', 'red', 'green', 'blue', 'red'];
         Util::arrayRemoveDuplicates($a);
-        $this->assertEquals($a, [ "green", "red", "blue"]);
+        $this->assertEquals($a, ['green', 'red', 'blue']);
     }
 }
