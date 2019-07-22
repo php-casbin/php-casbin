@@ -11,7 +11,7 @@ install:
 
 script:
  - mkdir -p build/logs
- - phpunit
+ - vendor/bin/phpunit
 
 after_script:
  - travis_retry vendor/bin/php-coveralls -v
