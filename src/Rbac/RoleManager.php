@@ -22,9 +22,9 @@ interface RoleManager
      *
      * @param string $name1
      * @param string $name2
-     * @param mixed  ...$domain
+     * @param string $domain
      */
-    public function addLink($name1, $name2, ...$domain);
+    public function addLink($name1, $name2, $domain = '');
 
     /**
      * deletes the inheritance link between role: name1 and role: name2.
@@ -33,9 +33,9 @@ interface RoleManager
      *
      * @param string $name1
      * @param string $name2
-     * @param mixed  ...$domain
+     * @param string $domain
      */
-    public function deleteLink($name1, $name2, ...$domain);
+    public function deleteLink($name1, $name2, $domain = '');
 
     /**
      * determines whether role: name1 inherits role: name2.
@@ -43,33 +43,33 @@ interface RoleManager
      *
      * @param string $name1
      * @param string $name2
-     * @param mixed  ...$domain
+     * @param string $domain
      *
      * @return bool
      */
-    public function hasLink($name1, $name2, ...$domain);
+    public function hasLink($name1, $name2, $domain = '');
 
     /**
      * gets the roles that a subject inherits.
      * domain is a prefix to the roles.
      *
      * @param string $name
-     * @param mixed  ...$domain
+     * @param string $domain
      *
      * @return array
      */
-    public function getRoles($name, ...$domain);
+    public function getRoles($name, $domain = '');
 
     /**
      * gets the users that inherits a subject.
      * domain is an unreferenced parameter here, may be used in other implementations.
      *
      * @param string $name
-     * @param mixed  ...$domain
+     * @param string $domain
      *
      * @return array
      */
-    public function getUsers($name, ...$domain);
+    public function getUsers($name, $domain = '');
 
     /**
      * prints all the roles to log.

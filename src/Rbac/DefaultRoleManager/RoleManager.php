@@ -75,17 +75,13 @@ class RoleManager implements RoleManagerContract
      *
      * @param string $name1
      * @param string $name2
-     * @param mixed  ...$domain
-     *
-     * @throws CasbinException
+     * @param string $domain
      */
-    public function addLink($name1, $name2, ...$domain)
+    public function addLink($name1, $name2, $domain = '')
     {
-        if (1 == \count($domain)) {
-            $name1 = $domain[0].'::'.$name1;
-            $name2 = $domain[0].'::'.$name2;
-        } elseif (\count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
+        if ('' != $domain) {
+            $name1 = $domain.'::'.$name1;
+            $name2 = $domain.'::'.$name2;
         }
 
         $role1 = $this->createRole($name1);
@@ -100,17 +96,13 @@ class RoleManager implements RoleManagerContract
      *
      * @param string $name1
      * @param string $name2
-     * @param mixed  ...$domain
-     *
-     * @throws CasbinException
+     * @param string $domain
      */
-    public function deleteLink($name1, $name2, ...$domain)
+    public function deleteLink($name1, $name2, $domain = '')
     {
-        if (1 == \count($domain)) {
-            $name1 = $domain[0].'::'.$name1;
-            $name2 = $domain[0].'::'.$name2;
-        } elseif (\count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
+        if ('' != $domain) {
+            $name1 = $domain.'::'.$name1;
+            $name2 = $domain.'::'.$name2;
         }
 
         if (!$this->hasRole($name1) || !$this->hasRole($name2)) {
@@ -128,19 +120,15 @@ class RoleManager implements RoleManagerContract
      *
      * @param string $name1
      * @param string $name2
-     * @param mixed  ...$domain
+     * @param string $domain
      *
      * @return bool
-     *
-     * @throws CasbinException
      */
-    public function hasLink($name1, $name2, ...$domain)
+    public function hasLink($name1, $name2, $domain = '')
     {
-        if (1 == \count($domain)) {
-            $name1 = $domain[0].'::'.$name1;
-            $name2 = $domain[0].'::'.$name2;
-        } elseif (\count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
+        if ('' != $domain) {
+            $name1 = $domain.'::'.$name1;
+            $name2 = $domain.'::'.$name2;
         }
 
         if ($name1 == $name2) {
@@ -161,18 +149,14 @@ class RoleManager implements RoleManagerContract
      * domain is a prefix to the roles.
      *
      * @param string $name
-     * @param mixed  ...$domain
+     * @param string $domain
      *
      * @return array
-     *
-     * @throws CasbinException
      */
-    public function getRoles($name, ...$domain)
+    public function getRoles($name, $domain = '')
     {
-        if (1 == \count($domain)) {
-            $name = $domain[0].'::'.$name;
-        } elseif (\count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
+        if ('' != $domain) {
+            $name = $domain.'::'.$name;
         }
 
         if (!$this->hasRole($name)) {
@@ -180,9 +164,9 @@ class RoleManager implements RoleManagerContract
         }
 
         $roles = $this->createRole($name)->getRoles();
-        if (1 == \count($domain)) {
+        if ('' != $domain) {
             foreach ($roles as $key => $value) {
-                $roles[$key] = \array_slice($roles[$key], \strlen($domain[0]) + 2);
+                $roles[$key] = \array_slice($roles[$key], \strlen($domain) + 2);
             }
         }
 
@@ -194,22 +178,24 @@ class RoleManager implements RoleManagerContract
      * domain is an unreferenced parameter here, may be used in other implementations.
      *
      * @param string $name
-     * @param mixed  ...$domain
+     * @param string $domain
      *
      * @return array
-     *
-     * @throws CasbinException
      */
-    public function getUsers($name, ...$domain)
+    public function getUsers($name, $domain = '')
     {
+        if ('' != $domain) {
+            $name = $domain.'::'.$name;
+        }
+
         if (!$this->hasRole($name)) {
             throw new CasbinException('error: name does not exist');
         }
 
         $names = [];
-        array_map(function ($role) use (&$names, $name) {
+        array_map(function ($role) use (&$names, $name, $domain) {
             if ($role->hasDirectRole($name)) {
-                $names[] = $role->name;
+                $names[] = '' != $domain ? \array_slice($role->name, \strlen($domain) + 2) : $role->name;
             }
         }, $this->allRoles);
 
