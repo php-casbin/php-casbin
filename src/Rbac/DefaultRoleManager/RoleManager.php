@@ -166,7 +166,7 @@ class RoleManager implements RoleManagerContract
         $roles = $this->createRole($name)->getRoles();
         if ('' != $domain) {
             foreach ($roles as $key => $value) {
-                $roles[$key] = \array_slice($roles[$key], \strlen($domain) + 2);
+                $roles[$key] = \substr($roles[$key], \strlen($domain) + 2);
             }
         }
 
@@ -189,13 +189,14 @@ class RoleManager implements RoleManagerContract
         }
 
         if (!$this->hasRole($name)) {
-            throw new CasbinException('error: name does not exist');
+            // throw new CasbinException('error: name does not exist');
+            return [];
         }
 
         $names = [];
         array_map(function ($role) use (&$names, $name, $domain) {
             if ($role->hasDirectRole($name)) {
-                $names[] = '' != $domain ? \array_slice($role->name, \strlen($domain) + 2) : $role->name;
+                $names[] = '' != $domain ? \substr($role->name, \strlen($domain) + 2) : $role->name;
             }
         }, $this->allRoles);
 

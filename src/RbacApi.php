@@ -9,6 +9,8 @@ namespace Casbin;
  */
 trait RbacApi
 {
+    use RbacApiWithDomains;
+
     /**
      * gets the roles that a user has.
      *
@@ -233,10 +235,11 @@ trait RbacApi
      * But getImplicitRolesForUser("alice") will get: ["role:admin", "role:user"].
      *
      * @param string $name
+     * @param string $domain
      *
      * @return array
      */
-    public function getImplicitRolesForUser($name)
+    public function getImplicitRolesForUser($name, $domain = '')
     {
         $res = [];
         $roleSet = [];
@@ -249,7 +252,7 @@ trait RbacApi
             $name = $q[0];
             $q = array_slice($q, 1);
 
-            $roles = $this->rm->getRoles($name);
+            $roles = $this->rm->getRoles($name, $domain);
             foreach ($roles as $r) {
                 if (!isset($roleSet[$r])) {
                     $res[] = $r;
@@ -274,21 +277,61 @@ trait RbacApi
      * But getImplicitPermissionsForUser("alice") will get: [["admin", "data1", "read"], ["alice", "data2", "read"]].
      *
      * @param string $user
+     * @param string $domain
      *
      * @return array
      */
-    public function getImplicitPermissionsForUser($user)
+    public function getImplicitPermissionsForUser($user, $domain = '')
     {
         $roles[] = $user;
         $roles = array_merge(
             $roles,
-            $this->getImplicitRolesForUser($user)
+            $this->getImplicitRolesForUser($user, $domain)
         );
 
         $res = [];
         foreach ($roles as $role) {
-            $permissions = $this->getPermissionsForUser($role);
+            if ('' != $domain) {
+                $permissions = $this->getPermissionsForUserInDomain($role, $domain);
+            } else {
+                $permissions = $this->getPermissionsForUser($role);
+            }
+
             $res = array_merge($res, $permissions);
+        }
+
+        return $res;
+    }
+
+    /**
+     * gets implicit users for a permission.
+     * For example:
+     * p, admin, data1, read
+     * p, bob, data1, read
+     * g, alice, admin
+     * getImplicitUsersForPermission("data1", "read") will get: ["alice", "bob"].
+     * Note: only users will be returned, roles (2nd arg in "g") will be excluded.
+     *
+     * @param string ...$permission
+     *
+     * @return array
+     */
+    public function getImplicitUsersForPermission(...$permission)
+    {
+        $subjects = $this->getAllSubjects();
+        $roles = $this->getAllRoles();
+
+        $users = array_diff($subjects, $roles);
+
+        $res = [];
+        foreach ($users as $user) {
+            $req = $permission;
+            array_unshift($req, $user);
+            $allowed = $this->enforce(...$req);
+
+            if ($allowed) {
+                $res[] = $user;
+            }
         }
 
         return $res;

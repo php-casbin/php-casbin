@@ -140,6 +140,9 @@ class RbacApiTest extends TestCase
         $e = new Enforcer($this->modelAndPolicyPath.'/rbac_model.conf', $this->modelAndPolicyPath.'/rbac_with_hierarchy_policy.csv');
         $this->assertEquals($e->getImplicitRolesForUser('alice'), ['admin', 'data1_admin', 'data2_admin']);
         $this->assertEquals($e->getImplicitRolesForUser('bob'), []);
+
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_domains_model.conf', $this->modelAndPolicyPath.'/rbac_with_hierarchy_with_domains_policy.csv');
+        $this->assertEquals($e->getImplicitRolesForUser('alice', 'domain1'), ['role:global_admin', 'role:reader', 'role:writer']);
     }
 
     public function testGetImplicitPermissionsForUser()
@@ -155,5 +158,21 @@ class RbacApiTest extends TestCase
         $this->assertEquals($e->getImplicitPermissionsForUser('bob'), [
              ['bob', 'data2', 'write'],
         ]);
+
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_domains_model.conf', $this->modelAndPolicyPath.'/rbac_with_hierarchy_with_domains_policy.csv');
+        $this->assertEquals($e->getImplicitPermissionsForUser('alice', 'domain1'), [
+            ['alice', 'domain1', 'data2', 'read'],
+            ['role:reader', 'domain1', 'data1', 'read'],
+            ['role:writer', 'domain1', 'data1', 'write'],
+        ]);
+    }
+
+    public function testGetImplicitUsersForPermission()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_model.conf', $this->modelAndPolicyPath.'/rbac_with_hierarchy_policy.csv');
+        $this->assertEquals($e->getImplicitUsersForPermission('data1', 'read'), ['alice']);
+        $this->assertEquals($e->getImplicitUsersForPermission('data1', 'write'), ['alice']);
+        $this->assertEquals($e->getImplicitUsersForPermission('data2', 'read'), ['alice']);
+        $this->assertEquals($e->getImplicitUsersForPermission('data2', 'write'), ['alice', 'bob']);
     }
 }
