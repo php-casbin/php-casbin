@@ -154,7 +154,7 @@ class Enforcer
                 $this->initWithModelAndAdapter($p0, null);
             }
         } elseif (0 == \count($params) - $parsedParamLen) {
-            $this->initWithFile('', '');
+            // pass
         } else {
             throw new CasbinException('Invalid parameters for enforcer.');
         }
@@ -184,7 +184,7 @@ class Enforcer
      */
     public function initWithAdapter($modelPath, Adapter $adapter)
     {
-        $m = self::newModel($modelPath, '');
+        $m = Model::newModelFromFile($modelPath);
         $this->initWithModelAndAdapter($m, $adapter);
 
         $this->modelPath = $modelPath;
@@ -231,31 +231,6 @@ class Enforcer
     }
 
     /**
-     * creates a model.
-     *
-     * @param mixed ...$text
-     *
-     * @return Model
-     *
-     * @throws CasbinException
-     */
-    public static function newModel(...$text)
-    {
-        $model = new Model();
-        if (2 == \count($text)) {
-            if ('' != $text[0]) {
-                $model->loadModel($text[0]);
-            }
-        } elseif (1 == \count($text)) {
-            $model->loadModelFromText($text[0]);
-        } elseif (0 != \count($text)) {
-            throw new CasbinException('Invalid parameters for model.');
-        }
-
-        return $model;
-    }
-
-    /**
      * reloads the model from the model CONF file.
      * Because the policy is attached to a model, so the policy is invalidated and needs to be reloaded by calling LoadPolicy().
      *
@@ -263,10 +238,11 @@ class Enforcer
      */
     public function loadModel()
     {
-        $this->model = self::newModel();
-        $this->model->loadModel($this->modelPath);
+        $this->model = Model::newModelFromFile($this->modelPath);
         $this->model->printModel();
         $this->fm = Model::LoadFunctionMap();
+
+        $this->initialize();
     }
 
     /**
@@ -288,6 +264,8 @@ class Enforcer
     {
         $this->model = $model;
         $this->fm = $this->model->loadFunctionMap();
+
+        $this->initialize();
     }
 
     /**

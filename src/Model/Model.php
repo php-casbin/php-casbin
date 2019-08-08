@@ -100,13 +100,55 @@ class Model
     private function loadSection($cfg, $sec)
     {
         $i = 1;
-        for (; ;) {
+        for (;;) {
             if (!$this->loadAssertion($cfg, $sec, $sec.$this->getKeySuffix($i))) {
                 break;
             } else {
                 ++$i;
             }
         }
+    }
+
+    /**
+     * creates an empty model.
+     *
+     * @return Model
+     */
+    public static function newModel()
+    {
+        return new Model();
+    }
+
+    /**
+     * creates a model from a .CONF file.
+     *
+     * @param string $path
+     *
+     * @return Model
+     */
+    public static function newModelFromFile($path)
+    {
+        $m = self::newModel();
+
+        $m->loadModel($path);
+
+        return $m;
+    }
+
+    /**
+     * creates a model from a string which contains model text.
+     *
+     * @param string $text
+     *
+     * @return Model
+     */
+    public static function newModelFromString($text)
+    {
+        $m = self::newModel();
+
+        $m->loadModelFromText($text);
+
+        return $m;
     }
 
     /**

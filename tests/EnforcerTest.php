@@ -3,6 +3,7 @@
 namespace Casbin\Tests;
 
 use Casbin\Enforcer;
+use Casbin\Model\Model;
 use Casbin\Persist\Adapters\Fileadapter;
 use PHPUnit\Framework\TestCase;
 
@@ -17,7 +18,7 @@ class EnforcerTest extends TestCase
 
     public function testKeyMatchModelInMemory()
     {
-        $m = Enforcer::newModel();
+        $m = Model::newModel();
         $m->addDef('r', 'r', 'sub, obj, act');
         $m->addDef('p', 'p', 'sub, obj, act');
         $m->addDef('e', 'e', 'some(where (p.eft == allow))');
@@ -37,7 +38,7 @@ class EnforcerTest extends TestCase
 
     public function testKeyMatchModelInMemoryDeny()
     {
-        $m = Enforcer::newModel();
+        $m = Model::newModel();
         $m->addDef('r', 'r', 'sub, obj, act');
         $m->addDef('p', 'p', 'sub, obj, act');
         $m->addDef('e', 'e', '!some(where (p.eft == deny))');
@@ -52,7 +53,7 @@ class EnforcerTest extends TestCase
 
     public function testRBACModelInMemoryIndeterminate()
     {
-        $m = Enforcer::newModel();
+        $m = Model::newModel();
         $m->addDef('r', 'r', 'sub, obj, act');
         $m->addDef('p', 'p', 'sub, obj, act');
         $m->addDef('g', 'g', '_, _');

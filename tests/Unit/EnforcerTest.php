@@ -3,6 +3,7 @@
 namespace Casbin\Tests\Unit;
 
 use Casbin\Enforcer;
+use Casbin\Model\Model;
 use Casbin\Persist\Adapters\FileAdapter;
 use PHPUnit\Framework\TestCase;
 
@@ -55,10 +56,10 @@ class EnforcerTest extends TestCase
 
     public function testInitEmpty()
     {
-        $e = new Enforcer();
+        $e = new Enforcer(true);
 
-        $m = Enforcer::newModel(
-            <<<'EOT'
+        $m = Model::newModelFromString(
+            <<<EOT
 [request_definition]
 r = sub, obj, act
 
