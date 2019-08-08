@@ -59,7 +59,7 @@ class EnforcerTest extends TestCase
         $e = new Enforcer(true);
 
         $m = Model::newModelFromString(
-            <<<EOT
+            <<<'EOT'
 [request_definition]
 r = sub, obj, act
 

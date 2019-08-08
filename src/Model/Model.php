@@ -100,7 +100,7 @@ class Model
     private function loadSection($cfg, $sec)
     {
         $i = 1;
-        for (;;) {
+        for (; ;) {
             if (!$this->loadAssertion($cfg, $sec, $sec.$this->getKeySuffix($i))) {
                 break;
             } else {
@@ -116,7 +116,7 @@ class Model
      */
     public static function newModel()
     {
-        return new Model();
+        return new self();
     }
 
     /**
