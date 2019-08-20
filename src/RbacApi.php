@@ -47,16 +47,7 @@ trait RbacApi
     {
         $roles = $this->getRolesForUser($name);
 
-        $hasRole = false;
-        foreach ($roles as $r) {
-            if ($r == $role) {
-                $hasRole = true;
-
-                break;
-            }
-        }
-
-        return $hasRole;
+        return in_array($role, $roles, true);
     }
 
     /**
@@ -148,12 +139,7 @@ trait RbacApi
      */
     public function addPermissionForUser($user, ...$permission)
     {
-        $params = [];
-
-        $params[] = $user;
-        foreach ($permission as $perm) {
-            $params[] = $perm;
-        }
+        $params = array_merge([$user], $permission);
 
         return $this->addPolicy(...$params);
     }
@@ -169,12 +155,7 @@ trait RbacApi
      */
     public function deletePermissionForUser($user, ...$permission)
     {
-        $params = [];
-
-        $params[] = $user;
-        foreach ($permission as $perm) {
-            $params[] = $perm;
-        }
+        $params = array_merge([$user], $permission);
 
         return $this->removePolicy(...$params);
     }
@@ -214,12 +195,7 @@ trait RbacApi
      */
     public function hasPermissionForUser($user, ...$permission)
     {
-        $params = [];
-
-        $params[] = $user;
-        foreach ($permission as $perm) {
-            $params[] = $perm;
-        }
+        $params = array_merge([$user], $permission);
 
         return $this->hasPolicy($params);
     }
