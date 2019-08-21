@@ -26,31 +26,19 @@ class DefaultEffector extends Effector
     {
         $result = false;
         if ('some(where (p_eft == allow))' == $expr) {
-            foreach ($effects as $eft) {
-                if (self::ALLOW == $eft) {
-                    $result = true;
-
-                    break;
-                }
+            if (in_array(self::ALLOW, $effects)) {
+                $result = true;
             }
         } elseif ('!some(where (p_eft == deny))' == $expr) {
             $result = true;
-            foreach ($effects as $eft) {
-                if (self::DENY == $eft) {
-                    $result = false;
-
-                    break;
-                }
+            if (in_array(self::DENY, $effects)) {
+                $result = false;
             }
         } elseif ('some(where (p_eft == allow)) && !some(where (p_eft == deny))' == $expr) {
-            foreach ($effects as $eft) {
-                if (self::ALLOW == $eft) {
-                    $result = true;
-                } elseif (self::DENY == $eft) {
-                    $result = false;
-
-                    break;
-                }
+            if (in_array(self::DENY, $effects)) {
+                $result = false;
+            } elseif (in_array(self::ALLOW, $effects)) {
+                $result = true;
             }
         } elseif ('priority(p_eft) || deny' == $expr) {
             foreach ($effects as $eft) {

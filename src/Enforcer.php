@@ -466,10 +466,7 @@ class Enforcer
             return true;
         }
 
-        $functions = [];
-        foreach ($this->fm->getFunctions() as $key => $func) {
-            $functions[$key] = $func;
-        }
+        $functions = $this->fm->getFunctions();
 
         if (isset($this->model->model['g'])) {
             foreach ($this->model->model['g'] as $key => $ast) {
@@ -481,24 +478,34 @@ class Enforcer
         if (!isset($this->model->model['m']['m'])) {
             throw new CasbinException('model is undefined');
         }
-        $expString = $this->model->model['m']['m']->value;
+
+        $expString = $this->getExpString($this->model->model['m']['m']->value);
+
+        $rTokens = array_values($this->model->model['r']['r']->tokens);
+        $pTokens = array_values($this->model->model['p']['p']->tokens);
+
+        if (\count($rTokens) != \count($rvals)) {
+            throw new CasbinException('invalid request size');
+        }
+
+        $expressionLanguage = $this->getExpressionLanguage($functions);
+        $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
 
         $policyEffects = [];
         $matcherResults = [];
+
+        $rParameters = array_combine($rTokens, $rvals);
 
         $policyLen = \count($this->model->model['p']['p']->policy);
 
         if (0 != $policyLen) {
             foreach ($this->model->model['p']['p']->policy as $i => $pvals) {
-                $parameters = [];
-                foreach ($this->model->model['r']['r']->tokens as $j => $token) {
-                    $parameters[$token] = $rvals[$j];
+                if (\count($pTokens) != \count($pvals)) {
+                    throw new CasbinException('invalid policy size');
                 }
 
-                foreach ($this->model->model['p']['p']->tokens as $j => $token) {
-                    $parameters[$token] = $pvals[$j];
-                }
-                $result = $this->expressionEvaluate($expString, $parameters, $functions);
+                $parameters = array_merge($rParameters, array_combine($pTokens, $pvals));
+                $result = $expressionLanguage->evaluate($expression, $parameters);
 
                 if (\is_bool($result)) {
                     if (!$result) {
@@ -535,16 +542,12 @@ class Enforcer
                 }
             }
         } else {
-            $parameters = [];
-            foreach ($this->model->model['r']['r']->tokens as $j => $token) {
-                $parameters[$token] = $rvals[$j];
-            }
-
+            $parameters = $rParameters;
             foreach ($this->model->model['p']['p']->tokens as $token) {
                 $parameters[$token] = '';
             }
 
-            $result = $this->expressionEvaluate($expString, $parameters, $functions);
+            $result = $expressionLanguage->evaluate($expression, $parameters);
 
             if ($result) {
                 $policyEffects[0] = Effector::ALLOW;
@@ -567,22 +570,12 @@ class Enforcer
     }
 
     /**
-     * @param $expString
-     * @param $parameters
-     * @param $functions
+     * @param array $functions
      *
-     * @return mixed
+     * @return ExpressionLanguage
      */
-    protected function expressionEvaluate($expString, $parameters, $functions)
+    protected function getExpressionLanguage(array $functions)
     {
-        $expString = preg_replace_callback(
-            '/([\s\S]*in\s+)\(([\s\S]+)\)([\s\S]*)/',
-            function ($m) {
-                return $m[1].'['.$m[2].']'.$m[3];
-            },
-            $expString
-        );
-
         $expressionLanguage = new ExpressionLanguage();
         foreach ($functions as $key => $func) {
             $expressionLanguage->register($key, function (...$args) use ($key) {
@@ -591,7 +584,23 @@ class Enforcer
                 return $func(...$args);
             });
         }
-        // $expressionLanguage->compile($expString, array_keys($parameters));
-        return $expressionLanguage->evaluate($expString, $parameters);
+
+        return $expressionLanguage;
+    }
+
+    /**
+     * @param string $expString
+     *
+     * @return string
+     */
+    protected function getExpString($expString)
+    {
+        return preg_replace_callback(
+            '/([\s\S]*in\s+)\(([\s\S]+)\)([\s\S]*)/',
+            function ($m) {
+                return $m[1].'['.$m[2].']'.$m[3];
+            },
+            $expString
+        );
     }
 }
