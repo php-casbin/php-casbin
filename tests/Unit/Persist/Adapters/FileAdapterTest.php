@@ -25,9 +25,6 @@ class FileAdapterTest extends TestCase
 
         $m->addPolicy('p', 'p', $rule);
 
-        $rule = ['alice', 'data2_admin'];
-        $m->addPolicy('g', 'g', $rule);
-
         $res = $adapter->savePolicy($m);
 
         $this->assertFalse(false === $res);

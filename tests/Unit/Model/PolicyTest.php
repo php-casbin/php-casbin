@@ -45,10 +45,10 @@ class PolicyTest extends TestCase
 
         $rule = ['admin', 'domain1', 'data1', 'read'];
 
-        $m->addPolicy('p', 'p1', $rule);
-
-        $this->assertTrue($m->hasPolicy('p', 'p1', $rule));
         $this->assertFalse($m->hasPolicy('p', 'p', $rule));
+        $m->addPolicy('p', 'p', $rule);
+
+        $this->assertTrue($m->hasPolicy('p', 'p', $rule));
     }
 
     public function testRemovePolicy()
@@ -58,15 +58,15 @@ class PolicyTest extends TestCase
 
         $rule = ['admin', 'domain1', 'data1', 'read'];
 
-        $m->addPolicy('p', 'p1', $rule);
+        $m->addPolicy('p', 'p', $rule);
 
-        $this->assertTrue($m->hasPolicy('p', 'p1', $rule));
+        $this->assertTrue($m->hasPolicy('p', 'p', $rule));
 
-        $m->removePolicy('p', 'p1', $rule);
+        $m->removePolicy('p', 'p', $rule);
 
-        $this->assertFalse($m->hasPolicy('p', 'p1', $rule));
+        $this->assertFalse($m->hasPolicy('p', 'p', $rule));
 
-        $this->assertFalse($m->removePolicy('p', 'p1', $rule));
+        $this->assertFalse($m->removePolicy('p', 'p', $rule));
     }
 
     public function testRemoveFilteredPolicy()

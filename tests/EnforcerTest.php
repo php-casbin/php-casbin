@@ -4,7 +4,7 @@ namespace Casbin\Tests;
 
 use Casbin\Enforcer;
 use Casbin\Model\Model;
-use Casbin\Persist\Adapters\Fileadapter;
+use Casbin\Persist\Adapters\FileAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -24,7 +24,7 @@ class EnforcerTest extends TestCase
         $m->addDef('e', 'e', 'some(where (p.eft == allow))');
         $m->addDef('m', 'm', 'r.sub == p.sub && keyMatch(r.obj, p.obj) && regexMatch(r.act, p.act)');
 
-        $a = new Fileadapter($this->modelAndPolicyPath.'/keymatch_policy.csv');
+        $a = new FileAdapter($this->modelAndPolicyPath.'/keymatch_policy.csv');
 
         $e = new Enforcer($m, $a);
 
@@ -44,7 +44,7 @@ class EnforcerTest extends TestCase
         $m->addDef('e', 'e', '!some(where (p.eft == deny))');
         $m->addDef('m', 'm', 'r.sub == p.sub && keyMatch(r.obj, p.obj) && regexMatch(r.act, p.act)');
 
-        $a = new Fileadapter($this->modelAndPolicyPath.'/keymatch_policy.csv');
+        $a = new FileAdapter($this->modelAndPolicyPath.'/keymatch_policy.csv');
 
         $e = new Enforcer($m, $a);
 
