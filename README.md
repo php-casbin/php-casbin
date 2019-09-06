@@ -9,7 +9,7 @@ PHP-Casbin
 [![License](https://poser.pugx.org/casbin/casbin/license)](https://packagist.org/packages/casbin/casbin)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/casbin/lobby)
 
-[中文文档](https://github.com/php-casbin/php-casbin/blob/master/README_CN.md)
+[Documentation](https://casbin.org/docs/en/overview) | [Tutorials](https://github.com/php-casbin/casbin-tutorials) | [Extensions](https://github.com/php-casbin)
 
 **Breaking News**: [Laravel-authz](https://github.com/php-casbin/laravel-authz) is now available, an authorization library for the Laravel framework.
 
