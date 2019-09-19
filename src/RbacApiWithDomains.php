@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin;
 
 /**
@@ -17,7 +19,7 @@ trait RbacApiWithDomains
      *
      * @return array
      */
-    public function getUsersForRoleInDomain($name, $domain)
+    public function getUsersForRoleInDomain(string $name, string $domain): array
     {
         return $this->model->model['g']['g']->rM->getUsers($name, $domain);
     }
@@ -30,7 +32,7 @@ trait RbacApiWithDomains
      *
      * @return array
      */
-    public function getRolesForUserInDomain($name, $domain)
+    public function getRolesForUserInDomain(string $name, string $domain): array
     {
         return $this->model->model['g']['g']->rM->getRoles($name, $domain);
     }
@@ -43,7 +45,7 @@ trait RbacApiWithDomains
      *
      * @return array
      */
-    public function getPermissionsForUserInDomain($name, $domain)
+    public function getPermissionsForUserInDomain(string $name, string $domain): array
     {
         return $this->getFilteredPolicy(0, $name, $domain);
     }
@@ -58,7 +60,7 @@ trait RbacApiWithDomains
      *
      * @return bool
      */
-    public function addRoleForUserInDomain($user, $role, $domain)
+    public function addRoleForUserInDomain(string $user, string $role, string $domain): bool
     {
         return $this->addGroupingPolicy($user, $role, $domain);
     }
@@ -73,7 +75,7 @@ trait RbacApiWithDomains
      *
      * @return bool
      */
-    public function deleteRoleForUserInDomain($user, $role, $domain)
+    public function deleteRoleForUserInDomain(string $user, string $role, string $domain): bool
     {
         return $this->removeGroupingPolicy($user, $role, $domain);
     }

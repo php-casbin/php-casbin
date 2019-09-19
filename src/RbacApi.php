@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin;
 
 /**
@@ -18,7 +20,7 @@ trait RbacApi
      *
      * @return array
      */
-    public function getRolesForUser($name)
+    public function getRolesForUser(string $name): array
     {
         return $this->model->model['g']['g']->rM->getRoles($name);
     }
@@ -30,7 +32,7 @@ trait RbacApi
      *
      * @return array
      */
-    public function getUsersForRole($name)
+    public function getUsersForRole(string $name): array
     {
         return $this->model->model['g']['g']->rM->getUsers($name);
     }
@@ -43,7 +45,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function hasRoleForUser($name, $role)
+    public function hasRoleForUser(string $name, string $role): bool
     {
         $roles = $this->getRolesForUser($name);
 
@@ -59,7 +61,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function addRoleForUser($user, $role)
+    public function addRoleForUser(string $user, string $role): bool
     {
         return $this->addGroupingPolicy($user, $role);
     }
@@ -73,7 +75,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function deleteRoleForUser($user, $role)
+    public function deleteRoleForUser(string $user, string $role): bool
     {
         return $this->removeGroupingPolicy($user, $role);
     }
@@ -86,7 +88,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function deleteRolesForUser($user)
+    public function deleteRolesForUser(string $user): bool
     {
         return $this->removeFilteredGroupingPolicy(0, $user);
     }
@@ -99,7 +101,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function deleteUser($user)
+    public function deleteUser($user): bool
     {
         return $this->removeFilteredGroupingPolicy(0, $user);
     }
@@ -109,10 +111,12 @@ trait RbacApi
      *
      * @param string $role
      */
-    public function deleteRole($role)
+    public function deleteRole(string $role): bool
     {
-        $this->removeFilteredGroupingPolicy(1, $role);
-        $this->removeFilteredPolicy(0, $role);
+        $res1 = $this->removeFilteredGroupingPolicy(1, $role);
+        $res2 = $this->removeFilteredPolicy(0, $role);
+
+        return $res1 || $res2;
     }
 
     /**
@@ -123,7 +127,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function deletePermission(...$permission)
+    public function deletePermission(string ...$permission): bool
     {
         return $this->removeFilteredPolicy(1, ...$permission);
     }
@@ -137,7 +141,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function addPermissionForUser($user, ...$permission)
+    public function addPermissionForUser(string $user, string ...$permission): bool
     {
         $params = array_merge([$user], $permission);
 
@@ -153,7 +157,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function deletePermissionForUser($user, ...$permission)
+    public function deletePermissionForUser(string $user, string ...$permission): bool
     {
         $params = array_merge([$user], $permission);
 
@@ -168,7 +172,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function deletePermissionsForUser($user)
+    public function deletePermissionsForUser(string $user): bool
     {
         return $this->removeFilteredPolicy(0, $user);
     }
@@ -180,7 +184,7 @@ trait RbacApi
      *
      * @return array
      */
-    public function getPermissionsForUser($user)
+    public function getPermissionsForUser(string $user): array
     {
         return $this->getFilteredPolicy(0, $user);
     }
@@ -193,7 +197,7 @@ trait RbacApi
      *
      * @return bool
      */
-    public function hasPermissionForUser($user, ...$permission)
+    public function hasPermissionForUser(string $user, string ...$permission): bool
     {
         $params = array_merge([$user], $permission);
 
@@ -215,7 +219,7 @@ trait RbacApi
      *
      * @return array
      */
-    public function getImplicitRolesForUser($name, $domain = '')
+    public function getImplicitRolesForUser(string $name, string $domain = ''): array
     {
         $res = [];
         $roleSet = [];
@@ -257,7 +261,7 @@ trait RbacApi
      *
      * @return array
      */
-    public function getImplicitPermissionsForUser($user, $domain = '')
+    public function getImplicitPermissionsForUser(string $user, string $domain = ''): array
     {
         $roles[] = $user;
         $roles = array_merge(
@@ -292,7 +296,7 @@ trait RbacApi
      *
      * @return array
      */
-    public function getImplicitUsersForPermission(...$permission)
+    public function getImplicitUsersForPermission(string ...$permission): array
     {
         $subjects = $this->getAllSubjects();
         $roles = $this->getAllRoles();

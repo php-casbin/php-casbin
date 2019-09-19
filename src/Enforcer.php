@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin;
 
 use Casbin\Effect\DefaultEffector;
@@ -168,7 +170,7 @@ class Enforcer
      *
      * @throws CasbinException
      */
-    public function initWithFile($modelPath, $policyPath)
+    public function initWithFile(string $modelPath, string $policyPath): void
     {
         $adapter = new FileAdapter($policyPath);
         $this->initWithAdapter($modelPath, $adapter);
@@ -182,7 +184,7 @@ class Enforcer
      *
      * @throws CasbinException
      */
-    public function initWithAdapter($modelPath, Adapter $adapter)
+    public function initWithAdapter(string $modelPath, Adapter $adapter): void
     {
         $m = Model::newModelFromFile($modelPath);
         $this->initWithModelAndAdapter($m, $adapter);
@@ -196,7 +198,7 @@ class Enforcer
      * @param Model        $m
      * @param Adapter|null $adapter
      */
-    public function initWithModelAndAdapter(Model $m, $adapter)
+    public function initWithModelAndAdapter(Model $m, Adapter $adapter = null): void
     {
         $this->adapter = $adapter;
 
@@ -219,7 +221,7 @@ class Enforcer
     /**
      * initializes an enforcer with a database adapter.
      */
-    protected function initialize()
+    protected function initialize(): void
     {
         $this->rm = new DefaultRoleManager(10);
         $this->eft = new DefaultEffector();
@@ -236,7 +238,7 @@ class Enforcer
      *
      * @throws CasbinException
      */
-    public function loadModel()
+    public function loadModel(): void
     {
         $this->model = Model::newModelFromFile($this->modelPath);
         $this->model->printModel();
@@ -250,7 +252,7 @@ class Enforcer
      *
      * @return Model
      */
-    public function getModel()
+    public function getModel(): Model
     {
         return $this->model;
     }
@@ -260,7 +262,7 @@ class Enforcer
      *
      * @param Model $model
      */
-    public function setModel(Model $model)
+    public function setModel(Model $model): void
     {
         $this->model = $model;
         $this->fm = $this->model->loadFunctionMap();
@@ -273,7 +275,7 @@ class Enforcer
      *
      * @return Adapter
      */
-    public function getAdapter()
+    public function getAdapter(): Adapter
     {
         return $this->adapter;
     }
@@ -283,7 +285,7 @@ class Enforcer
      *
      * @param Adapter $adapter
      */
-    public function setAdapter(Adapter $adapter)
+    public function setAdapter(Adapter $adapter): void
     {
         $this->adapter = $adapter;
     }
@@ -293,7 +295,7 @@ class Enforcer
      *
      * @param Watcher $watcher
      */
-    public function setWatcher(Watcher $watcher)
+    public function setWatcher(Watcher $watcher): void
     {
         $this->watcher = $watcher;
         $this->watcher->setUpdateCallback(function () {
@@ -306,7 +308,7 @@ class Enforcer
      *
      * @param RoleManager $rm
      */
-    public function setRoleManager(RoleManager $rm)
+    public function setRoleManager(RoleManager $rm): void
     {
         $this->rm = $rm;
     }
@@ -316,7 +318,7 @@ class Enforcer
      *
      * @param Effector $eft
      */
-    public function setEffector(Effector $eft)
+    public function setEffector(Effector $eft): void
     {
         $this->eft = $eft;
     }
@@ -324,7 +326,7 @@ class Enforcer
     /**
      * clears all policy.
      */
-    public function clearPolicy()
+    public function clearPolicy(): void
     {
         $this->model->clearPolicy();
     }
@@ -332,7 +334,7 @@ class Enforcer
     /**
      * reloads the policy from file/database.
      */
-    public function loadPolicy()
+    public function loadPolicy(): void
     {
         $this->model->clearPolicy();
         $this->adapter->loadPolicy($this->model);
@@ -350,7 +352,7 @@ class Enforcer
      *
      * @throws CasbinException
      */
-    public function loadFilteredPolicy($filter)
+    public function loadFilteredPolicy($filter): void
     {
         $this->model->clearPolicy();
 
@@ -372,14 +374,15 @@ class Enforcer
      *
      * @return bool
      */
-    public function isFiltered()
+    public function isFiltered(): bool
     {
         if (!$this->adapter instanceof FilteredAdapter) {
             return false;
         }
 
         $filteredAdapter = $this->adapter;
-        $filteredAdapter->isFiltered();
+
+        return $filteredAdapter->isFiltered();
     }
 
     /**
@@ -389,7 +392,7 @@ class Enforcer
      *
      * @throws CasbinException
      */
-    public function savePolicy()
+    public function savePolicy(): void
     {
         if ($this->isFiltered()) {
             throw new CasbinException('cannot save a filtered policy');
@@ -398,7 +401,7 @@ class Enforcer
         $this->adapter->savePolicy($this->model);
 
         if (null !== $this->watcher) {
-            return $this->watcher->update();
+            $this->watcher->update();
         }
     }
 
@@ -407,7 +410,7 @@ class Enforcer
      *
      * @param bool $enabled
      */
-    public function enableEnforce($enabled = true)
+    public function enableEnforce(bool $enabled = true): void
     {
         $this->enabled = $enabled;
     }
@@ -417,7 +420,7 @@ class Enforcer
      *
      * @param bool $enabled
      */
-    public function enableLog($enabled = true)
+    public function enableLog(bool $enabled = true): void
     {
         Log::getLogger()->enableLog($enabled);
     }
@@ -427,7 +430,7 @@ class Enforcer
      *
      * @param bool $autoSave
      */
-    public function enableAutoSave($autoSave = true)
+    public function enableAutoSave(bool $autoSave = true): void
     {
         $this->autoSave = $autoSave;
     }
@@ -437,7 +440,7 @@ class Enforcer
      *
      * @param bool $autoBuildRoleLinks
      */
-    public function enableAutoBuildRoleLinks($autoBuildRoleLinks = true)
+    public function enableAutoBuildRoleLinks(bool $autoBuildRoleLinks = true): void
     {
         $this->autoBuildRoleLinks = $autoBuildRoleLinks;
     }
@@ -445,7 +448,7 @@ class Enforcer
     /**
      * manually rebuild the role inheritance relations.
      */
-    public function buildRoleLinks()
+    public function buildRoleLinks(): void
     {
         $this->rm->clear();
         $this->model->buildRoleLinks($this->rm);
@@ -460,7 +463,7 @@ class Enforcer
      *
      * @throws CasbinException
      */
-    public function enforce(...$rvals)
+    public function enforce(...$rvals): bool
     {
         if (!$this->enabled) {
             return true;
@@ -574,7 +577,7 @@ class Enforcer
      *
      * @return ExpressionLanguage
      */
-    protected function getExpressionLanguage(array $functions)
+    protected function getExpressionLanguage(array $functions): ExpressionLanguage
     {
         $expressionLanguage = new ExpressionLanguage();
         foreach ($functions as $key => $func) {
@@ -593,7 +596,7 @@ class Enforcer
      *
      * @return string
      */
-    protected function getExpString($expString)
+    protected function getExpString(string $expString): string
     {
         return preg_replace_callback(
             '/([\s\S]*in\s+)\(([\s\S]+)\)([\s\S]*)/',

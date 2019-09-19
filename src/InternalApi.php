@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin;
 
 use Casbin\Exceptions\NotImplementedException;
@@ -18,9 +20,9 @@ trait InternalApi
      * @param string $ptype
      * @param array  $rule
      *
-     * @return mixed
+     * @return bool
      */
-    protected function addPolicyInternal($sec, $ptype, array $rule)
+    protected function addPolicyInternal(string $sec, string $ptype, array $rule): bool
     {
         $ruleAdded = $this->model->addPolicy($sec, $ptype, $rule);
         if (!$ruleAdded) {
@@ -49,9 +51,9 @@ trait InternalApi
      * @param string $ptype
      * @param array  $rule
      *
-     * @return mixed
+     * @return bool
      */
-    protected function removePolicyInternal($sec, $ptype, array $rule)
+    protected function removePolicyInternal(string $sec, string $ptype, array $rule): bool
     {
         $ruleRemoved = $this->model->removePolicy($sec, $ptype, $rule);
         if (!$ruleRemoved) {
@@ -79,11 +81,11 @@ trait InternalApi
      * @param string $sec
      * @param string $ptype
      * @param int    $fieldIndex
-     * @param mixed  ...$fieldValues
+     * @param string ...$fieldValues
      *
      * @return bool
      */
-    protected function removeFilteredPolicyInternal($sec, $ptype, $fieldIndex, ...$fieldValues)
+    protected function removeFilteredPolicyInternal(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): bool
     {
         $ruleRemoved = $this->model->removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
         if (!$ruleRemoved) {
