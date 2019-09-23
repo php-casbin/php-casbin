@@ -78,7 +78,7 @@ class BuiltinOperationsTest extends TestCase
         $this->assertFalse($this->keyMatch3Func('/foo/bar', '/foo'));
         $this->assertFalse($this->keyMatch3Func('/foo/bar', '/foo*'));
         $this->assertTrue($this->keyMatch3Func('/foo/bar', '/foo/*'));
-        $this->assertFalse($this->keyMatch3Func('/foobar', '/foo')); 
+        $this->assertFalse($this->keyMatch3Func('/foobar', '/foo'));
         $this->assertFalse($this->keyMatch3Func('/foobar', '/foo*'));
         $this->assertFalse($this->keyMatch3Func('/foobar', '/foo/*'));
 
