@@ -62,7 +62,7 @@ class BuiltinOperations
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/(.*):[^\/]+(.*)/';
-        for (; ;) {
+        for (;;) {
             if (false === strpos($key2, '/:')) {
                 break;
             }
@@ -73,10 +73,9 @@ class BuiltinOperations
                 },
                 $key2
             );
-            $key2 = '^'.$key2.'$';
         }
 
-        return self::regexMatch($key1, $key2);
+        return self::regexMatch($key1, '^'.$key2.'$');
     }
 
     /**
@@ -108,7 +107,7 @@ class BuiltinOperations
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/(.*)\{[^\/]+\}(.*)/';
-        for (; ;) {
+        for (;;) {
             if (false === strpos($key2, '/{')) {
                 break;
             }
@@ -121,7 +120,7 @@ class BuiltinOperations
             );
         }
 
-        return self::regexMatch($key1, $key2);
+        return self::regexMatch($key1, '^'.$key2.'$');
     }
 
     /**

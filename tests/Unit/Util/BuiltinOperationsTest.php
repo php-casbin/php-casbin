@@ -45,11 +45,11 @@ class BuiltinOperationsTest extends TestCase
         $this->assertTrue($this->keyMatch2Func('/foo', '/foo'));
         $this->assertTrue($this->keyMatch2Func('/foo', '/foo*'));
         $this->assertFalse($this->keyMatch2Func('/foo', '/foo/*'));
-        $this->assertTrue($this->keyMatch2Func('/foo/bar', '/foo')); // different with KeyMatch.
-        $this->assertTrue($this->keyMatch2Func('/foo/bar', '/foo*'));
+        $this->assertFalse($this->keyMatch2Func('/foo/bar', '/foo'));
+        $this->assertFalse($this->keyMatch2Func('/foo/bar', '/foo*'));
         $this->assertTrue($this->keyMatch2Func('/foo/bar', '/foo/*'));
-        $this->assertTrue($this->keyMatch2Func('/foobar', '/foo')); // different with KeyMatch.
-        $this->assertTrue($this->keyMatch2Func('/foobar', '/foo*'));
+        $this->assertFalse($this->keyMatch2Func('/foobar', '/foo'));
+        $this->assertFalse($this->keyMatch2Func('/foobar', '/foo*'));
         $this->assertFalse($this->keyMatch2Func('/foobar', '/foo/*'));
 
         $this->assertFalse($this->keyMatch2Func('/', '/:resource'));
@@ -75,11 +75,11 @@ class BuiltinOperationsTest extends TestCase
         $this->assertTrue($this->keyMatch3Func('/foo', '/foo'));
         $this->assertTrue($this->keyMatch3Func('/foo', '/foo*'));
         $this->assertFalse($this->keyMatch3Func('/foo', '/foo/*'));
-        $this->assertTrue($this->keyMatch3Func('/foo/bar', '/foo')); // different with KeyMatch.
-        $this->assertTrue($this->keyMatch3Func('/foo/bar', '/foo*'));
+        $this->assertFalse($this->keyMatch3Func('/foo/bar', '/foo'));
+        $this->assertFalse($this->keyMatch3Func('/foo/bar', '/foo*'));
         $this->assertTrue($this->keyMatch3Func('/foo/bar', '/foo/*'));
-        $this->assertTrue($this->keyMatch3Func('/foobar', '/foo')); // different with KeyMatch.
-        $this->assertTrue($this->keyMatch3Func('/foobar', '/foo*'));
+        $this->assertFalse($this->keyMatch3Func('/foobar', '/foo')); 
+        $this->assertFalse($this->keyMatch3Func('/foobar', '/foo*'));
         $this->assertFalse($this->keyMatch3Func('/foobar', '/foo/*'));
 
         $this->assertFalse($this->keyMatch3Func('/', '/{resource}'));
