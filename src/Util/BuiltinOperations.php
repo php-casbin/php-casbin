@@ -73,10 +73,9 @@ class BuiltinOperations
                 },
                 $key2
             );
-            $key2 = '^'.$key2.'$';
         }
 
-        return self::regexMatch($key1, $key2);
+        return self::regexMatch($key1, '^'.$key2.'$');
     }
 
     /**
@@ -121,7 +120,7 @@ class BuiltinOperations
             );
         }
 
-        return self::regexMatch($key1, $key2);
+        return self::regexMatch($key1, '^'.$key2.'$');
     }
 
     /**
