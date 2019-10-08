@@ -509,7 +509,7 @@ class Enforcer
 
                 $parameters = array_merge($rParameters, array_combine($pTokens, $pvals));
                 $result = $expressionLanguage->evaluate($expression, $parameters);
-                
+
                 if (\is_bool($result)) {
                     if (!$result) {
                         $policyEffects[$i] = Effector::INDETERMINATE;

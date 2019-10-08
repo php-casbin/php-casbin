@@ -103,7 +103,7 @@ class Model
     private function loadSection(ConfigContract $cfg, string $sec): void
     {
         $i = 1;
-        for (;;) {
+        for (; ;) {
             if (!$this->loadAssertion($cfg, $sec, $sec.$this->getKeySuffix($i))) {
                 break;
             } else {
@@ -117,7 +117,7 @@ class Model
      *
      * @return Model
      */
-    public static function newModel(): Model
+    public static function newModel(): self
     {
         return new self();
     }
@@ -129,7 +129,7 @@ class Model
      *
      * @return Model
      */
-    public static function newModelFromFile(string $path): Model
+    public static function newModelFromFile(string $path): self
     {
         $m = self::newModel();
 
@@ -145,7 +145,7 @@ class Model
      *
      * @return Model
      */
-    public static function newModelFromString(string $text): Model
+    public static function newModelFromString(string $text): self
     {
         $m = self::newModel();
 
