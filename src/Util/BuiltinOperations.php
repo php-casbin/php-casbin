@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Util;
 
 use Casbin\Rbac\RoleManager;
@@ -22,7 +24,7 @@ class BuiltinOperations
      *
      * @return bool
      */
-    public static function keyMatch($key1, $key2)
+    public static function keyMatch(string $key1, string $key2): bool
     {
         if (false === strpos($key2, '*')) {
             return $key1 == $key2;
@@ -40,7 +42,7 @@ class BuiltinOperations
      *
      * @return bool
      */
-    public static function keyMatchFunc(...$args)
+    public static function keyMatchFunc(...$args): bool
     {
         $name1 = $args[0];
         $name2 = $args[1];
@@ -55,14 +57,14 @@ class BuiltinOperations
      * @param string $key1
      * @param string $key2
      *
-     * @return false|int
+     * @return bool
      */
-    public static function keyMatch2($key1, $key2)
+    public static function keyMatch2(string $key1, string $key2): bool
     {
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/(.*):[^\/]+(.*)/';
-        for (; ;) {
+        for (;;) {
             if (false === strpos($key2, '/:')) {
                 break;
             }
@@ -83,9 +85,9 @@ class BuiltinOperations
      *
      * @param mixed ...$args
      *
-     * @return false|int
+     * @return bool
      */
-    public static function keyMatch2Func(...$args)
+    public static function keyMatch2Func(...$args): bool
     {
         $name1 = $args[0];
         $name2 = $args[1];
@@ -100,14 +102,14 @@ class BuiltinOperations
      * @param string $key1
      * @param string $key2
      *
-     * @return false|int
+     * @return bool
      */
-    public static function keyMatch3($key1, $key2)
+    public static function keyMatch3(string $key1, string $key2): bool
     {
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/(.*)\{[^\/]+\}(.*)/';
-        for (; ;) {
+        for (;;) {
             if (false === strpos($key2, '/{')) {
                 break;
             }
@@ -128,9 +130,9 @@ class BuiltinOperations
      *
      * @param mixed ...$args
      *
-     * @return false|int
+     * @return bool
      */
-    public static function keyMatch3Func(...$args)
+    public static function keyMatch3Func(...$args): bool
     {
         $name1 = $args[0];
         $name2 = $args[1];
@@ -144,11 +146,11 @@ class BuiltinOperations
      * @param string $key1
      * @param string $key2
      *
-     * @return false|int
+     * @return bool
      */
-    public static function regexMatch($key1, $key2)
+    public static function regexMatch(string $key1, string $key2): bool
     {
-        return preg_match('~'.$key2.'~', $key1);
+        return (bool) preg_match('~'.$key2.'~', $key1);
     }
 
     /**
@@ -156,9 +158,9 @@ class BuiltinOperations
      *
      * @param mixed ...$args
      *
-     * @return false|int
+     * @return bool
      */
-    public static function regexMatchFunc(...$args)
+    public static function regexMatchFunc(...$args): bool
     {
         $name1 = $args[0];
         $name2 = $args[1];
@@ -176,7 +178,7 @@ class BuiltinOperations
      *
      * @throws \Exception
      */
-    public static function iPMatch($ip1, $ip2)
+    public static function ipMatch(string $ip1, string $ip2): bool
     {
         $objIP1 = IP::parse($ip1);
 
@@ -194,12 +196,12 @@ class BuiltinOperations
      *
      * @throws \Exception
      */
-    public static function iPMatchFunc(...$args)
+    public static function ipMatchFunc(...$args): bool
     {
         $ip1 = $args[0];
         $ip2 = $args[1];
 
-        return self::iPMatch($ip1, $ip2);
+        return self::ipMatch($ip1, $ip2);
     }
 
     /**
@@ -209,7 +211,7 @@ class BuiltinOperations
      *
      * @return \Closure
      */
-    public static function generateGFunction(RoleManager $rm = null)
+    public static function generateGFunction(RoleManager $rm = null): \Closure
     {
         return function (...$args) use ($rm) {
             $name1 = $args[0];

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Persist;
 
 use Casbin\Model\Model;
@@ -15,19 +17,15 @@ interface Adapter
      * loads all policy rules from the storage.
      *
      * @param Model $model
-     *
-     * @return mixed
      */
-    public function loadPolicy($model);
+    public function loadPolicy(Model $model): void;
 
     /**
      * saves all policy rules to the storage.
      *
      * @param Model $model
-     *
-     * @return bool
      */
-    public function savePolicy($model);
+    public function savePolicy(Model $model): void;
 
     /**
      * adds a policy rule to the storage.
@@ -36,10 +34,8 @@ interface Adapter
      * @param string $sec
      * @param string $ptype
      * @param array  $rule
-     *
-     * @return mixed
      */
-    public function addPolicy($sec, $ptype, $rule);
+    public function addPolicy(string $sec, string $ptype, array $rule): void;
 
     /**
      * This is part of the Auto-Save feature.
@@ -47,10 +43,8 @@ interface Adapter
      * @param string $sec
      * @param string $ptype
      * @param array  $rule
-     *
-     * @return mixed
      */
-    public function removePolicy($sec, $ptype, $rule);
+    public function removePolicy(string $sec, string $ptype, array $rule): void;
 
     /**
      * RemoveFilteredPolicy removes policy rules that match the filter from the storage.
@@ -59,9 +53,7 @@ interface Adapter
      * @param string $sec
      * @param string $ptype
      * @param int    $fieldIndex
-     * @param mixed  ...$fieldValues
-     *
-     * @return mixed
+     * @param string ...$fieldValues
      */
-    public function removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
+    public function removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): void;
 }

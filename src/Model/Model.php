@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Model;
 
 use Casbin\Config\Config;
@@ -38,9 +40,9 @@ class Model
      * @param string         $sec
      * @param string         $key
      *
-     * @return bool|void
+     * @return bool
      */
-    private function loadAssertion($cfg, $sec, $key)
+    private function loadAssertion(ConfigContract $cfg, string $sec, string $key): bool
     {
         $value = $cfg->getString($this->sectionNameMap[$sec].'::'.$key);
 
@@ -52,15 +54,16 @@ class Model
      *
      * @param string $sec
      * @param string $key
-     * @param mixed  $value
+     * @param string $value
      *
-     * @return bool|void
+     * @return bool
      */
-    public function addDef($sec, $key, $value)
+    public function addDef(string $sec, string $key, string $value): bool
     {
         if ('' == $value) {
-            return;
+            return false;
         }
+
         $ast = new Assertion();
         $ast->key = $key;
         $ast->value = $value;
@@ -80,11 +83,11 @@ class Model
     }
 
     /**
-     * @param $i
+     * @param int $i
      *
      * @return string
      */
-    private function getKeySuffix($i)
+    private function getKeySuffix(int $i): string
     {
         if (1 == $i) {
             return '';
@@ -97,10 +100,10 @@ class Model
      * @param ConfigContract $cfg
      * @param string         $sec
      */
-    private function loadSection($cfg, $sec)
+    private function loadSection(ConfigContract $cfg, string $sec): void
     {
         $i = 1;
-        for (; ;) {
+        for (;;) {
             if (!$this->loadAssertion($cfg, $sec, $sec.$this->getKeySuffix($i))) {
                 break;
             } else {
@@ -114,7 +117,7 @@ class Model
      *
      * @return Model
      */
-    public static function newModel()
+    public static function newModel(): Model
     {
         return new self();
     }
@@ -126,7 +129,7 @@ class Model
      *
      * @return Model
      */
-    public static function newModelFromFile($path)
+    public static function newModelFromFile(string $path): Model
     {
         $m = self::newModel();
 
@@ -142,7 +145,7 @@ class Model
      *
      * @return Model
      */
-    public static function newModelFromString($text)
+    public static function newModelFromString(string $text): Model
     {
         $m = self::newModel();
 
@@ -156,7 +159,7 @@ class Model
      *
      * @param string $path
      */
-    public function loadModel($path)
+    public function loadModel(string $path): void
     {
         $cfg = Config::newConfig($path);
 
@@ -173,7 +176,7 @@ class Model
      *
      * @param string $text
      */
-    public function loadModelFromText($text)
+    public function loadModelFromText(string $text): void
     {
         $cfg = Config::newConfigFromText($text);
 
@@ -188,7 +191,7 @@ class Model
     /**
      * prints the model to the log.
      */
-    public function printModel()
+    public function printModel(): void
     {
         Log::logPrint('Model:');
         foreach ($this->model as $k => $v) {
@@ -203,7 +206,7 @@ class Model
      *
      * @return FunctionMap
      */
-    public static function loadFunctionMap()
+    public static function loadFunctionMap(): FunctionMap
     {
         return FunctionMap::loadFunctionMap();
     }

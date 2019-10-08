@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Config;
 
 /**
@@ -16,7 +18,7 @@ interface ConfigContract
      *
      * @return string
      */
-    public function getString($key);
+    public function getString(string $key): string;
 
     /**
      * lookups up the value using the provided key and converts the value to an array of string
@@ -26,7 +28,7 @@ interface ConfigContract
      *
      * @return array
      */
-    public function getStrings($key);
+    public function getStrings(string $key): array;
 
     /**
      * sets the value for the specific key in the Config.
@@ -36,7 +38,7 @@ interface ConfigContract
      *
      * @throws CasbinException
      */
-    public function set($key, $value);
+    public function set(string $key, string $value): void;
 
     /**
      * section.key or key.
@@ -45,5 +47,5 @@ interface ConfigContract
      *
      * @return string
      */
-    public function get($key);
+    public function get(string $key): string;
 }

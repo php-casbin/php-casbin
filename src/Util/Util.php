@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Util;
 
 /**
@@ -16,7 +18,7 @@ class Util
      *
      * @return string
      */
-    public static function escapeAssertion($s)
+    public static function escapeAssertion(string $s): string
     {
         if (0 === strpos($s, 'r.')) {
             $s = substr_replace($s, 'r_', 0, 2);
@@ -39,7 +41,7 @@ class Util
      *
      * @return string
      */
-    public static function removeComments($s)
+    public static function removeComments(string $s): string
     {
         $pos = strpos($s, '#');
 
@@ -53,7 +55,7 @@ class Util
      *
      * @return string
      */
-    public static function arrayToString($s)
+    public static function arrayToString(array $s): string
     {
         return implode(', ', $s);
     }
@@ -63,7 +65,7 @@ class Util
      *
      * @param array $s
      */
-    public static function arrayRemoveDuplicates(&$s)
+    public static function arrayRemoveDuplicates(array &$s): void
     {
         $s = array_keys(array_flip($s));
     }

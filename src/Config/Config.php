@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Config;
 
 use Casbin\Exceptions\CasbinException;
@@ -26,9 +28,9 @@ class Config implements ConfigContract
      *
      * @param string $confName
      *
-     * @return static
+     * @return ConfigContract
      */
-    public static function newConfig($confName)
+    public static function newConfig(string $confName): ConfigContract
     {
         $c = new static();
         $c->parse($confName);
@@ -41,9 +43,9 @@ class Config implements ConfigContract
      *
      * @param string $text
      *
-     * @return static
+     * @return ConfigContract
      */
-    public static function newConfigFromText($text)
+    public static function newConfigFromText(string $text): ConfigContract
     {
         $c = new static();
         $c->parseBuffer($text);
@@ -60,7 +62,7 @@ class Config implements ConfigContract
      *
      * @return bool
      */
-    public function addConfig($section, $option, $value)
+    public function addConfig(string $section, string $option, string $value): bool
     {
         if (empty($section)) {
             $section = self::DEFAULT_SECTION;
@@ -82,7 +84,7 @@ class Config implements ConfigContract
      *
      * @throws CasbinException
      */
-    private function parse($fname)
+    private function parse(string $fname): bool
     {
         $buf = file_get_contents($fname);
 
@@ -98,9 +100,9 @@ class Config implements ConfigContract
      *
      * @throws CasbinException
      */
-    private function parseBuffer($buf)
+    private function parseBuffer(string $buf): bool
     {
-        $section = null;
+        $section = '';
         $lineNum = 0;
         $buffer = '';
         $canWrite = null;
@@ -153,15 +155,16 @@ class Config implements ConfigContract
     /**
      * @param string $section
      * @param int    $lineNum
-     * @param $b
+     * @param string $b
      *
      * @throws CasbinException
      */
-    private function write($section, $lineNum, &$b)
+    private function write(string $section, int $lineNum, string &$b): void
     {
         if (\strlen($b) <= 0) {
             return;
         }
+
         $optionVal = explode('=', $b, 2);
 
         if (2 != \count($optionVal)) {
@@ -183,7 +186,7 @@ class Config implements ConfigContract
      *
      * @return string
      */
-    public function getString($key)
+    public function getString(string $key): string
     {
         return $this->get($key);
     }
@@ -196,7 +199,7 @@ class Config implements ConfigContract
      *
      * @return array
      */
-    public function getStrings($key)
+    public function getStrings(string $key): array
     {
         $v = $this->get($key);
         if ('' == $v) {
@@ -214,7 +217,7 @@ class Config implements ConfigContract
      *
      * @throws CasbinException
      */
-    public function set($key, $value)
+    public function set(string $key, string $value): void
     {
         if (0 == \strlen($key)) {
             throw new CasbinException('key is empty');
@@ -239,7 +242,7 @@ class Config implements ConfigContract
      *
      * @return string
      */
-    public function get($key)
+    public function get(string $key): string
     {
         $keys = explode('::', $key);
         if (\count($keys) >= 2) {

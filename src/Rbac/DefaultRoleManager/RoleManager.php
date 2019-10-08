@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Rbac\DefaultRoleManager;
 
 use Casbin\Exceptions\CasbinException;
@@ -28,9 +30,9 @@ class RoleManager implements RoleManagerContract
     /**
      * RoleManager constructor.
      *
-     * @param $maxHierarchyLevel
+     * @param int $maxHierarchyLevel
      */
-    public function __construct($maxHierarchyLevel)
+    public function __construct(int $maxHierarchyLevel)
     {
         $this->allRoles = [];
         $this->maxHierarchyLevel = $maxHierarchyLevel;
@@ -41,7 +43,7 @@ class RoleManager implements RoleManagerContract
      *
      * @return bool
      */
-    protected function hasRole($name)
+    protected function hasRole(string $name): bool
     {
         return isset($this->allRoles[$name]);
     }
@@ -49,9 +51,9 @@ class RoleManager implements RoleManagerContract
     /**
      * @param string $name
      *
-     * @return mixed
+     * @return Role
      */
-    protected function createRole($name)
+    protected function createRole(string $name): Role
     {
         if (!isset($this->allRoles[$name])) {
             $this->allRoles[$name] = new Role($name);
@@ -63,7 +65,7 @@ class RoleManager implements RoleManagerContract
     /**
      * clears all stored data and resets the role manager to the initial state.
      */
-    public function clear()
+    public function clear(): void
     {
         $this->allRoles = [];
     }
@@ -77,7 +79,7 @@ class RoleManager implements RoleManagerContract
      * @param string $name2
      * @param string $domain
      */
-    public function addLink($name1, $name2, $domain = '')
+    public function addLink(string $name1, string $name2, string $domain = ''): void
     {
         if ('' != $domain) {
             $name1 = $domain.'::'.$name1;
@@ -98,7 +100,7 @@ class RoleManager implements RoleManagerContract
      * @param string $name2
      * @param string $domain
      */
-    public function deleteLink($name1, $name2, $domain = '')
+    public function deleteLink(string $name1, string $name2, string $domain = ''): void
     {
         if ('' != $domain) {
             $name1 = $domain.'::'.$name1;
@@ -124,7 +126,7 @@ class RoleManager implements RoleManagerContract
      *
      * @return bool
      */
-    public function hasLink($name1, $name2, $domain = '')
+    public function hasLink(string $name1, string $name2, string $domain = ''): bool
     {
         if ('' != $domain) {
             $name1 = $domain.'::'.$name1;
@@ -153,7 +155,7 @@ class RoleManager implements RoleManagerContract
      *
      * @return array
      */
-    public function getRoles($name, $domain = '')
+    public function getRoles(string $name, string $domain = ''): array
     {
         if ('' != $domain) {
             $name = $domain.'::'.$name;
@@ -182,7 +184,7 @@ class RoleManager implements RoleManagerContract
      *
      * @return array
      */
-    public function getUsers($name, $domain = '')
+    public function getUsers(string $name, string $domain = ''): array
     {
         if ('' != $domain) {
             $name = $domain.'::'.$name;
@@ -206,7 +208,7 @@ class RoleManager implements RoleManagerContract
     /**
      * prints all the roles to log.
      */
-    public function printRoles()
+    public function printRoles(): void
     {
         $line = [];
         array_map(function ($role) use (&$line) {

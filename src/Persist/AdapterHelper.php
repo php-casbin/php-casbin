@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Persist;
+
+use Casbin\Model\Model;
 
 /**
  * Trait AdapterHelper.
@@ -13,7 +17,7 @@ trait AdapterHelper
      * @param string              $line
      * @param \Casbin\Model\Model $model
      */
-    public function loadPolicyLine($line, $model)
+    public function loadPolicyLine(string $line, Model $model): void
     {
         if ('' == $line) {
             return;

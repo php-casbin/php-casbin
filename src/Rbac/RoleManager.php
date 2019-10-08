@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Rbac;
 
 /**
@@ -13,7 +15,7 @@ interface RoleManager
     /**
      * clears all stored data and resets the role manager to the initial state.
      */
-    public function clear();
+    public function clear(): void;
 
     /**
      * adds the inheritance link between role: name1 and role: name2.
@@ -24,7 +26,7 @@ interface RoleManager
      * @param string $name2
      * @param string $domain
      */
-    public function addLink($name1, $name2, $domain = '');
+    public function addLink(string $name1, string $name2, string $domain = ''): void;
 
     /**
      * deletes the inheritance link between role: name1 and role: name2.
@@ -35,7 +37,7 @@ interface RoleManager
      * @param string $name2
      * @param string $domain
      */
-    public function deleteLink($name1, $name2, $domain = '');
+    public function deleteLink(string $name1, string $name2, string $domain = ''): void;
 
     /**
      * determines whether role: name1 inherits role: name2.
@@ -47,7 +49,7 @@ interface RoleManager
      *
      * @return bool
      */
-    public function hasLink($name1, $name2, $domain = '');
+    public function hasLink(string $name1, string $name2, string $domain = ''): bool;
 
     /**
      * gets the roles that a subject inherits.
@@ -58,7 +60,7 @@ interface RoleManager
      *
      * @return array
      */
-    public function getRoles($name, $domain = '');
+    public function getRoles(string $name, string $domain = ''): array;
 
     /**
      * gets the users that inherits a subject.
@@ -69,10 +71,10 @@ interface RoleManager
      *
      * @return array
      */
-    public function getUsers($name, $domain = '');
+    public function getUsers(string $name, string $domain = ''): array;
 
     /**
      * prints all the roles to log.
      */
-    public function printRoles();
+    public function printRoles(): void;
 }

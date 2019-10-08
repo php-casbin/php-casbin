@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Model;
 
 use Casbin\Log\Log;
@@ -18,7 +20,7 @@ trait Policy
      *
      * @param RoleManager $rm
      */
-    public function buildRoleLinks($rm)
+    public function buildRoleLinks(RoleManager $rm): void
     {
         if (!isset($this->model['g'])) {
             return;
@@ -31,7 +33,7 @@ trait Policy
     /**
      * prints the policy to log.
      */
-    public function printPolicy()
+    public function printPolicy(): void
     {
         Log::logPrint('Policy:');
         foreach (['p', 'g'] as $sec) {
@@ -47,7 +49,7 @@ trait Policy
     /**
      * clears all current policy.
      */
-    public function clearPolicy()
+    public function clearPolicy(): void
     {
         foreach (['p', 'g'] as $sec) {
             if (!isset($this->model[$sec])) {
@@ -67,7 +69,7 @@ trait Policy
      *
      * @return array
      */
-    public function getPolicy($sec, $ptype)
+    public function getPolicy(string $sec, string $ptype): array
     {
         return $this->model[$sec][$ptype]->policy;
     }
@@ -78,11 +80,11 @@ trait Policy
      * @param string $sec
      * @param string $ptype
      * @param int    $fieldIndex
-     * @param mixed  ...$fieldValues
+     * @param string ...$fieldValues
      *
      * @return array
      */
-    public function getFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
+    public function getFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): array
     {
         $res = [];
 
@@ -113,7 +115,7 @@ trait Policy
      *
      * @return bool
      */
-    public function hasPolicy($sec, $ptype, $rule)
+    public function hasPolicy(string $sec, string $ptype, array $rule): bool
     {
         if (!isset($this->model[$sec][$ptype])) {
             return false;
@@ -125,13 +127,13 @@ trait Policy
     /**
      * adds a policy rule to the model.
      *
-     * @param $sec
-     * @param $ptype
-     * @param array $rule
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rule
      *
      * @return bool
      */
-    public function addPolicy($sec, $ptype, array $rule)
+    public function addPolicy(string $sec, string $ptype, array $rule): bool
     {
         if (!$this->hasPolicy($sec, $ptype, $rule)) {
             $this->model[$sec][$ptype]->policy[] = $rule;
@@ -151,7 +153,7 @@ trait Policy
      *
      * @return bool
      */
-    public function removePolicy($sec, $ptype, array $rule)
+    public function removePolicy(string $sec, string $ptype, array $rule): bool
     {
         if (!isset($this->model[$sec][$ptype])) {
             return false;
@@ -178,7 +180,7 @@ trait Policy
      *
      * @return bool
      */
-    public function removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
+    public function removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): bool
     {
         $tmp = [];
         $res = false;
@@ -218,7 +220,7 @@ trait Policy
      *
      * @return array
      */
-    public function getValuesForFieldInPolicy($sec, $ptype, $fieldIndex)
+    public function getValuesForFieldInPolicy(string $sec, string $ptype, int $fieldIndex): array
     {
         $values = [];
 

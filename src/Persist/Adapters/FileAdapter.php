@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Persist\Adapters;
 
 use Casbin\Exceptions\CasbinException;
 use Casbin\Exceptions\NotImplementedException;
+use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\AdapterHelper;
 use Casbin\Util\Util;
@@ -29,7 +32,7 @@ class FileAdapter implements Adapter
      *
      * @param string $filePath
      */
-    public function __construct($filePath)
+    public function __construct(string $filePath)
     {
         $this->filePath = $filePath;
     }
@@ -39,11 +42,9 @@ class FileAdapter implements Adapter
      *
      * @param \Casbin\Model\Model $model
      *
-     * @return mixed|void
-     *
      * @throws CasbinException
      */
-    public function loadPolicy($model)
+    public function loadPolicy(Model $model): void
     {
         if (!file_exists($this->filePath)) {
             throw new CasbinException('invalid file path, file path cannot be empty');
@@ -57,11 +58,9 @@ class FileAdapter implements Adapter
      *
      * @param \Casbin\Model\Model $model
      *
-     * @return bool|int
-     *
      * @throws CasbinException
      */
-    public function savePolicy($model)
+    public function savePolicy(Model $model): void
     {
         if ('' == $this->filePath) {
             throw new CasbinException('invalid file path, file path cannot be empty');
@@ -89,13 +88,13 @@ class FileAdapter implements Adapter
             }
         }
 
-        return $this->savePolicyFile(rtrim($writeString, PHP_EOL));
+        $this->savePolicyFile(rtrim($writeString, PHP_EOL));
     }
 
     /**
      * @param \Casbin\Model\Model $model
      */
-    public function loadPolicyFile($model)
+    protected function loadPolicyFile(Model $model): void
     {
         $file = fopen($this->filePath, 'rb');
         while ($line = fgets($file)) {
@@ -106,12 +105,10 @@ class FileAdapter implements Adapter
 
     /**
      * @param string $text
-     *
-     * @return bool|int
      */
-    public function savePolicyFile($text)
+    protected function savePolicyFile(string $text): void
     {
-        return file_put_contents($this->filePath, $text, LOCK_EX);
+        file_put_contents($this->filePath, $text, LOCK_EX);
     }
 
     /**
@@ -121,11 +118,9 @@ class FileAdapter implements Adapter
      * @param string $ptype
      * @param array  $rule
      *
-     * @return mixed|void
-     *
      * @throws NotImplementedException
      */
-    public function addPolicy($sec, $ptype, $rule)
+    public function addPolicy(string $sec, string $ptype, array $rule): void
     {
         throw new NotImplementedException('not implemented');
     }
@@ -137,11 +132,9 @@ class FileAdapter implements Adapter
      * @param string $ptype
      * @param array  $rule
      *
-     * @return mixed|void
-     *
      * @throws NotImplementedException
      */
-    public function removePolicy($sec, $ptype, $rule)
+    public function removePolicy(string $sec, string $ptype, array $rule): void
     {
         throw new NotImplementedException('not implemented');
     }
@@ -152,13 +145,11 @@ class FileAdapter implements Adapter
      * @param string $sec
      * @param string $ptype
      * @param int    $fieldIndex
-     * @param mixed  ...$fieldValues
-     *
-     * @return mixed|void
+     * @param string ...$fieldValues
      *
      * @throws NotImplementedException
      */
-    public function removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues)
+    public function removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): void
     {
         throw new NotImplementedException('not implemented');
     }

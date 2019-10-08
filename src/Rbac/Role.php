@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Casbin\Rbac;
 
 /**
@@ -25,7 +27,7 @@ class Role
      *
      * @param string $name
      */
-    public function __construct($name)
+    public function __construct(string $name)
     {
         $this->name = $name;
     }
@@ -33,7 +35,7 @@ class Role
     /**
      * @param self $role
      */
-    public function addRole(self $role)
+    public function addRole(self $role): void
     {
         foreach ($this->roles as $rr) {
             if ($rr->name == $role->name) {
@@ -46,7 +48,7 @@ class Role
     /**
      * @param self $role
      */
-    public function deleteRole(self $role)
+    public function deleteRole(self $role): void
     {
         foreach ($this->roles as $key => $rr) {
             if ($rr->name == $role->name) {
@@ -63,7 +65,7 @@ class Role
      *
      * @return bool
      */
-    public function hasRole($name, $hierarchyLevel)
+    public function hasRole(string $name, int $hierarchyLevel): bool
     {
         if ($name == $this->name) {
             return true;
@@ -86,7 +88,7 @@ class Role
      *
      * @return bool
      */
-    public function hasDirectRole($name)
+    public function hasDirectRole(string $name): bool
     {
         foreach ($this->roles as $role) {
             if ($role->name == $name) {
@@ -100,7 +102,7 @@ class Role
     /**
      * @return string
      */
-    public function toString()
+    public function toString(): string
     {
         if (0 == \count($this->roles)) {
             return '';
@@ -118,7 +120,7 @@ class Role
     /**
      * @return array
      */
-    public function getRoles()
+    public function getRoles(): array
     {
         return array_map(function ($role) {
             return $role->name;
