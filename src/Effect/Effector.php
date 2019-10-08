@@ -19,8 +19,8 @@ abstract class Effector
 
     /**
      * @param string $expr
-     * @param array $effects
-     * @param array $results
+     * @param array  $effects
+     * @param array  $results
      *
      * @return bool
      */
