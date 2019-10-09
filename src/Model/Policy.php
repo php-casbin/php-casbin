@@ -22,10 +22,10 @@ trait Policy
      */
     public function buildRoleLinks(RoleManager $rm): void
     {
-        if (!isset($this->model['g'])) {
+        if (!isset($this->items['g'])) {
             return;
         }
-        foreach ($this->model['g'] as $ast) {
+        foreach ($this->items['g'] as $ast) {
             $ast->buildRoleLinks($rm);
         }
     }
@@ -37,10 +37,10 @@ trait Policy
     {
         Log::logPrint('Policy:');
         foreach (['p', 'g'] as $sec) {
-            if (!isset($this->model[$sec])) {
+            if (!isset($this->items[$sec])) {
                 return;
             }
-            foreach ($this->model[$sec] as $key => $ast) {
+            foreach ($this->items[$sec] as $key => $ast) {
                 Log::logPrint($key, ': ', $ast->value, ': ', $ast->policy);
             }
         }
@@ -52,11 +52,11 @@ trait Policy
     public function clearPolicy(): void
     {
         foreach (['p', 'g'] as $sec) {
-            if (!isset($this->model[$sec])) {
+            if (!isset($this->items[$sec])) {
                 return;
             }
-            foreach ($this->model[$sec] as $key => $ast) {
-                $this->model[$sec][$key]->policy = [];
+            foreach ($this->items[$sec] as $key => $ast) {
+                $this->items[$sec][$key]->policy = [];
             }
         }
     }
@@ -71,7 +71,7 @@ trait Policy
      */
     public function getPolicy(string $sec, string $ptype): array
     {
-        return $this->model[$sec][$ptype]->policy;
+        return $this->items[$sec][$ptype]->policy;
     }
 
     /**
@@ -88,7 +88,7 @@ trait Policy
     {
         $res = [];
 
-        foreach ($this->model[$sec][$ptype]->policy as $rule) {
+        foreach ($this->items[$sec][$ptype]->policy as $rule) {
             $matched = true;
             foreach ($fieldValues as $i => $fieldValue) {
                 if ('' != $fieldValue && $rule[$fieldIndex + $i] != $fieldValue) {
@@ -117,11 +117,11 @@ trait Policy
      */
     public function hasPolicy(string $sec, string $ptype, array $rule): bool
     {
-        if (!isset($this->model[$sec][$ptype])) {
+        if (!isset($this->items[$sec][$ptype])) {
             return false;
         }
 
-        return in_array($rule, $this->model[$sec][$ptype]->policy, true);
+        return in_array($rule, $this->items[$sec][$ptype]->policy, true);
     }
 
     /**
@@ -136,7 +136,7 @@ trait Policy
     public function addPolicy(string $sec, string $ptype, array $rule): bool
     {
         if (!$this->hasPolicy($sec, $ptype, $rule)) {
-            $this->model[$sec][$ptype]->policy[] = $rule;
+            $this->items[$sec][$ptype]->policy[] = $rule;
 
             return true;
         }
@@ -155,17 +155,17 @@ trait Policy
      */
     public function removePolicy(string $sec, string $ptype, array $rule): bool
     {
-        if (!isset($this->model[$sec][$ptype])) {
+        if (!isset($this->items[$sec][$ptype])) {
             return false;
         }
 
-        $offset = array_search($rule, $this->model[$sec][$ptype]->policy, true);
+        $offset = array_search($rule, $this->items[$sec][$ptype]->policy, true);
 
         if (false === $offset) {
             return false;
         }
 
-        array_splice($this->model[$sec][$ptype]->policy, $offset, 1);
+        array_splice($this->items[$sec][$ptype]->policy, $offset, 1);
 
         return true;
     }
@@ -185,11 +185,11 @@ trait Policy
         $tmp = [];
         $res = false;
 
-        if (!isset($this->model[$sec][$ptype])) {
+        if (!isset($this->items[$sec][$ptype])) {
             return $res;
         }
 
-        foreach ($this->model[$sec][$ptype]->policy as $rule) {
+        foreach ($this->items[$sec][$ptype]->policy as $rule) {
             $matched = true;
             foreach ($fieldValues as $i => $fieldValue) {
                 if ('' != $fieldValue && $rule[$fieldIndex + $i] != $fieldValue) {
@@ -206,7 +206,7 @@ trait Policy
             }
         }
 
-        $this->model[$sec][$ptype]->policy = $tmp;
+        $this->items[$sec][$ptype]->policy = $tmp;
 
         return $res;
     }
@@ -224,11 +224,11 @@ trait Policy
     {
         $values = [];
 
-        if (!isset($this->model[$sec][$ptype])) {
+        if (!isset($this->items[$sec][$ptype])) {
             return $values;
         }
 
-        foreach ($this->model[$sec][$ptype]->policy as $rule) {
+        foreach ($this->items[$sec][$ptype]->policy as $rule) {
             $values[] = $rule[$fieldIndex];
         }
 

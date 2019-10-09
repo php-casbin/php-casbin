@@ -21,7 +21,7 @@ trait RbacApiWithDomains
      */
     public function getUsersForRoleInDomain(string $name, string $domain): array
     {
-        return $this->model->model['g']['g']->rM->getUsers($name, $domain);
+        return $this->model['g']['g']->rM->getUsers($name, $domain);
     }
 
     /**
@@ -34,7 +34,7 @@ trait RbacApiWithDomains
      */
     public function getRolesForUserInDomain(string $name, string $domain): array
     {
-        return $this->model->model['g']['g']->rM->getRoles($name, $domain);
+        return $this->model['g']['g']->rM->getRoles($name, $domain);
     }
 
     /**

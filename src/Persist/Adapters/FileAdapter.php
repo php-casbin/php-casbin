@@ -68,8 +68,8 @@ class FileAdapter implements Adapter
 
         $writeString = '';
 
-        if (isset($model->model['p'])) {
-            foreach ($model->model['p'] as $ptype => $ast) {
+        if (isset($model['p'])) {
+            foreach ($model['p'] as $ptype => $ast) {
                 foreach ($ast->policy as $rule) {
                     $writeString .= $ptype.', ';
                     $writeString .= Util::arrayToString($rule);
@@ -78,8 +78,8 @@ class FileAdapter implements Adapter
             }
         }
 
-        if (isset($model->model['g'])) {
-            foreach ($model->model['g'] as $ptype => $ast) {
+        if (isset($model['g'])) {
+            foreach ($model['g'] as $ptype => $ast) {
                 foreach ($ast->policy as $rule) {
                     $writeString .= $ptype.', ';
                     $writeString .= Util::arrayToString($rule);

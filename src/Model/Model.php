@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Casbin\Model;
 
+use ArrayAccess;
 use Casbin\Config\Config;
 use Casbin\Config\ConfigContract;
 use Casbin\Log\Log;
@@ -14,14 +15,16 @@ use Casbin\Util\Util;
  *
  * @author techlee@qq.com
  */
-class Model
+class Model implements ArrayAccess
 {
     use Policy;
 
     /**
+     * All of the Model items.
+     *
      * @var array
      */
-    public $model = [];
+    protected $items = [];
 
     protected $sectionNameMap = [
         'r' => 'request_definition',
@@ -77,7 +80,7 @@ class Model
             $ast->value = Util::removeComments(Util::escapeAssertion($ast->value));
         }
 
-        $this->model[$sec][$key] = $ast;
+        $this->items[$sec][$key] = $ast;
 
         return true;
     }
@@ -103,7 +106,7 @@ class Model
     private function loadSection(ConfigContract $cfg, string $sec): void
     {
         $i = 1;
-        for (; ;) {
+        for (;;) {
             if (!$this->loadAssertion($cfg, $sec, $sec.$this->getKeySuffix($i))) {
                 break;
             } else {
@@ -194,7 +197,7 @@ class Model
     public function printModel(): void
     {
         Log::logPrint('Model:');
-        foreach ($this->model as $k => $v) {
+        foreach ($this->items as $k => $v) {
             foreach ($v as $i => $j) {
                 Log::logPrintf('%s.%s: %s', $k, $i, $j->value);
             }
@@ -209,5 +212,54 @@ class Model
     public static function loadFunctionMap(): FunctionMap
     {
         return FunctionMap::loadFunctionMap();
+    }
+
+    /**
+     * Determine if the given Model option exists.
+     *
+     * @param mixed $offset
+     *
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return isset($this->items[$offset]);
+    }
+
+    /**
+     * Get a Model option.
+     *
+     * @param mixed $offset
+     *
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return isset($this->items[$offset]) ? $this->items[$offset] : null;
+    }
+
+    /**
+     * Set a Model option.
+     *
+     * @param mixed $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value)
+    {
+        if (is_null($offset)) {
+            $this->items[] = $value;
+        } else {
+            $this->items[$offset] = $value;
+        }
+    }
+
+    /**
+     * Unset a Model option.
+     *
+     * @param mixed $offset
+     */
+    public function offsetUnset($offset)
+    {
+        unset($this->items[$offset]);
     }
 }

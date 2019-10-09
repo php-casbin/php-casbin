@@ -24,7 +24,7 @@ trait RbacApi
      */
     public function getRolesForUser(string $name): array
     {
-        return $this->model->model['g']['g']->rM->getRoles($name);
+        return $this->model['g']['g']->rM->getRoles($name);
     }
 
     /**
@@ -36,7 +36,7 @@ trait RbacApi
      */
     public function getUsersForRole(string $name): array
     {
-        return $this->model->model['g']['g']->rM->getUsers($name);
+        return $this->model['g']['g']->rM->getUsers($name);
     }
 
     /**

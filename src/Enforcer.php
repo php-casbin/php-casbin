@@ -471,21 +471,21 @@ class Enforcer
 
         $functions = $this->fm->getFunctions();
 
-        if (isset($this->model->model['g'])) {
-            foreach ($this->model->model['g'] as $key => $ast) {
+        if (isset($this->model['g'])) {
+            foreach ($this->model['g'] as $key => $ast) {
                 $rm = $ast->rM;
                 $functions[$key] = BuiltinOperations::GenerateGFunction($rm);
             }
         }
 
-        if (!isset($this->model->model['m']['m'])) {
+        if (!isset($this->model['m']['m'])) {
             throw new CasbinException('model is undefined');
         }
 
-        $expString = $this->getExpString($this->model->model['m']['m']->value);
+        $expString = $this->getExpString($this->model['m']['m']->value);
 
-        $rTokens = array_values($this->model->model['r']['r']->tokens);
-        $pTokens = array_values($this->model->model['p']['p']->tokens);
+        $rTokens = array_values($this->model['r']['r']->tokens);
+        $pTokens = array_values($this->model['p']['p']->tokens);
 
         $rParameters = array_combine($rTokens, $rvals);
 
@@ -499,10 +499,10 @@ class Enforcer
         $policyEffects = [];
         $matcherResults = [];        
 
-        $policyLen = \count($this->model->model['p']['p']->policy);
+        $policyLen = \count($this->model['p']['p']->policy);
 
         if (0 != $policyLen) {
-            foreach ($this->model->model['p']['p']->policy as $i => $pvals) {
+            foreach ($this->model['p']['p']->policy as $i => $pvals) {
                 $parameters = array_combine($pTokens, $pvals);
                 if ($parameters === false) {
                     throw new CasbinException('invalid policy size');
@@ -541,13 +541,13 @@ class Enforcer
                     $policyEffects[$i] = Effector::ALLOW;
                 }
 
-                if (isset($this->model->model['e']['e']) && 'priority(p_eft) || deny' == $this->model->model['e']['e']->value) {
+                if (isset($this->model['e']['e']) && 'priority(p_eft) || deny' == $this->model['e']['e']->value) {
                     break;
                 }
             }
         } else {
             $parameters = $rParameters;
-            foreach ($this->model->model['p']['p']->tokens as $token) {
+            foreach ($this->model['p']['p']->tokens as $token) {
                 $parameters[$token] = '';
             }
 
@@ -560,7 +560,7 @@ class Enforcer
             }
         }
 
-        $result = $this->eft->mergeEffects($this->model->model['e']['e']->value, $policyEffects, $matcherResults);
+        $result = $this->eft->mergeEffects($this->model['e']['e']->value, $policyEffects, $matcherResults);
 
         if (Log::getLogger()->isEnabled()) {
             $reqStr = 'Request: ';

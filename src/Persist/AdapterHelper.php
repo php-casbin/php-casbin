@@ -31,9 +31,12 @@ trait AdapterHelper
         $key = $tokens[0];
         $sec = $key[0];
 
-        if (!isset($model->model[$sec][$key])) {
+        if (!isset($model[$sec][$key])) {
             return;
         }
-        $model->model[$sec][$key]->policy[] = \array_slice($tokens, 1);
+        
+        $assertions = $model[$sec];
+        $assertions[$key]->policy[] = \array_slice($tokens, 1);
+        $model[$sec] = $assertions;
     }
 }
