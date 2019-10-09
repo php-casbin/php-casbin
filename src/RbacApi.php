@@ -265,13 +265,11 @@ trait RbacApi
      */
     public function getImplicitPermissionsForUser(string $user, string ...$domain): array
     {
-        $roles[] = $user;
         $roles = array_merge(
-            $roles,
+            [$user],
             $this->getImplicitRolesForUser($user, ...$domain)
         );
 
-        
         $len = \count($domain);
         if ($len > 1) {
             throw new CasbinException('error: domain should be 1 parameter');
@@ -279,7 +277,7 @@ trait RbacApi
 
         $res = [];
         foreach ($roles as $role) {
-            if ($len == 1) {
+            if (1 == $len) {
                 $permissions = $this->getPermissionsForUserInDomain($role, $domain[0]);
             } else {
                 $permissions = $this->getPermissionsForUser($role);

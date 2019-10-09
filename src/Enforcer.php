@@ -487,7 +487,9 @@ class Enforcer
         $rTokens = array_values($this->model->model['r']['r']->tokens);
         $pTokens = array_values($this->model->model['p']['p']->tokens);
 
-        if (\count($rTokens) != \count($rvals)) {
+        $rParameters = array_combine($rTokens, $rvals);
+
+        if ($rParameters === false) {
             throw new CasbinException('invalid request size');
         }
 
@@ -495,19 +497,18 @@ class Enforcer
         $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
 
         $policyEffects = [];
-        $matcherResults = [];
-
-        $rParameters = array_combine($rTokens, $rvals);
+        $matcherResults = [];        
 
         $policyLen = \count($this->model->model['p']['p']->policy);
 
         if (0 != $policyLen) {
             foreach ($this->model->model['p']['p']->policy as $i => $pvals) {
-                if (\count($pTokens) != \count($pvals)) {
+                $parameters = array_combine($pTokens, $pvals);
+                if ($parameters === false) {
                     throw new CasbinException('invalid policy size');
                 }
 
-                $parameters = array_merge($rParameters, array_combine($pTokens, $pvals));
+                $parameters = array_merge($rParameters, $parameters);
                 $result = $expressionLanguage->evaluate($expression, $parameters);
 
                 if (\is_bool($result)) {
