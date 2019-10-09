@@ -24,9 +24,9 @@ interface RoleManager
      *
      * @param string $name1
      * @param string $name2
-     * @param string $domain
+     * @param string ...$domain
      */
-    public function addLink(string $name1, string $name2, string $domain = ''): void;
+    public function addLink(string $name1, string $name2, string ...$domain): void;
 
     /**
      * deletes the inheritance link between role: name1 and role: name2.
@@ -35,9 +35,9 @@ interface RoleManager
      *
      * @param string $name1
      * @param string $name2
-     * @param string $domain
+     * @param string ...$domain
      */
-    public function deleteLink(string $name1, string $name2, string $domain = ''): void;
+    public function deleteLink(string $name1, string $name2, string ...$domain): void;
 
     /**
      * determines whether role: name1 inherits role: name2.
@@ -45,33 +45,33 @@ interface RoleManager
      *
      * @param string $name1
      * @param string $name2
-     * @param string $domain
+     * @param string ...$domain
      *
      * @return bool
      */
-    public function hasLink(string $name1, string $name2, string $domain = ''): bool;
+    public function hasLink(string $name1, string $name2, string ...$domain): bool;
 
     /**
      * gets the roles that a subject inherits.
      * domain is a prefix to the roles.
      *
      * @param string $name
-     * @param string $domain
+     * @param string ...$domain
      *
      * @return array
      */
-    public function getRoles(string $name, string $domain = ''): array;
+    public function getRoles(string $name, string ...$domain): array;
 
     /**
      * gets the users that inherits a subject.
      * domain is an unreferenced parameter here, may be used in other implementations.
      *
      * @param string $name
-     * @param string $domain
+     * @param string ...$domain
      *
      * @return array
      */
-    public function getUsers(string $name, string $domain = ''): array;
+    public function getUsers(string $name, string ...$domain): array;
 
     /**
      * prints all the roles to log.

@@ -104,13 +104,15 @@ class Role
      */
     public function toString(): string
     {
-        if (0 == \count($this->roles)) {
+        $len = \count($this->roles);
+
+        if (0 == $len) {
             return '';
         }
 
         $names = implode(', ', $this->getRoles());
 
-        if (1 == \count($this->roles)) {
+        if (1 == $len) {
             return $this->name.' < '.$names;
         } else {
             return $this->name.' < ('.$names.')';

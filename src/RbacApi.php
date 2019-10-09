@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Casbin;
 
+use Casbin\Exceptions\CasbinException;
+
 /**
  * Trait RbacApi.
  *
@@ -215,11 +217,11 @@ trait RbacApi
      * But getImplicitRolesForUser("alice") will get: ["role:admin", "role:user"].
      *
      * @param string $name
-     * @param string $domain
+     * @param string ...$domain
      *
      * @return array
      */
-    public function getImplicitRolesForUser(string $name, string $domain = ''): array
+    public function getImplicitRolesForUser(string $name, string ...$domain): array
     {
         $res = [];
         $roleSet = [];
@@ -232,7 +234,7 @@ trait RbacApi
             $name = $q[0];
             $q = array_slice($q, 1);
 
-            $roles = $this->rm->getRoles($name, $domain);
+            $roles = $this->rm->getRoles($name, ...$domain);
             foreach ($roles as $r) {
                 if (!isset($roleSet[$r])) {
                     $res[] = $r;
@@ -257,22 +259,28 @@ trait RbacApi
      * But getImplicitPermissionsForUser("alice") will get: [["admin", "data1", "read"], ["alice", "data2", "read"]].
      *
      * @param string $user
-     * @param string $domain
+     * @param string ...$domain
      *
      * @return array
      */
-    public function getImplicitPermissionsForUser(string $user, string $domain = ''): array
+    public function getImplicitPermissionsForUser(string $user, string ...$domain): array
     {
         $roles[] = $user;
         $roles = array_merge(
             $roles,
-            $this->getImplicitRolesForUser($user, $domain)
+            $this->getImplicitRolesForUser($user, ...$domain)
         );
+
+        
+        $len = \count($domain);
+        if ($len > 1) {
+            throw new CasbinException('error: domain should be 1 parameter');
+        }
 
         $res = [];
         foreach ($roles as $role) {
-            if ('' != $domain) {
-                $permissions = $this->getPermissionsForUserInDomain($role, $domain);
+            if ($len == 1) {
+                $permissions = $this->getPermissionsForUserInDomain($role, $domain[0]);
             } else {
                 $permissions = $this->getPermissionsForUser($role);
             }
