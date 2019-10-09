@@ -29,7 +29,7 @@ class FunctionMap
      *
      * @return FunctionMap
      */
-    public static function loadFunctionMap(): FunctionMap
+    public static function loadFunctionMap(): self
     {
         $fm = new self();
 
