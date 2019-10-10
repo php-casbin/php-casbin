@@ -43,7 +43,7 @@ class Log
     /**
      * prints the log.
      *
-     * @param mix ...$v
+     * @param mixed ...$v
      */
     public static function logPrint(...$v): void
     {
