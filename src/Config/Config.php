@@ -110,7 +110,7 @@ class Config implements ConfigContract
         $buf = preg_replace('/[\r\n]+/', PHP_EOL, $buf);
         $buf = explode(PHP_EOL, $buf);
 
-        for ($i = 0; $i <= \count($buf); ++$i) {
+        for ($i = 0, $len = \count($buf); $i <= $len; ++$i) {
             if ($canWrite) {
                 $this->write($section, $lineNum, $buffer);
                 $canWrite = false;
