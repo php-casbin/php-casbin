@@ -165,8 +165,8 @@ class Enforcer
     /**
      * initializes an enforcer with a model file and a policy file.
      *
-     * @param $modelPath
-     * @param $policyPath
+     * @param string $modelPath
+     * @param string $policyPath
      *
      * @throws CasbinException
      */
@@ -179,7 +179,7 @@ class Enforcer
     /**
      * initializes an enforcer with a database adapter.
      *
-     * @param $modelPath
+     * @param string  $modelPath
      * @param Adapter $adapter
      *
      * @throws CasbinException
@@ -348,7 +348,7 @@ class Enforcer
     /**
      * reloads a filtered policy from file/database.
      *
-     * @param $filter
+     * @param mixed $filter
      *
      * @throws CasbinException
      */
@@ -358,10 +358,10 @@ class Enforcer
 
         if ($this->adapter instanceof FilteredAdapter) {
             $filteredAdapter = $this->adapter;
+            $filteredAdapter->loadFilteredPolicy($this->model, $filter);
         } else {
             throw new CasbinException('filtered policies are not supported by this adapter');
         }
-        $filteredAdapter->loadFilteredPolicy($this->model, $filter);
 
         $this->model->printPolicy();
         if ($this->autoBuildRoleLinks) {
@@ -489,7 +489,7 @@ class Enforcer
 
         $rParameters = array_combine($rTokens, $rvals);
 
-        if ($rParameters === false) {
+        if (false === $rParameters) {
             throw new CasbinException('invalid request size');
         }
 
@@ -497,14 +497,14 @@ class Enforcer
         $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
 
         $policyEffects = [];
-        $matcherResults = [];        
+        $matcherResults = [];
 
         $policyLen = \count($this->model['p']['p']->policy);
 
         if (0 != $policyLen) {
             foreach ($this->model['p']['p']->policy as $i => $pvals) {
                 $parameters = array_combine($pTokens, $pvals);
-                if ($parameters === false) {
+                if (false === $parameters) {
                     throw new CasbinException('invalid policy size');
                 }
 

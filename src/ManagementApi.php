@@ -24,7 +24,7 @@ trait ManagementApi
     /**
      * gets the list of subjects that show up in the current named policy.
      *
-     * @param $ptype
+     * @param string $ptype
      *
      * @return array
      */
@@ -46,7 +46,7 @@ trait ManagementApi
     /**
      * gets the list of objects that show up in the current named policy.
      *
-     * @param $ptype
+     * @param string $ptype
      *
      * @return array
      */
@@ -68,7 +68,7 @@ trait ManagementApi
     /**
      * gets the list of actions that show up in the current named policy.
      *
-     * @param $ptype
+     * @param string $ptype
      *
      * @return array
      */
@@ -90,7 +90,7 @@ trait ManagementApi
     /**
      * gets the list of roles that show up in the current named policy.
      *
-     * @param $ptype
+     * @param string $ptype
      *
      * @return array
      */
@@ -125,7 +125,7 @@ trait ManagementApi
     /**
      * gets all the authorization rules in the named policy.
      *
-     * @param $ptype
+     * @param string $ptype
      *
      * @return array
      */
@@ -137,8 +137,8 @@ trait ManagementApi
     /**
      * gets all the authorization rules in the named policy, field filters can be specified.
      *
-     * @param $ptype
-     * @param $fieldIndex
+     * @param string $ptype
+     * @param int    $fieldIndex
      * @param string ...$fieldValues
      *
      * @return array
@@ -174,7 +174,7 @@ trait ManagementApi
     /**
      * gets all the role inheritance rules in the policy.
      *
-     * @param $ptype
+     * @param string $ptype
      *
      * @return array
      */
@@ -274,8 +274,8 @@ trait ManagementApi
     /**
      * removes an authorization rule from the current policy, field filters can be specified.
      *
-     * @param $fieldIndex
-     * @param mixed ...$fieldValues
+     * @param int    $fieldIndex
+     * @param string ...$fieldValues
      *
      * @return bool
      */
@@ -306,7 +306,7 @@ trait ManagementApi
      *
      * @param string $ptype
      * @param int    $fieldIndex
-     * @param mixed  ...$fieldValues
+     * @param string ...$fieldValues
      *
      * @return bool
      */
@@ -363,8 +363,8 @@ trait ManagementApi
      * If the rule already exists, the function returns false and the rule will not be added.
      * Otherwise the function returns true by adding the new rule.
      *
-     * @param $ptype
-     * @param mixed ...$params
+     * @param string $ptype
+     * @param mixed  ...$params
      *
      * @return bool
      */
@@ -398,12 +398,12 @@ trait ManagementApi
     /**
      * removes a role inheritance rule from the current policy, field filters can be specified.
      *
-     * @param int   $fieldIndex
-     * @param mixed ...$fieldValues
+     * @param int    $fieldIndex
+     * @param string ...$fieldValues
      *
      * @return bool
      */
-    public function removeFilteredGroupingPolicy(int $fieldIndex, ...$fieldValues): bool
+    public function removeFilteredGroupingPolicy(int $fieldIndex, string ...$fieldValues): bool
     {
         return $this->removeFilteredNamedGroupingPolicy('g', $fieldIndex, ...$fieldValues);
     }
@@ -436,7 +436,7 @@ trait ManagementApi
      *
      * @param string $ptype
      * @param int    $fieldIndex
-     * @param mixed  ...$fieldValues
+     * @param string ...$fieldValues
      *
      * @return bool
      */
