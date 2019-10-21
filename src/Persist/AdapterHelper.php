@@ -34,7 +34,7 @@ trait AdapterHelper
         if (!isset($model[$sec][$key])) {
             return;
         }
-        
+
         $assertions = $model[$sec];
         $assertions[$key]->policy[] = \array_slice($tokens, 1);
         $model[$sec] = $assertions;
