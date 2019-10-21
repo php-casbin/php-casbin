@@ -209,10 +209,10 @@ class Enforcer
         $this->fm = Model::loadFunctionMap();
 
         $this->initialize();
-        
+
         // Do not initialize the full policy when using a filtered adapter
         $ok = $this->adapter instanceof FilteredAdapter ? $this->adapter->isFiltered() : false;
-        
+
         if (!\is_null($this->adapter) && !$ok) {
             $this->loadPolicy();
         }
@@ -337,12 +337,12 @@ class Enforcer
     public function loadPolicy(): void
     {
         $this->model->clearPolicy();
+
         try {
             $this->adapter->loadPolicy($this->model);
         } catch (InvalidFilePathException $e) {
             //throw $e;
         }
-        
 
         $this->model->printPolicy();
         if ($this->autoBuildRoleLinks) {

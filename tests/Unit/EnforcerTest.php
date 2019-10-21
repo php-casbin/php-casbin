@@ -184,20 +184,22 @@ EOT
         $this->assertFalse($e->hasPolicy('admin', 'domain2', 'data2', 'read'));
 
         $th = null;
+
         try {
             $e->savePolicy();
         } catch (\Throwable $th) {
             //throw $th;
-        }        
+        }
         $this->assertInstanceOf(CasbinException::class, $th);
 
         $th = null;
+
         try {
             $e->getAdapter()->savePolicy($e->getModel());
         } catch (\Throwable $th) {
             //throw $th;
         }
-        $this->assertInstanceOf(CasbinException::class, $th);        
+        $this->assertInstanceOf(CasbinException::class, $th);
     }
 
     public function testEnableEnforce()

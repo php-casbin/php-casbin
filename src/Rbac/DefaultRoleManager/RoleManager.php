@@ -166,7 +166,7 @@ class RoleManager implements RoleManagerContract
         $roles = $this->createRole($name)->getRoles();
 
         if ('' != $prefix) {
-            array_walk($roles, function(&$role, $key, $len){
+            array_walk($roles, function (&$role, $key, $len) {
                 $role = \substr($role, $len);
             }, \strlen($prefix));
         }
@@ -212,7 +212,7 @@ class RoleManager implements RoleManagerContract
     public function printRoles(): void
     {
         $line = [];
-        
+
         array_map(function ($role) use (&$line) {
             if ($text = $role->toString()) {
                 $line[] = $text;

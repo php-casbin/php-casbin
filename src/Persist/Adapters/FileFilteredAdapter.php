@@ -147,9 +147,11 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
         switch (trim($p[0])) {
             case 'p':
             $filterSlice = $filter->p;
+
             break;
             case 'g':
             $filterSlice = $filter->g;
+
             break;
         }
 
@@ -173,6 +175,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
         foreach ($filter as $i => $v) {
             if (strlen($v) > 0 && \trim($v) != trim($line[$i + 1])) {
                 $skipLine = true;
+
                 break;
             }
         }

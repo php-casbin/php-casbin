@@ -106,7 +106,7 @@ class Model implements ArrayAccess
     private function loadSection(ConfigContract $cfg, string $sec): void
     {
         $i = 1;
-        for (;;) {
+        for (; ;) {
             if (!$this->loadAssertion($cfg, $sec, $sec.$this->getKeySuffix($i))) {
                 break;
             } else {
