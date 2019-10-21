@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Casbin\Persist\Adapters;
 
 use Casbin\Exceptions\CasbinException;
+use Casbin\Exceptions\InvalidFilePathException;
 use Casbin\Exceptions\NotImplementedException;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
@@ -47,7 +48,7 @@ class FileAdapter implements Adapter
     public function loadPolicy(Model $model): void
     {
         if (!file_exists($this->filePath)) {
-            throw new CasbinException('invalid file path, file path cannot be empty');
+            throw new InvalidFilePathException('invalid file path, file path cannot be empty');
         }
 
         $this->loadPolicyFile($model);
@@ -63,7 +64,7 @@ class FileAdapter implements Adapter
     public function savePolicy(Model $model): void
     {
         if ('' == $this->filePath) {
-            throw new CasbinException('invalid file path, file path cannot be empty');
+            throw new InvalidFilePathException('invalid file path, file path cannot be empty');
         }
 
         $writeString = '';

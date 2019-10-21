@@ -7,6 +7,7 @@ namespace Casbin;
 use Casbin\Effect\DefaultEffector;
 use Casbin\Effect\Effector;
 use Casbin\Exceptions\CasbinException;
+use Casbin\Exceptions\InvalidFilePathException;
 use Casbin\Model\FunctionMap;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
@@ -124,15 +125,15 @@ class Enforcer
     public function __construct(...$params)
     {
         $parsedParamLen = 0;
-        if (\count($params) >= 1) {
-            if (\is_bool($params[\count($params) - 1])) {
-                $enableLog = $params[\count($params) - 1];
+        $paramLen = \count($params);
+        if ($paramLen >= 1) {
+            if (\is_bool($enableLog = $params[$paramLen - 1])) {
                 $this->enableLog($enableLog);
                 ++$parsedParamLen;
             }
         }
 
-        if (2 == \count($params) - $parsedParamLen) {
+        if (2 == $paramLen - $parsedParamLen) {
             $p0 = $params[0];
             if (\is_string($p0)) {
                 $p1 = $params[1];
@@ -148,14 +149,14 @@ class Enforcer
                     $this->initWithModelAndAdapter($p0, $params[1]);
                 }
             }
-        } elseif (1 == \count($params) - $parsedParamLen) {
+        } elseif (1 == $paramLen - $parsedParamLen) {
             $p0 = $params[0];
             if (\is_string($p0)) {
                 $this->initWithFile($p0, '');
             } else {
                 $this->initWithModelAndAdapter($p0, null);
             }
-        } elseif (0 == \count($params) - $parsedParamLen) {
+        } elseif (0 == $paramLen - $parsedParamLen) {
             // pass
         } else {
             throw new CasbinException('Invalid parameters for enforcer.');
@@ -208,13 +209,12 @@ class Enforcer
         $this->fm = Model::loadFunctionMap();
 
         $this->initialize();
-
-        if (null !== $this->adapter) {
-            try {
-                $this->loadPolicy();
-            } catch (\Exception $e) {
-                // error intentionally ignored
-            }
+        
+        // Do not initialize the full policy when using a filtered adapter
+        $ok = $this->adapter instanceof FilteredAdapter ? $this->adapter->isFiltered() : false;
+        
+        if (!\is_null($this->adapter) && !$ok) {
+            $this->loadPolicy();
         }
     }
 
@@ -337,7 +337,12 @@ class Enforcer
     public function loadPolicy(): void
     {
         $this->model->clearPolicy();
-        $this->adapter->loadPolicy($this->model);
+        try {
+            $this->adapter->loadPolicy($this->model);
+        } catch (InvalidFilePathException $e) {
+            //throw $e;
+        }
+        
 
         $this->model->printPolicy();
         if ($this->autoBuildRoleLinks) {
