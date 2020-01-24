@@ -112,6 +112,11 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     protected function loadFilteredPolicyFile(Model $model, Filter $filter, callable $handler): void
     {
         $file = fopen($this->filePath, 'rb');
+
+        if (false === $file) {
+            throw new InvalidFilePathException(sprintf('Unable to access to the specified path "%s"', $this->filePath));
+        }
+
         while ($line = fgets($file)) {
             $line = trim($line);
             if (self::filterLine($line, $filter)) {
@@ -131,10 +136,6 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      */
     protected static function filterLine(string $line, Filter $filter): bool
     {
-        if (is_null($filter)) {
-            return false;
-        }
-
         $p = explode(',', $line);
         if (0 == \count($p)) {
             return true;

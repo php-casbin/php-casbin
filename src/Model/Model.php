@@ -13,6 +13,8 @@ use Casbin\Util\Util;
 /**
  * Class Model.
  *
+ * @implements ArrayAccess<string|int, mixed>
+ *
  * @author techlee@qq.com
  */
 class Model implements ArrayAccess

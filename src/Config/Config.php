@@ -11,7 +11,7 @@ use Casbin\Exceptions\CasbinException;
  *
  * @author techlee@qq.com
  */
-class Config implements ConfigContract
+final class Config implements ConfigContract
 {
     const DEFAULT_SECTION = 'default';
 
