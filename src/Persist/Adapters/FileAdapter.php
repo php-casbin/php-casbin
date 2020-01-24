@@ -99,7 +99,7 @@ class FileAdapter implements Adapter
     {
         $file = fopen($this->filePath, 'rb');
 
-        if ($file === false) {
+        if (false === $file) {
             throw new InvalidFilePathException(sprintf('Unable to access to the specified path "%s"', $this->filePath));
         }
 

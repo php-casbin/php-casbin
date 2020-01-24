@@ -33,7 +33,7 @@ class Util
             return $m[1].$m[2].'_';
         }, $s);
 
-        if ($s === null) {
+        if (null === $s) {
             throw new CasbinException(sprintf('Unable to escape assertion "%s"', $s));
         }
 

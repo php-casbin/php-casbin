@@ -22,7 +22,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     /**
      * filtered variable.
      *
-     * @var boolean
+     * @var bool
      */
     protected $filtered;
 
@@ -92,8 +92,6 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * SavePolicy saves all policy rules to the storage.
      *
      * @param Model $model
-     *
-     * @return void
      */
     public function savePolicy(Model $model): void
     {
@@ -110,8 +108,6 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * @param Model    $model
      * @param Filter   $filter
      * @param callable $handler
-     *
-     * @return void
      */
     protected function loadFilteredPolicyFile(Model $model, Filter $filter, callable $handler): void
     {
@@ -131,7 +127,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * @param string $line
      * @param Filter $filter
      *
-     * @return boolean
+     * @return bool
      */
     protected static function filterLine(string $line, Filter $filter): bool
     {
@@ -165,7 +161,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * @param array $line
      * @param array $filter
      *
-     * @return boolean
+     * @return bool
      */
     protected static function filterWords(array $line, array $filter): bool
     {
