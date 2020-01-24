@@ -100,7 +100,8 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
         if ($this->filtered) {
             throw new CannotSaveFilteredPolicy('cannot save a filtered policy');
         }
-        parent.savePolicy($model);
+
+        parent::savePolicy($model);
     }
 
     /**
