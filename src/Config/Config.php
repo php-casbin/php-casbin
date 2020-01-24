@@ -21,6 +21,9 @@ class Config implements ConfigContract
 
     const DEFAULT_MULTI_LINE_SEPARATOR = '\\';
 
+    /**
+     * @var array<string, array<string, string>>
+     */
     public $data = [];
 
     /**

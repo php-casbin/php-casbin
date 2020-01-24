@@ -63,14 +63,14 @@ class Enforcer
     /**
      * Adapter.
      *
-     * @var Adapter
+     * @var Adapter|null
      */
     protected $adapter;
 
     /**
      * Watcher.
      *
-     * @var Watcher
+     * @var Watcher|null
      */
     protected $watcher;
 
