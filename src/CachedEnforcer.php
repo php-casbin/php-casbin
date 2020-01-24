@@ -23,11 +23,6 @@ class CachedEnforcer extends Enforcer
     protected $enableCache;
 
     /**
-     * @var
-     */
-    protected static $locker;
-
-    /**
      * CachedEnforcer constructor.
      *
      * @param mixed ...$params
