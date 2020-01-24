@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Casbin\Util;
 
+use Casbin\Exceptions\CasbinException;
+
 /**
  * Class Util.
  *
@@ -30,6 +32,10 @@ class Util
         $s = preg_replace_callback("~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)(r|p)(\.)~", function ($m) {
             return $m[1].$m[2].'_';
         }, $s);
+
+        if ($s === null) {
+            throw new CasbinException(sprintf('Unable to escape assertion "%s"', $s));
+        }
 
         return $s;
     }
