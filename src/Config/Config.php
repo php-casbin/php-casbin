@@ -11,7 +11,7 @@ use Casbin\Exceptions\CasbinException;
  *
  * @author techlee@qq.com
  */
-class Config implements ConfigContract
+final class Config implements ConfigContract
 {
     const DEFAULT_SECTION = 'default';
 
@@ -21,6 +21,9 @@ class Config implements ConfigContract
 
     const DEFAULT_MULTI_LINE_SEPARATOR = '\\';
 
+    /**
+     * @var array<string, array<string, string>>
+     */
     public $data = [];
 
     /**

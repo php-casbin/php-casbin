@@ -98,6 +98,11 @@ class FileAdapter implements Adapter
     protected function loadPolicyFile(Model $model): void
     {
         $file = fopen($this->filePath, 'rb');
+
+        if (false === $file) {
+            throw new InvalidFilePathException(sprintf('Unable to access to the specified path "%s"', $this->filePath));
+        }
+
         while ($line = fgets($file)) {
             $this->loadPolicyLine(trim($line), $model);
         }

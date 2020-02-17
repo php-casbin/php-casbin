@@ -22,7 +22,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     /**
      * filtered variable.
      *
-     * @var boolean
+     * @var bool
      */
     protected $filtered;
 
@@ -92,15 +92,14 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * SavePolicy saves all policy rules to the storage.
      *
      * @param Model $model
-     *
-     * @return void
      */
     public function savePolicy(Model $model): void
     {
         if ($this->filtered) {
             throw new CannotSaveFilteredPolicy('cannot save a filtered policy');
         }
-        parent.savePolicy($model);
+
+        parent::savePolicy($model);
     }
 
     /**
@@ -109,12 +108,15 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * @param Model    $model
      * @param Filter   $filter
      * @param callable $handler
-     *
-     * @return void
      */
     protected function loadFilteredPolicyFile(Model $model, Filter $filter, callable $handler): void
     {
         $file = fopen($this->filePath, 'rb');
+
+        if (false === $file) {
+            throw new InvalidFilePathException(sprintf('Unable to access to the specified path "%s"', $this->filePath));
+        }
+
         while ($line = fgets($file)) {
             $line = trim($line);
             if (self::filterLine($line, $filter)) {
@@ -130,14 +132,10 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * @param string $line
      * @param Filter $filter
      *
-     * @return boolean
+     * @return bool
      */
     protected static function filterLine(string $line, Filter $filter): bool
     {
-        if (is_null($filter)) {
-            return false;
-        }
-
         $p = explode(',', $line);
         if (0 == \count($p)) {
             return true;
@@ -164,7 +162,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * @param array $line
      * @param array $filter
      *
-     * @return boolean
+     * @return bool
      */
     protected static function filterWords(array $line, array $filter): bool
     {

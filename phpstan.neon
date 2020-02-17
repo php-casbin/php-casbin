@@ -1,0 +1,8 @@
+parameters:
+    reportUnmatchedIgnoredErrors: false
+    checkMissingIterableValueType: false
+    tipsOfTheDay: false
+    level: max
+    paths:
+        - src
+        - tests

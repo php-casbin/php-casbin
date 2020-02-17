@@ -176,7 +176,7 @@ trait Policy
      * @param string $sec
      * @param string $ptype
      * @param int    $fieldIndex
-     * @param mixed  ...$fieldValues
+     * @param string ...$fieldValues
      *
      * @return bool
      */

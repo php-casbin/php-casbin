@@ -13,6 +13,9 @@ use Casbin\Util\BuiltinOperations;
  */
 class FunctionMap
 {
+    /**
+     * @var array<string, \Closure>
+     */
     private $functions = [];
 
     /**

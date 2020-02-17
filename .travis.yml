@@ -13,6 +13,7 @@ install:
 script:
  - mkdir -p build/logs
  - vendor/bin/phpunit
+ - vendor/bin/phpstan
 
 after_script:
  - travis_retry vendor/bin/php-coveralls -v
