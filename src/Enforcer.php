@@ -242,7 +242,7 @@ class Enforcer
     {
         $this->model = Model::newModelFromFile($this->modelPath);
         $this->model->printModel();
-        $this->fm = Model::LoadFunctionMap();
+        $this->fm = Model::loadFunctionMap();
 
         $this->initialize();
     }
@@ -479,7 +479,7 @@ class Enforcer
         if (isset($this->model['g'])) {
             foreach ($this->model['g'] as $key => $ast) {
                 $rm = $ast->rM;
-                $functions[$key] = BuiltinOperations::GenerateGFunction($rm);
+                $functions[$key] = BuiltinOperations::generateGFunction($rm);
             }
         }
 
