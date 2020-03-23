@@ -8,6 +8,7 @@ use Casbin\Model\Model;
 use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\Adapters\FileFilteredAdapter;
 use Casbin\Persist\Adapters\Filter;
+use Casbin\Rbac\RoleManager;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -115,6 +116,12 @@ EOT
 
         $this->assertFalse($e->enforce('alice', 'data1', 'read'));
         $this->assertTrue($e->enforce('alice', 'data1', 'write'));
+    }
+
+    public function testGetRoleManager(){
+        $e = new Enforcer($this->modelAndPolicyPath.'/basic_model.conf');
+        $rm = $e->getRoleManager();
+        $this->assertTrue($rm instanceof RoleManager);
     }
 
     public function testSetAdapterFromFile()

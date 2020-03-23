@@ -304,6 +304,16 @@ class Enforcer
     }
 
     /**
+     * gets the current role manager.
+     *
+     * @return RoleManager
+     */
+    public function getRoleManager(): RoleManager
+    {
+        return $this->rm;
+    }
+
+    /**
      * sets the current role manager.
      *
      * @param RoleManager $rm
