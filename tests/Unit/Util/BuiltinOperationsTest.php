@@ -68,6 +68,8 @@ class BuiltinOperationsTest extends TestCase
         $this->assertTrue($this->keyMatch2Func('/alice/all', '/:id/all'));
         $this->assertFalse($this->keyMatch2Func('/alice', '/:id/all'));
         $this->assertFalse($this->keyMatch2Func('/alice/all', '/:id'));
+
+        $this->assertFalse($this->keyMatch2Func('/alice/all', '/:/all'));
     }
 
     public function testKeyMatch3Func()
@@ -93,5 +95,7 @@ class BuiltinOperationsTest extends TestCase
         $this->assertTrue($this->keyMatch3Func('/proxy/myid/res/res2', '/proxy/{id}/*'));
         $this->assertTrue($this->keyMatch3Func('/proxy/myid/res/res2/res3', '/proxy/{id}/*'));
         $this->assertFalse($this->keyMatch3Func('/proxy/', '/proxy/{id}/*'));
+
+        $this->assertFalse($this->keyMatch3Func('/myid/using/myresid', '/{id/using/{resId}'));
     }
 }

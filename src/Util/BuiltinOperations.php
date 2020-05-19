@@ -63,21 +63,17 @@ class BuiltinOperations
     {
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
-        $pattern = '/(.*):[^\/]+(.*)/';
-        for (; ;) {
-            if (false === strpos($key2, '/:')) {
-                break;
-            }
-            $key2 = preg_replace_callback(
-                $pattern,
-                function ($m) {
-                    return $m[1].'[^\/]+'.$m[2];
-                },
-                $key2
-            );
-        }
+        $pattern = '/:[^\/]+/';
 
-        return self::regexMatch($key1, '^'.$key2.'$');
+        $key2 = preg_replace_callback(
+            $pattern,
+            function ($m) {
+                return '[^\/]+';
+            },
+            $key2
+        );
+
+        return self::regexMatch($key1, '^' . $key2 . '$');
     }
 
     /**
@@ -108,21 +104,16 @@ class BuiltinOperations
     {
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
-        $pattern = '/(.*)\{[^\/]+\}(.*)/';
-        for (; ;) {
-            if (false === strpos($key2, '/{')) {
-                break;
-            }
-            $key2 = preg_replace_callback(
-                $pattern,
-                function ($m) {
-                    return $m[1].'[^\/]+'.$m[2];
-                },
-                $key2
-            );
-        }
+        $pattern = '/\{[^\/]+\}/';
+        $key2 = preg_replace_callback(
+            $pattern,
+            function ($m) {
+                return '[^\/]+';
+            },
+            $key2
+        );
 
-        return self::regexMatch($key1, '^'.$key2.'$');
+        return self::regexMatch($key1, '^' . $key2 . '$');
     }
 
     /**
@@ -150,7 +141,7 @@ class BuiltinOperations
      */
     public static function regexMatch(string $key1, string $key2): bool
     {
-        return (bool) preg_match('~'.$key2.'~', $key1);
+        return (bool) preg_match('~' . $key2 . '~', $key1);
     }
 
     /**
