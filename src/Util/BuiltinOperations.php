@@ -132,6 +132,66 @@ class BuiltinOperations
     }
 
     /**
+     * determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
+     * Besides what KeyMatch3 does, KeyMatch4 can also match repeated patterns:
+     * "/parent/123/child/123" matches "/parent/{id}/child/{id}"
+     * "/parent/123/child/456" does not match "/parent/{id}/child/{id}"
+     * But KeyMatch3 will match both.
+     *
+     * @param string $key1
+     * @param string $key2
+     *
+     * @return bool
+     */
+    public static function keyMatch4(string $key1, string $key2): bool
+    {
+        $key2 = str_replace(['/*'], ['/.*'], $key2);
+
+        $tokens = [];
+        $pattern = '/\{([^\/]+)\}/';
+        $key2 = preg_replace_callback(
+            $pattern,
+            function ($m) use (&$tokens) {
+                $tokens[] = $m[1];
+                return '([^\/]+)';
+            },
+            $key2
+        );
+
+        $matched = preg_match_all('~^' . $key2 . '$~', $key1, $matches);
+        if (!$matched) {
+            return false;
+        }
+
+        $values = [];
+        foreach ($tokens as $key => $token) {
+            if (!isset($values[$token])) {
+                $values[$token] = $matches[$key + 1];
+            }
+            if ($values[$token] != $matches[$key + 1]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * the wrapper for KeyMatch4.
+     *
+     * @param mixed ...$args
+     *
+     * @return bool
+     */
+    public static function keyMatch4Func(...$args): bool
+    {
+        $name1 = $args[0];
+        $name2 = $args[1];
+
+        return self::keyMatch4($name1, $name2);
+    }
+
+    /**
      * determines whether key1 matches the pattern of key2 in regular expression.
      *
      * @param string $key1

@@ -27,6 +27,11 @@ class BuiltinOperationsTest extends TestCase
         return (bool) BuiltinOperations::keyMatch3Func($name1, $name2);
     }
 
+    private function keyMatch4Func($name1, $name2)
+    {
+        return (bool) BuiltinOperations::keyMatch4Func($name1, $name2);
+    }
+
     public function testKeyMatchFunc()
     {
         $this->assertTrue($this->keyMatchFunc('/foo', '/foo'));
@@ -97,5 +102,22 @@ class BuiltinOperationsTest extends TestCase
         $this->assertFalse($this->keyMatch3Func('/proxy/', '/proxy/{id}/*'));
 
         $this->assertFalse($this->keyMatch3Func('/myid/using/myresid', '/{id/using/{resId}'));
+    }
+
+    public function testKeyMatch4Func()
+    {
+        $this->assertTrue($this->keyMatch4Func('/parent/123/child/123', '/parent/{id}/child/{id}'));
+        $this->assertFalse($this->keyMatch4Func('/parent/123/child/456', '/parent/{id}/child/{id}'));
+
+        $this->assertTrue($this->keyMatch4Func('/parent/123/child/123', '/parent/{id}/child/{another_id}'));
+        $this->assertTrue($this->keyMatch4Func('/parent/123/child/456', '/parent/{id}/child/{another_id}'));
+
+        $this->assertTrue($this->keyMatch4Func('/parent/123/child/123/book/123', '/parent/{id}/child/{id}/book/{id}'));
+        $this->assertFalse($this->keyMatch4Func('/parent/123/child/123/book/456', '/parent/{id}/child/{id}/book/{id}'));
+        $this->assertFalse($this->keyMatch4Func('/parent/123/child/456/book/123', '/parent/{id}/child/{id}/book/{id}'));
+        $this->assertFalse($this->keyMatch4Func('/parent/123/child/456/book/', '/parent/{id}/child/{id}/book/{id}'));
+        $this->assertFalse($this->keyMatch4Func('/parent/123/child/456', '/parent/{id}/child/{id}/book/{id}'));
+
+        $this->assertFalse($this->keyMatch4Func('/parent/123/child/123', '/parent/{i/d}/child/{i/d}'));
     }
 }
