@@ -18,7 +18,7 @@ trait ManagementApi
      */
     public function getAllSubjects(): array
     {
-        return $this->getAllNamedSubjects('p');
+        return $this->model->getValuesForFieldInPolicyAllType('p', 0);
     }
 
     /**
@@ -40,7 +40,7 @@ trait ManagementApi
      */
     public function getAllObjects(): array
     {
-        return $this->getAllNamedObjects('p');
+        return $this->model->getValuesForFieldInPolicyAllType('p', 1);
     }
 
     /**
@@ -62,7 +62,7 @@ trait ManagementApi
      */
     public function getAllActions(): array
     {
-        return $this->getAllNamedActions('p');
+        return $this->model->getValuesForFieldInPolicyAllType('p', 2);
     }
 
     /**
@@ -84,7 +84,7 @@ trait ManagementApi
      */
     public function getAllRoles(): array
     {
-        return $this->getAllNamedRoles('g');
+        return $this->model->getValuesForFieldInPolicyAllType('g', 1);
     }
 
     /**
