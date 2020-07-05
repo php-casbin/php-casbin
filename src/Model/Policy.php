@@ -236,4 +236,25 @@ trait Policy
 
         return $values;
     }
+
+    /**
+     * gets all values for a field for all rules in a policy of all ptypes, duplicated values are removed.
+     *
+     * @param string $sec
+     * @param int    $fieldIndex
+     *
+     * @return array
+     */
+    public function getValuesForFieldInPolicyAllTypes(string $sec, int $fieldIndex): array
+    {
+        $values = [];
+
+        foreach ($this->items[$sec] as $key => $ptype) {
+            $values = array_merge($values, $this->getValuesForFieldInPolicy($sec, $key, $fieldIndex));
+        }
+
+        Util::arrayRemoveDuplicates($values);
+
+        return $values;
+    }
 }
