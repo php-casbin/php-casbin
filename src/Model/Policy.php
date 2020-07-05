@@ -249,8 +249,8 @@ trait Policy
     {
         $values = [];
 
-        foreach ($this->items[$sec] as $ptype) {
-            $values = $this->getValuesForFieldInPolicy($sec, $ptype->key, $fieldIndex);
+        foreach ($this->items[$sec] as $key => $ptype) {
+            $values = array_merge($values, $this->getValuesForFieldInPolicy($sec, $key, $fieldIndex));
         }
 
         Util::arrayRemoveDuplicates($values);
