@@ -245,8 +245,10 @@ trait Policy
      *
      * @return array
      */
-    public function getValuesForFieldInPolicyAllType(string $sec, int $fieldIndex): array
+    public function getValuesForFieldInPolicyAllTypes(string $sec, int $fieldIndex): array
     {
+        $values = [];
+
         foreach ($this->items[$sec] as $ptype) {
             $values = $this->getValuesForFieldInPolicy($sec, $ptype->key, $fieldIndex);
         }
