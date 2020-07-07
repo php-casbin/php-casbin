@@ -112,13 +112,18 @@ trait Policy
      * @param string $sec
      * @param string $ptype
      * @param array  $rule
+     * @param array  $policy
      *
      * @return bool
      */
-    public function hasPolicy(string $sec, string $ptype, array $rule): bool
+    public function hasPolicy(string $sec, string $ptype, array $rule, array $policy = []): bool
     {
         if (!isset($this->items[$sec][$ptype])) {
             return false;
+        }
+
+        if (!empty($policy)) {
+            return in_array($rule, $policy, true);
         }
 
         return in_array($rule, $this->items[$sec][$ptype]->policy, true);
@@ -145,6 +150,34 @@ trait Policy
     }
 
     /**
+     * adds a policy rules to the model.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rule
+     *
+     * @return bool
+     */
+    public function addPolicies(string $sec, string $ptype, array $rule): bool
+    {
+        if (!isset($this->items[$sec][$ptype])) {
+            return false;
+        }
+
+        $policy = $this->items[$sec][$ptype]->policy;
+
+        foreach ($rule as $value) {
+            if ($this->hasPolicy($sec, $ptype, $value)) {
+                return false;
+            }
+            $policy[] = $value;
+        }
+        $this->items[$sec][$ptype]->policy = $policy;
+
+        return true;
+    }
+
+    /**
      * removes a policy rule from the model.
      *
      * @param string $sec
@@ -166,6 +199,38 @@ trait Policy
         }
 
         array_splice($this->items[$sec][$ptype]->policy, $offset, 1);
+
+        return true;
+    }
+
+    /**
+     * removes a policy rules from the model.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    public function removePolicies(string $sec, string $ptype, array $rules): bool
+    {
+        if (!isset($this->items[$sec][$ptype])) {
+            return false;
+        }
+
+        $policy = $this->items[$sec][$ptype]->policy;
+
+        foreach ($rules as $rule) {
+            $offset = array_search($rule, $policy, true);
+
+            if (false === $offset) {
+                return false;
+            }
+
+            array_splice($policy, $offset, 1);
+        }
+
+        $this->items[$sec][$ptype]->policy = $policy;
 
         return true;
     }

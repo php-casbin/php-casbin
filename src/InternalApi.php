@@ -45,6 +45,37 @@ trait InternalApi
     }
 
     /**
+     * adds a rules to the current policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    protected function addPoliciesInternal(string $sec, string $ptype, array $rules): bool
+    {
+        $ruleAdded = $this->model->addPolicies($sec, $ptype, $rules);
+        if (!$ruleAdded) {
+            return $ruleAdded;
+        }
+
+        if (!is_null($this->adapter) && $this->autoSave) {
+            try {
+                $this->adapter->addPolicies($sec, $ptype, $rules);
+            } catch (NotImplementedException $e) {
+            }
+
+            if (!is_null($this->watcher)) {
+                // error intentionally ignored
+                $this->watcher->update();
+            }
+        }
+
+        return $ruleAdded;
+    }
+
+    /**
      * removes a rule from the current policy.
      *
      * @param string $sec
@@ -63,6 +94,37 @@ trait InternalApi
         if (!is_null($this->adapter) && $this->autoSave) {
             try {
                 $this->adapter->removePolicy($sec, $ptype, $rule);
+            } catch (NotImplementedException $e) {
+            }
+
+            if (!is_null($this->watcher)) {
+                // error intentionally ignored
+                $this->watcher->update();
+            }
+        }
+
+        return $ruleRemoved;
+    }
+
+    /**
+     * removes a rules from the current policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    protected function removePoliciesInternal(string $sec, string $ptype, array $rules): bool
+    {
+        $ruleRemoved = $this->model->removePolicies($sec, $ptype, $rules);
+        if (!$ruleRemoved) {
+            return $ruleRemoved;
+        }
+
+        if (!is_null($this->adapter) && $this->autoSave) {
+            try {
+                $this->adapter->removePolicies($sec, $ptype, $rules);
             } catch (NotImplementedException $e) {
             }
 
