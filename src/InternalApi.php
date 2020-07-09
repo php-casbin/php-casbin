@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Casbin;
 
 use Casbin\Exceptions\NotImplementedException;
+use Casbin\Persist\BatchAdapter;
 
 /**
  * Trait InternalApi.
@@ -29,17 +30,13 @@ trait InternalApi
             return $ruleAdded;
         }
 
-        if (!is_null($this->adapter) && $this->autoSave) {
+        if ($this->ShouldPersist()) {
             try {
                 $this->adapter->addPolicy($sec, $ptype, $rule);
             } catch (NotImplementedException $e) {
             }
-
-            if (!is_null($this->watcher)) {
-                // error intentionally ignored
-                $this->watcher->update();
-            }
         }
+        $this->checkWatcher();
 
         return $ruleAdded;
     }
@@ -60,17 +57,13 @@ trait InternalApi
             return $ruleAdded;
         }
 
-        if (!is_null($this->adapter) && $this->autoSave) {
+        if ($this->ShouldPersist() && $this->adapter instanceof BatchAdapter) {
             try {
                 $this->adapter->addPolicies($sec, $ptype, $rules);
             } catch (NotImplementedException $e) {
             }
-
-            if (!is_null($this->watcher)) {
-                // error intentionally ignored
-                $this->watcher->update();
-            }
         }
+        $this->checkWatcher();
 
         return $ruleAdded;
     }
@@ -91,17 +84,13 @@ trait InternalApi
             return $ruleRemoved;
         }
 
-        if (!is_null($this->adapter) && $this->autoSave) {
+        if ($this->ShouldPersist()) {
             try {
                 $this->adapter->removePolicy($sec, $ptype, $rule);
             } catch (NotImplementedException $e) {
             }
-
-            if (!is_null($this->watcher)) {
-                // error intentionally ignored
-                $this->watcher->update();
-            }
         }
+        $this->checkWatcher();
 
         return $ruleRemoved;
     }
@@ -122,17 +111,13 @@ trait InternalApi
             return $ruleRemoved;
         }
 
-        if (!is_null($this->adapter) && $this->autoSave) {
+        if ($this->ShouldPersist() && $this->adapter instanceof BatchAdapter) {
             try {
                 $this->adapter->removePolicies($sec, $ptype, $rules);
             } catch (NotImplementedException $e) {
             }
-
-            if (!is_null($this->watcher)) {
-                // error intentionally ignored
-                $this->watcher->update();
-            }
         }
+        $this->checkWatcher();
 
         return $ruleRemoved;
     }
@@ -154,18 +139,30 @@ trait InternalApi
             return $ruleRemoved;
         }
 
-        if (!is_null($this->adapter) && $this->autoSave) {
+        if ($this->ShouldPersist()) {
             try {
                 $this->adapter->removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
             } catch (NotImplementedException $e) {
             }
-
-            if (!is_null($this->watcher)) {
-                // error intentionally ignored
-                $this->watcher->update();
-            }
         }
+        $this->checkWatcher();
 
         return $ruleRemoved;
+    }
+
+    /**
+     * check $this->watcher ans $this->autoNotifyWatcher
+     */
+    private function checkWatcher(): void
+    {
+        if (!is_null($this->watcher) && $this->autoNotifyWatcher) {
+            // error intentionally ignored
+            $this->watcher->update();
+        }
+    }
+
+    private function ShouldPersist(): bool
+    {
+        return !is_null($this->adapter) && $this->autoNotifyWatcher;
     }
 }

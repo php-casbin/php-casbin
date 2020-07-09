@@ -10,6 +10,7 @@ use Casbin\Exceptions\NotImplementedException;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\AdapterHelper;
+use Casbin\Persist\BatchAdapter;
 use Casbin\Util\Util;
 
 /**
@@ -19,7 +20,7 @@ use Casbin\Util\Util;
  *
  * @author techlee@qq.com
  */
-class FileAdapter implements Adapter
+class FileAdapter implements Adapter, BatchAdapter
 {
     use AdapterHelper;
 
