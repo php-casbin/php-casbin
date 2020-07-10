@@ -475,13 +475,13 @@ class Enforcer
      * input parameters are usually: (matcher, sub, obj, act), use model matcher by default when matcher is "".
      *
      * @param string $matcher
-     * @param mixed ...$rvals
+     * @param mixed  ...$rvals
      *
      * @return bool|mixed
      *
      * @throws CasbinException
      */
-    protected function enforcing(string $matcher,...$rvals): bool
+    protected function enforcing(string $matcher, ...$rvals): bool
     {
         if (!$this->enabled) {
             return true;
@@ -500,8 +500,8 @@ class Enforcer
             throw new CasbinException('model is undefined');
         }
 
-        $expString = "";
-        if ($matcher === "") {
+        $expString = '';
+        if ('' === $matcher) {
             $expString = $this->getExpString($this->model['m']['m']->value);
         } else {
             $expString = Util::removeComments(Util::escapeAssertion($matcher));
@@ -624,7 +624,7 @@ class Enforcer
     {
         return preg_replace_callback(
             '/([\s\S]*in\s+)\(([\s\S]+)\)([\s\S]*)/',
-            function ($m){
+            function ($m) {
                 return $m[1].'['.$m[2].']'.$m[3];
             },
             $expString
@@ -642,7 +642,7 @@ class Enforcer
      */
     public function enforce(...$rvals): bool
     {
-            return $this->enforcing("", ...$rvals);
+        return $this->enforcing('', ...$rvals);
     }
 
     /**
@@ -650,7 +650,7 @@ class Enforcer
      * input parameters are usually: (matcher, sub, obj, act), use model matcher by default when matcher is "".
      *
      * @param string $matcher
-     * @param mixed ...$rvals
+     * @param mixed  ...$rvals
      *
      * @return bool
      *
@@ -658,6 +658,6 @@ class Enforcer
      */
     public function enforceWithMatcher(string $matcher, ...$rvals): bool
     {
-            return $this->enforcing($matcher, ...$rvals);
+        return $this->enforcing($matcher, ...$rvals);
     }
 }
