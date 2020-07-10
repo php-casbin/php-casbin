@@ -18,6 +18,7 @@ use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use Casbin\Log\Log;
+use Casbin\Util\Util;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
@@ -470,15 +471,17 @@ class Enforcer
     }
 
     /**
-     * decides whether a "subject" can access a "object" with the operation "action", input parameters are usually: (sub, obj, act).
+     * use a custom matcher to decides whether a "subject" can access a "object" with the operation "action",
+     * input parameters are usually: (matcher, sub, obj, act), use model matcher by default when matcher is "".
      *
-     * @param mixed ...$rvals
+     * @param string $matcher
+     * @param mixed  ...$rvals
      *
      * @return bool|mixed
      *
      * @throws CasbinException
      */
-    public function enforce(...$rvals): bool
+    protected function enforcing(string $matcher, ...$rvals): bool
     {
         if (!$this->enabled) {
             return true;
@@ -497,7 +500,12 @@ class Enforcer
             throw new CasbinException('model is undefined');
         }
 
-        $expString = $this->getExpString($this->model['m']['m']->value);
+        $expString = '';
+        if ('' === $matcher) {
+            $expString = $this->getExpString($this->model['m']['m']->value);
+        } else {
+            $expString = Util::removeComments(Util::escapeAssertion($matcher));
+        }
 
         $rTokens = array_values($this->model['r']['r']->tokens);
         $pTokens = array_values($this->model['p']['p']->tokens);
@@ -621,5 +629,35 @@ class Enforcer
             },
             $expString
         );
+    }
+
+    /**
+     * decides whether a "subject" can access a "object" with the operation "action", input parameters are usually: (sub, obj, act).
+     *
+     * @param mixed ...$rvals
+     *
+     * @return bool
+     *
+     * @throws CasbinException
+     */
+    public function enforce(...$rvals): bool
+    {
+        return $this->enforcing('', ...$rvals);
+    }
+
+    /**
+     * use a custom matcher to decides whether a "subject" can access a "object" with the operation "action",
+     * input parameters are usually: (matcher, sub, obj, act), use model matcher by default when matcher is "".
+     *
+     * @param string $matcher
+     * @param mixed  ...$rvals
+     *
+     * @return bool
+     *
+     * @throws CasbinException
+     */
+    public function enforceWithMatcher(string $matcher, ...$rvals): bool
+    {
+        return $this->enforcing($matcher, ...$rvals);
     }
 }
