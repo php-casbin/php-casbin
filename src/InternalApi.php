@@ -151,7 +151,7 @@ trait InternalApi
     }
 
     /**
-     * check $this->watcher ans $this->autoNotifyWatcher
+     * check $this->watcher ans $this->autoNotifyWatcher.
      */
     private function checkWatcher(): void
     {

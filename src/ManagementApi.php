@@ -279,7 +279,7 @@ trait ManagementApi
      * Otherwise the function returns true for the corresponding by adding the new rule.
      *
      * @param string $ptype
-     * @param array $rules
+     * @param array  $rules
      *
      * @return bool
      */
@@ -346,7 +346,7 @@ trait ManagementApi
      * removes an authorization rules from the current named policy.
      *
      * @param string $ptype
-     * @param array $rules
+     * @param array  $rules
      *
      * @return bool
      */
@@ -457,7 +457,7 @@ trait ManagementApi
      * Otherwise the function returns true by adding the new rule.
      *
      * @param string $ptype
-     * @param array $rules
+     * @param array  $rules
      *
      * @return bool
      */
@@ -536,7 +536,7 @@ trait ManagementApi
      * removes a role inheritance rules from the current named policy.
      *
      * @param string $ptype
-     * @param array $rules
+     * @param array  $rules
      *
      * @return bool
      */
