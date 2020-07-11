@@ -13,6 +13,8 @@ use Casbin\Exceptions\CasbinException;
  */
 class Util
 {
+    const REGEXP = '/\beval\((?P<rule>[^),]*)\)/';
+
     /**
      * escapes the dots in the assertion, because the expression evaluation doesn't support such variable names.
      *
@@ -74,5 +76,44 @@ class Util
     public static function arrayRemoveDuplicates(array &$s): void
     {
         $s = array_keys(array_flip($s));
+    }
+
+    /**
+     * determine whether matcher contains function eval.
+     *
+     * @param string $s
+     *
+     * @return bool
+     */
+    public static function hasEval(string $s): bool
+    {
+        return (bool) preg_match(self::REGEXP, $s);
+    }
+
+    /**
+     * replace function eval with the value of its parameters.
+     *
+     * @param string $s
+     * @param string $rule
+     *
+     * @return string
+     */
+    public static function replaceEval(string $s, string $rule): string
+    {
+        return preg_replace(self::REGEXP, '('.$rule.')', $s);
+    }
+
+    /**
+     * returns the parameters of function eval.
+     *
+     * @param string $s
+     *
+     * @return array
+     */
+    public static function getEvalValue(string $s): array
+    {
+        preg_match_all(self::REGEXP, $s, $matches);
+
+        return $matches['rule'];
     }
 }
