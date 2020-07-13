@@ -328,7 +328,8 @@ class Enforcer
      * @param string   $name
      * @param \Closure $fn
      */
-    public function addMatchingFunc(string $name, \Closure $fn) {
+    public function addMatchingFunc(string $name, \Closure $fn): void
+    {
         $this->rm->addMatchingFunc($name, $fn);
     }
 

@@ -8,7 +8,6 @@ use Casbin\Exceptions\CasbinException;
 use Casbin\Rbac\Role;
 use Casbin\Rbac\RoleManager as RoleManagerContract;
 use Casbin\Log\Log;
-use Casbin\Util\BuiltinOperations;
 
 /**
  * Class RoleManager.
@@ -93,6 +92,7 @@ class RoleManager implements RoleManagerContract
                 $func = $this->matchingFunc;
                 if ($func($name, $key)) {
                     $name = $key;
+
                     break;
                 }
             }
