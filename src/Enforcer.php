@@ -325,6 +325,14 @@ class Enforcer
     }
 
     /**
+     * @param string   $name
+     * @param \Closure $fn
+     */
+    public function addMatchingFunc(string $name, \Closure $fn) {
+        $this->rm->addMatchingFunc($name, $fn);
+    }
+
+    /**
      * sets the current effector.
      *
      * @param Effector $eft

@@ -34,6 +34,11 @@ class RoleManager implements RoleManagerContract
     protected $hasPattern;
 
     /**
+     * @var \Closure
+     */
+    protected $matchingFunc;
+
+    /**
      * RoleManager constructor.
      *
      * @param int $maxHierarchyLevel
@@ -42,6 +47,17 @@ class RoleManager implements RoleManagerContract
     {
         $this->allRoles = [];
         $this->maxHierarchyLevel = $maxHierarchyLevel;
+        $this->hasPattern = false;
+    }
+
+    /**
+     * @param string   $name
+     * @param \Closure $fn
+     */
+    public function addMatchingFunc(string $name, \Closure $fn): void
+    {
+        $this->hasPattern = true;
+        $this->matchingFunc = $fn;
     }
 
     /**
@@ -53,7 +69,8 @@ class RoleManager implements RoleManagerContract
     {
         if ($this->hasPattern) {
             foreach ($this->allRoles as $key => $value) {
-                if (BuiltinOperations::keyMatch2($name, $key)) {
+                $func = $this->matchingFunc;
+                if ($func($name, $key)) {
                     return true;
                 }
             }
@@ -73,7 +90,8 @@ class RoleManager implements RoleManagerContract
     {
         if ($this->hasPattern) {
             foreach ($this->allRoles as $key => $value) {
-                if (BuiltinOperations::keyMatch2($name, $key)) {
+                $func = $this->matchingFunc;
+                if ($func($name, $key)) {
                     $name = $key;
                     break;
                 }
@@ -107,10 +125,6 @@ class RoleManager implements RoleManagerContract
     public function addLink(string $name1, string $name2, string ...$domain): void
     {
         $prefix = self::getPrefix(...$domain);
-
-        if (strpos($name1, '/*') > 0 || strpos($name1, '/:') > 0) {
-            $this->hasPattern = true;
-        }
 
         $this->createRole($prefix.$name1)->addRole(
             $this->createRole($prefix.$name2)

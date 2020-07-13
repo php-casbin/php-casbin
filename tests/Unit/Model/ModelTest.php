@@ -4,6 +4,7 @@ namespace Casbin\Tests\Unit\Model;
 
 use Casbin\Enforcer;
 use Casbin\Model\Model;
+use Casbin\Util\BuiltinOperations;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -54,6 +55,9 @@ EOT;
     {
         $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_pattern_model.conf', $this->modelAndPolicyPath.'/rbac_with_pattern_policy.csv');
 
+        $e->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+            return BuiltinOperations::keyMatch2($key1, $key2);
+        });
         $this->assertEquals($e->enforce('alice', '/book/1', 'GET'), true);
         $this->assertEquals($e->enforce('alice', '/book/2', 'GET'), true);
         $this->assertEquals($e->enforce('alice', '/pen/1', 'GET'), true);
@@ -62,5 +66,17 @@ EOT;
         $this->assertEquals($e->enforce('bob', '/book/2', 'GET'), false);
         $this->assertEquals($e->enforce('bob', '/pen/1', 'GET'), true);
         $this->assertEquals($e->enforce('bob', '/pen/2', 'GET'), true);
+
+        $e->addMatchingFunc('keyMatch3', function (string $key1, string $key2) {
+            return BuiltinOperations::keyMatch3($key1, $key2);
+        });
+        $this->assertEquals($e->enforce('alice', '/book2/1', 'GET'), true);
+        $this->assertEquals($e->enforce('alice', '/book2/2', 'GET'), true);
+        $this->assertEquals($e->enforce('alice', '/pen2/1', 'GET'), true);
+        $this->assertEquals($e->enforce('alice', '/pen2/2', 'GET'), false);
+        $this->assertEquals($e->enforce('bob', '/book2/1', 'GET'), false);
+        $this->assertEquals($e->enforce('bob', '/book2/2', 'GET'), false);
+        $this->assertEquals($e->enforce('bob', '/pen2/1', 'GET'), true);
+        $this->assertEquals($e->enforce('bob', '/pen2/2', 'GET'), true);
     }
 }
