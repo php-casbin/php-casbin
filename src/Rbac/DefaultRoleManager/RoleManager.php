@@ -8,6 +8,7 @@ use Casbin\Exceptions\CasbinException;
 use Casbin\Rbac\Role;
 use Casbin\Rbac\RoleManager as RoleManagerContract;
 use Casbin\Log\Log;
+use Casbin\Util\BuiltinOperations;
 
 /**
  * Class RoleManager.
@@ -28,6 +29,11 @@ class RoleManager implements RoleManagerContract
     protected $maxHierarchyLevel;
 
     /**
+     * @var bool
+     */
+    protected $hasPattern;
+
+    /**
      * RoleManager constructor.
      *
      * @param int $maxHierarchyLevel
@@ -45,7 +51,17 @@ class RoleManager implements RoleManagerContract
      */
     protected function hasRole(string $name): bool
     {
-        return isset($this->allRoles[$name]);
+        if ($this->hasPattern) {
+            foreach ($this->allRoles as $key => $value) {
+                if (BuiltinOperations::keyMatch2($name, $key)) {
+                    return true;
+                }
+            }
+        } else {
+            return isset($this->allRoles[$name]);
+        }
+
+        return false;
     }
 
     /**
@@ -55,6 +71,15 @@ class RoleManager implements RoleManagerContract
      */
     protected function createRole(string $name): Role
     {
+        if ($this->hasPattern) {
+            foreach ($this->allRoles as $key => $value) {
+                if (BuiltinOperations::keyMatch2($name, $key)) {
+                    $name = $key;
+                    break;
+                }
+            }
+        }
+
         if (!isset($this->allRoles[$name])) {
             $this->allRoles[$name] = new Role($name);
         }
@@ -82,6 +107,10 @@ class RoleManager implements RoleManagerContract
     public function addLink(string $name1, string $name2, string ...$domain): void
     {
         $prefix = self::getPrefix(...$domain);
+
+        if (strpos($name1, '/*') > 0 || strpos($name1, '/:') > 0) {
+            $this->hasPattern = true;
+        }
 
         $this->createRole($prefix.$name1)->addRole(
             $this->createRole($prefix.$name2)

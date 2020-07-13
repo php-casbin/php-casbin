@@ -49,4 +49,18 @@ EOT;
         $this->assertFalse($e->enforce('bob', 'data1', 'read'));
         $this->assertTrue($e->enforce('bob', 'data2', 'write'));
     }
+
+    public function testRBACModelWithPattern()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_pattern_model.conf', $this->modelAndPolicyPath.'/rbac_with_pattern_policy.csv');
+
+        $this->assertEquals($e->enforce('alice', '/book/1', 'GET'), true);
+        $this->assertEquals($e->enforce('alice', '/book/2', 'GET'), true);
+        $this->assertEquals($e->enforce('alice', '/pen/1', 'GET'), true);
+        $this->assertEquals($e->enforce('alice', '/pen/2', 'GET'), false);
+        $this->assertEquals($e->enforce('bob', '/book/1', 'GET'), false);
+        $this->assertEquals($e->enforce('bob', '/book/2', 'GET'), false);
+        $this->assertEquals($e->enforce('bob', '/pen/1', 'GET'), true);
+        $this->assertEquals($e->enforce('bob', '/pen/2', 'GET'), true);
+    }
 }
