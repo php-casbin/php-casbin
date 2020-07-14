@@ -25,10 +25,11 @@ trait InternalApi
      */
     protected function addPolicyInternal(string $sec, string $ptype, array $rule): bool
     {
-        $ruleAdded = $this->model->addPolicy($sec, $ptype, $rule);
-        if (!$ruleAdded) {
-            return $ruleAdded;
+        if ($this->model->hasPolicy($sec, $ptype, $rule)) {
+            return false;
         }
+
+        $this->model->addPolicy($sec, $ptype, $rule);
 
         if ($this->ShouldPersist()) {
             try {
@@ -38,7 +39,7 @@ trait InternalApi
         }
         $this->checkWatcher();
 
-        return $ruleAdded;
+        return true;
     }
 
     /**
@@ -52,10 +53,11 @@ trait InternalApi
      */
     protected function addPoliciesInternal(string $sec, string $ptype, array $rules): bool
     {
-        $ruleAdded = $this->model->addPolicies($sec, $ptype, $rules);
-        if (!$ruleAdded) {
-            return $ruleAdded;
+        if ($this->model->hasPolicies($sec, $ptype, $rules)) {
+            return false;
         }
+
+        $this->model->addPolicies($sec, $ptype, $rules);
 
         if ($this->ShouldPersist() && $this->adapter instanceof BatchAdapter) {
             try {
@@ -65,7 +67,7 @@ trait InternalApi
         }
         $this->checkWatcher();
 
-        return $ruleAdded;
+        return true;
     }
 
     /**

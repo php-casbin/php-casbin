@@ -2,6 +2,7 @@
 
 namespace Casbin\Tests\Unit;
 
+use Casbin\Exceptions\BatchOperationException;
 use PHPUnit\Framework\TestCase;
 use Casbin\Enforcer;
 
@@ -90,6 +91,16 @@ class ManagementApiTest extends TestCase
             ['leyo', 'data4', 'read'],
             ['ham', 'data4', 'write'],
         ];
+
+        try {
+            $e->addPolicies([
+                ['jack', 'data4', 'read'],
+                ['jack', 'data4', 'read'],
+                ['katy', 'data4', 'write'],
+            ]);
+        } catch (BatchOperationException $exception) {
+            $this->assertEquals('addPolicies error: $rules elements can not be duplicated.', $exception->getMessage());
+        }
 
         $e->addPolicies($rules);
         $e->addPolicies($rules);
