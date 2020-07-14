@@ -50,6 +50,9 @@ class RoleManager implements RoleManagerContract
     }
 
     /**
+     * e.BuildRoleLinks must be called after AddMatchingFunc().
+     * example: $e->GetRoleManager()->AddMatchingFunc('matcher', util.KeyMatch)
+     *
      * @param string   $name
      * @param \Closure $fn
      */
@@ -87,11 +90,18 @@ class RoleManager implements RoleManagerContract
      */
     protected function createRole(string $name): Role
     {
+        if (!isset($this->allRoles[$name])) {
+            $this->allRoles[$name] = new Role($name);
+        }
+
         if ($this->hasPattern) {
             foreach ($this->allRoles as $key => $value) {
                 $func = $this->matchingFunc;
-                if ($func($name, $key)) {
-                    $name = $key;
+                if ($func($name, $key) && $name !== $key) {
+                    if (!isset($this->allRoles[$key])) {
+                        $this->allRoles[$key] = new Role($key);
+                    }
+                    $this->allRoles[$name]->addRole($this->allRoles[$key]);
 
                     break;
                 }
