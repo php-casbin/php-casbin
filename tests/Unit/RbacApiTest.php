@@ -158,7 +158,6 @@ class RbacApiTest extends TestCase
                 return BuiltinOperations::keyMatch($key1, $key2);
             });
         }
-        $e->buildRoleLinks();
 
         $this->assertEquals($e->getImplicitRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin', '/book/*', 'book_group']);
         $this->assertEquals($e->getRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);

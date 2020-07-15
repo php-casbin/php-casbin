@@ -8,6 +8,8 @@ use Casbin\Exceptions\CasbinException;
 use Casbin\Rbac\Role;
 use Casbin\Rbac\RoleManager as RoleManagerContract;
 use Casbin\Log\Log;
+use Casbin\Rbac\Roles;
+use Closure;
 
 /**
  * Class RoleManager.
@@ -17,10 +19,12 @@ use Casbin\Log\Log;
  */
 class RoleManager implements RoleManagerContract
 {
+    const DEFAULTDOMAIN = 'casbin::default';
+
     /**
      * @var array
      */
-    protected $allRoles;
+    protected $allDomains;
 
     /**
      * @var int
@@ -33,9 +37,19 @@ class RoleManager implements RoleManagerContract
     protected $hasPattern;
 
     /**
-     * @var \Closure
+     * @var Closure
      */
     protected $matchingFunc;
+
+    /**
+     * @var bool
+     */
+    protected $hasDomainPattern;
+
+    /**
+     * @var Closure
+     */
+    protected $domainMatchingFunc;
 
     /**
      * RoleManager constructor.
@@ -44,75 +58,73 @@ class RoleManager implements RoleManagerContract
      */
     public function __construct(int $maxHierarchyLevel)
     {
-        $this->allRoles = [];
+        $this->allDomains[self::DEFAULTDOMAIN] = new Roles();
         $this->maxHierarchyLevel = $maxHierarchyLevel;
         $this->hasPattern = false;
+        $this->hasDomainPattern = false;
     }
 
     /**
-     * e.BuildRoleLinks must be called after AddMatchingFunc().
-     * example: $e->GetRoleManager()->AddMatchingFunc('matcher', util.KeyMatch)
+     * support use pattern in g.
      *
-     * @param string   $name
-     * @param \Closure $fn
+     * @param string  $name
+     * @param Closure $fn
      */
-    public function addMatchingFunc(string $name, \Closure $fn): void
+    public function addMatchingFunc(string $name, Closure $fn): void
     {
         $this->hasPattern = true;
         $this->matchingFunc = $fn;
     }
 
     /**
-     * @param string $name
+     * support use domain pattern in g.
      *
-     * @return bool
+     * @param string  $name
+     * @param Closure $fn
      */
-    protected function hasRole(string $name): bool
+    public function addDomainMatchingFunc(string $name, Closure $fn): void
     {
-        if ($this->hasPattern) {
-            foreach ($this->allRoles as $key => $value) {
-                $func = $this->matchingFunc;
-                if ($func($name, $key)) {
-                    return true;
-                }
-            }
-        } else {
-            return isset($this->allRoles[$name]);
-        }
-
-        return false;
+        $this->hasDomainPattern = true;
+        $this->domainMatchingFunc = $fn;
     }
 
     /**
-     * @param string $name
+     * @param string $domain
      *
-     * @return Role
+     * @return Roles
      */
-    protected function createRole(string $name): Role
+    protected function generateTempRoles(string $domain): Roles
     {
-        if (!isset($this->allRoles[$name])) {
-            $this->allRoles[$name] = new Role($name);
-        }
+        $this->loadOrStormRoles($domain);
 
-        if ($this->hasPattern) {
-            foreach ($this->allRoles as $key => $value) {
-                $func = $this->matchingFunc;
-                if ($func($name, $key) && $name !== $key) {
-                    if (!isset($this->allRoles[$key])) {
-                        $this->allRoles[$key] = new Role($key);
-                    }
-                    $this->allRoles[$name]->addRole($this->allRoles[$key]);
+        $patternDomain = [$domain];
 
-                    break;
+        if ($this->hasDomainPattern) {
+            foreach ($this->allDomains as $key => $allDomain) {
+                $fu = $this->domainMatchingFunc;
+                if ($fu($domain, (string) $key)) {
+                    $patternDomain = array_merge($patternDomain, [$key]);
+                    $patternDomain[] = $key;
                 }
             }
         }
 
-        if (!isset($this->allRoles[$name])) {
-            $this->allRoles[$name] = new Role($name);
+        $allRoles = new Roles();
+
+        foreach ($patternDomain as $domain) {
+            $values = $this->loadOrStormRoles($domain);
+            foreach ($values->roles as $key => $value) {
+                /** @var Role $role2 */
+                $role2 = $value;
+                $role1 = $allRoles->createRole($role2->name, $this->matchingFunc);
+                foreach ($role2->getRoles() as $v) {
+                    $role3 = $allRoles->createRole($v, $this->matchingFunc);
+                    $role1->addRole($role3);
+                }
+            }
         }
 
-        return $this->allRoles[$name];
+        return $allRoles;
     }
 
     /**
@@ -120,7 +132,8 @@ class RoleManager implements RoleManagerContract
      */
     public function clear(): void
     {
-        $this->allRoles = [];
+        $this->allDomains = [];
+        $this->allDomains[self::DEFAULTDOMAIN] = new Roles();
     }
 
     /**
@@ -131,14 +144,16 @@ class RoleManager implements RoleManagerContract
      * @param string $name1
      * @param string $name2
      * @param string ...$domain
+     *
+     * @throws CasbinException
      */
     public function addLink(string $name1, string $name2, string ...$domain): void
     {
-        $prefix = self::getPrefix(...$domain);
-
-        $this->createRole($prefix.$name1)->addRole(
-            $this->createRole($prefix.$name2)
-        );
+        $domain = $this->checkDomainLength($domain);
+        $allRoles = $this->loadOrStormRoles($domain[0]);
+        $role1 = $this->loadOrStormRole($allRoles, $name1);
+        $role2 = $this->loadOrStormRole($allRoles, $name2);
+        $role1->addRole($role2);
     }
 
     /**
@@ -149,23 +164,21 @@ class RoleManager implements RoleManagerContract
      * @param string $name1
      * @param string $name2
      * @param string ...$domain
+     *
+     * @throws CasbinException
      */
     public function deleteLink(string $name1, string $name2, string ...$domain): void
     {
-        $prefix = self::getPrefix(...$domain);
+        $domain = $this->checkDomainLength($domain);
+        $allRoles = $this->loadOrStormRoles($domain[0]);
 
-        list($name1, $name2) = array_map(function ($name) use ($prefix) {
-            $name = $prefix.$name;
-            if (!$this->hasRole($name)) {
-                throw new CasbinException('error: name1 or name2 does not exist');
-            }
+        if (!isset($allRoles->roles[$name1]) || !isset($allRoles->roles[$name2])) {
+            throw new CasbinException('error: name1 or name2 does not exist');
+        }
 
-            return $name;
-        }, [$name1, $name2]);
-
-        $this->createRole($name1)->deleteRole(
-            $this->createRole($name2)
-        );
+        $role1 = $this->loadOrStormRole($allRoles, $name1);
+        $role2 = $this->loadOrStormRole($allRoles, $name2);
+        $role1->deleteRole($role2);
     }
 
     /**
@@ -177,24 +190,26 @@ class RoleManager implements RoleManagerContract
      * @param string ...$domain
      *
      * @return bool
+     *
+     * @throws CasbinException
      */
     public function hasLink(string $name1, string $name2, string ...$domain): bool
     {
-        $prefix = self::getPrefix(...$domain);
+        $domain = $this->checkDomainLength($domain);
 
         if ($name1 == $name2) {
             return true;
         }
 
-        list($name1, $name2) = array_map(function ($name) use ($prefix) {
-            return $prefix.$name;
-        }, [$name1, $name2]);
+        $allRoles = $this->checkHasDomainPatternOrHasPattern($domain[0]);
 
-        if (!$this->hasRole($name1) || !$this->hasRole($name2)) {
+        if (!$allRoles->hasRole($name1, $this->matchingFunc) || !$allRoles->hasRole($name2, $this->matchingFunc)) {
             return false;
         }
 
-        return $this->createRole($name1)->hasRole($name2, $this->maxHierarchyLevel);
+        $role1 = $allRoles->createRole($name1, $this->matchingFunc);
+
+        return $role1->hasRole($name2, $this->maxHierarchyLevel);
     }
 
     /**
@@ -205,24 +220,18 @@ class RoleManager implements RoleManagerContract
      * @param string ...$domain
      *
      * @return array
+     *
+     * @throws CasbinException
      */
     public function getRoles(string $name, string ...$domain): array
     {
-        $prefix = self::getPrefix(...$domain);
+        $domain = $this->checkDomainLength($domain);
+        $allRoles = $this->checkHasDomainPatternOrHasPattern($domain[0]);
 
-        $name = $prefix.$name;
-
-        if (!$this->hasRole($name)) {
+        if (!$allRoles->hasRole($name, $this->matchingFunc)) {
             return [];
         }
-
-        $roles = $this->createRole($name)->getRoles();
-
-        if ('' != $prefix) {
-            array_walk($roles, function (&$role, $key, $len) {
-                $role = \substr($role, $len);
-            }, \strlen($prefix));
-        }
+        $roles = $allRoles->createRole($name, $this->matchingFunc)->getRoles();
 
         return $roles;
     }
@@ -235,26 +244,26 @@ class RoleManager implements RoleManagerContract
      * @param string ...$domain
      *
      * @return array
+     *
+     * @throws CasbinException
      */
     public function getUsers(string $name, string ...$domain): array
     {
-        $prefix = self::getPrefix(...$domain);
+        $domain = $this->checkDomainLength($domain);
+        $allRoles = $this->checkHasDomainPatternOrHasPattern($domain[0]);
 
-        $name = $prefix.$name;
-
-        if (!$this->hasRole($name)) {
+        if (!$allRoles->hasRole($name, $this->domainMatchingFunc)) {
             // throw new CasbinException('error: name does not exist');
             return [];
         }
 
         $names = [];
-
-        $len = \strlen($prefix);
-        array_map(function ($role) use (&$names, $name, $len) {
-            if ($role->hasDirectRole($name)) {
-                $names[] = $len > 0 ? \substr($role->name, $len) : $role->name;
+        /** @var Role $allRole */
+        foreach ($allRoles->roles as $allRole) {
+            if ($allRole->hasDirectRole($name)) {
+                $names[] = $allRole->name;
             }
-        }, $this->allRoles);
+        }
 
         return $names;
     }
@@ -266,30 +275,77 @@ class RoleManager implements RoleManagerContract
     {
         $line = [];
 
-        array_map(function ($role) use (&$line) {
-            if ($text = $role->toString()) {
-                $line[] = $text;
-            }
-        }, $this->allRoles);
+        array_map(function ($roles) use (&$line) {
+            array_map(function ($role) use (&$line) {
+                if ($text = $role->toString()) {
+                    $line[] = $text;
+                }
+            }, $roles->roles);
+        }, $this->allDomains);
 
         Log::logPrint(implode(', ', $line));
     }
 
     /**
-     * Get the prefix of the roles from domain.
+     * @param array $domain
      *
-     * @param string ...$domain
+     * @return array|string[]
      *
-     * @return string
+     * @throws CasbinException
      */
-    private static function getPrefix(string ...$domain): string
+    protected function checkDomainLength(array $domain): array
     {
-        $size = \count($domain);
-
-        if ($size > 1) {
+        if (0 === count($domain)) {
+            $domain = [self::DEFAULTDOMAIN];
+        } elseif (count($domain) > 1) {
             throw new CasbinException('error: domain should be 1 parameter');
         }
 
-        return 1 == $size ? $domain[0].'::' : '';
+        return $domain;
+    }
+
+    /**
+     * @param string $domain
+     *
+     * @return Roles
+     */
+    protected function loadOrStormRoles(string $domain): Roles
+    {
+        if (!isset($this->allDomains[$domain])) {
+            $this->allDomains[$domain] = new Roles();
+        }
+
+        return $this->allDomains[$domain];
+    }
+
+    /**
+     * @param Roles  $allRoles
+     * @param string $name
+     *
+     * @return Role
+     */
+    protected function loadOrStormRole(Roles $allRoles, string $name): Role
+    {
+        if (!isset($allRoles->roles[$name])) {
+            $allRoles->roles[$name] = new Role($name);
+        }
+
+        return $allRoles->roles[$name];
+    }
+
+    /**
+     * @param $domain
+     *
+     * @return Roles
+     */
+    protected function checkHasDomainPatternOrHasPattern($domain): Roles
+    {
+        if ($this->hasDomainPattern || $this->hasPattern) {
+            $allRoles = $this->generateTempRoles($domain);
+        } else {
+            $allRoles = $this->loadOrStormRoles($domain);
+        }
+
+        return $allRoles;
     }
 }

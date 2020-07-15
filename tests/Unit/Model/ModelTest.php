@@ -79,4 +79,39 @@ EOT;
         $this->assertEquals($e->enforce('bob', '/pen2/1', 'GET'), true);
         $this->assertEquals($e->enforce('bob', '/pen2/2', 'GET'), true);
     }
+
+    public function testDomainMatchModel()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_domain_pattern_model.conf', $this->modelAndPolicyPath.'/rbac_with_domain_pattern_policy.csv');
+        $e->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+            return BuiltinOperations::keyMatch2($key1, $key2);
+        });
+
+        $this->assertEquals($e->enforce('alice', 'domain1', 'data1', 'read'), true);
+        $this->assertEquals($e->enforce('alice', 'domain1', 'data1', 'write'), true);
+        $this->assertEquals($e->enforce('alice', 'domain1', 'data2', 'read'), false);
+        $this->assertEquals($e->enforce('alice', 'domain1', 'data2', 'write'), false);
+        $this->assertEquals($e->enforce('alice', 'domain2', 'data2', 'read'), true);
+        $this->assertEquals($e->enforce('alice', 'domain2', 'data2', 'write'), true);
+        $this->assertEquals($e->enforce('bob', 'domain2', 'data1', 'read'), false);
+        $this->assertEquals($e->enforce('bob', 'domain2', 'data1', 'write'), false);
+        $this->assertEquals($e->enforce('bob', 'domain2', 'data2', 'read'), true);
+        $this->assertEquals($e->enforce('bob', 'domain2', 'data2', 'write'), true);
+    }
+
+    public function testAllMatchModel()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_all_pattern_model.conf', $this->modelAndPolicyPath.'/rbac_with_all_pattern_policy.csv');
+        $e->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+            return BuiltinOperations::keyMatch2($key1, $key2);
+        });
+        $e->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+            return BuiltinOperations::keyMatch2($key1, $key2);
+        });
+
+        $this->assertEquals($e->enforce('alice', 'domain1', '/book/1', 'read'), true);
+        $this->assertEquals($e->enforce('alice', 'domain1', '/book/1', 'write'), false);
+        $this->assertEquals($e->enforce('alice', 'domain2', '/book/1', 'read'), false);
+        $this->assertEquals($e->enforce('alice', 'domain2', '/book/1', 'write'), true);
+    }
 }
