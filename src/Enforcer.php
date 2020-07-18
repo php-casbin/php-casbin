@@ -553,7 +553,13 @@ class Enforcer
         }
 
         $expressionLanguage = $this->getExpressionLanguage($functions);
-        $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
+        $expression = new ExpressionLanguage();
+        $hasEval = Util::hasEval($expString);
+
+        if (!$hasEval) {
+            $expressionLanguage = $this->getExpressionLanguage($functions);
+            $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
+        }
 
         $policyEffects = [];
         $matcherResults = [];
@@ -565,6 +571,23 @@ class Enforcer
                 $parameters = array_combine($pTokens, $pvals);
                 if (false === $parameters) {
                     throw new CasbinException('invalid policy size');
+                }
+
+                if ($hasEval) {
+                    $ruleNames = Util::getEvalValue($expString);
+                    $expWithRule = $expString;
+                    $pTokens_flipped = array_flip($pTokens);
+                    foreach ($ruleNames as $ruleName) {
+                        if (isset($pTokens_flipped[$ruleName])) {
+                            $rule = Util::escapeAssertion($pvals[$pTokens_flipped[$ruleName]]);
+                            $expWithRule = Util::replaceEval($expWithRule, $rule);
+                        } else {
+                            throw new CasbinException('please make sure rule exists in policy when using eval() in matcher');
+                        }
+
+                        $expressionLanguage = $this->getExpressionLanguage($functions);
+                        $expression = $expressionLanguage->parse($expWithRule, array_merge($rTokens, $pTokens));
+                    }
                 }
 
                 $parameters = array_merge($rParameters, $parameters);

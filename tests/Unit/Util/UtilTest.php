@@ -36,4 +36,28 @@ class UtilTest extends TestCase
         Util::arrayRemoveDuplicates($a);
         $this->assertEquals($a, ['green', 'red', 'blue']);
     }
+
+    public function testContainEval()
+    {
+        $this->assertEquals(Util::hasEval('eval() && a && b &&c'), true);
+        $this->assertEquals(Util::hasEval('eval) && a && b &&c'), false);
+        $this->assertEquals(Util::hasEval('eval)( && a && b &&c'), false);
+        $this->assertEquals(Util::hasEval('eval() && a && b &&c'), true);
+        $this->assertEquals(Util::hasEval('eval(c * (a + b)) && a && b &&c'), true);
+        $this->assertEquals(Util::hasEval('xeval() && a && b &&c'), false);
+    }
+
+    public function testReplaceEval()
+    {
+        $this->assertEquals(Util::replaceEval('eval() && a && b && c', 'a'), '(a) && a && b && c');
+        $this->assertEquals(Util::replaceEval('eval() && a && b && c', '(a)'), '((a)) && a && b && c');
+    }
+
+    public function testGetEvalValue()
+    {
+        $this->assertEquals(Util::getEvalValue('eval(a) && a && b && c'), ['a']);
+        $this->assertEquals(Util::getEvalValue('a && eval(a) && b && c'), ['a']);
+        $this->assertEquals(Util::getEvalValue('eval(a) && eval(b) && a && b && c'), ['a', 'b']);
+        $this->assertEquals(Util::getEvalValue('a && eval(a) && eval(b) && b && c'), ['a', 'b']);
+    }
 }
