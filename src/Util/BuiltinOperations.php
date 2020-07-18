@@ -61,6 +61,9 @@ class BuiltinOperations
      */
     public static function keyMatch2(string $key1, string $key2): bool
     {
+        if ('*' === $key2) {
+            $key2 = '.*';
+        }
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/:[^\/]+/';
@@ -73,7 +76,7 @@ class BuiltinOperations
             $key2
         );
 
-        return self::regexMatch($key1, '^' . $key2 . '$');
+        return self::regexMatch($key1, '^'.$key2.'$');
     }
 
     /**
@@ -113,7 +116,7 @@ class BuiltinOperations
             $key2
         );
 
-        return self::regexMatch($key1, '^' . $key2 . '$');
+        return self::regexMatch($key1, '^'.$key2.'$');
     }
 
     /**
@@ -153,12 +156,13 @@ class BuiltinOperations
             $pattern,
             function ($m) use (&$tokens) {
                 $tokens[] = $m[1];
+
                 return '([^\/]+)';
             },
             $key2
         );
 
-        $matched = preg_match_all('~^' . $key2 . '$~', $key1, $matches);
+        $matched = preg_match_all('~^'.$key2.'$~', $key1, $matches);
         if (!$matched) {
             return false;
         }
@@ -201,7 +205,7 @@ class BuiltinOperations
      */
     public static function regexMatch(string $key1, string $key2): bool
     {
-        return (bool) preg_match('~' . $key2 . '~', $key1);
+        return (bool) preg_match('~'.$key2.'~', $key1);
     }
 
     /**
@@ -220,7 +224,8 @@ class BuiltinOperations
     }
 
     /**
-     * determines whether IP address ip1 matches the pattern of IP address ip2, ip2 can be an IP address or a CIDR pattern.
+     * determines whether IP address ip1 matches the pattern of IP address ip2, ip2 can be an IP address or a CIDR
+     * pattern.
      *
      * @param string $ip1
      * @param string $ip2

@@ -2,6 +2,8 @@
 
 namespace Casbin\Tests\Unit;
 
+use Casbin\Rbac\DefaultRoleManager\RoleManager;
+use Casbin\Util\BuiltinOperations;
 use PHPUnit\Framework\TestCase;
 use Casbin\Enforcer;
 
@@ -138,11 +140,27 @@ class RbacApiTest extends TestCase
     public function testGetImplicitRolesForUser()
     {
         $e = new Enforcer($this->modelAndPolicyPath.'/rbac_model.conf', $this->modelAndPolicyPath.'/rbac_with_hierarchy_policy.csv');
+
+        $this->assertEquals($e->getPermissionsForUser('alice'), [['alice', 'data1', 'read']]);
+        $this->assertEquals($e->getPermissionsForUser('bob'), [['bob', 'data2', 'write']]);
+
         $this->assertEquals($e->getImplicitRolesForUser('alice'), ['admin', 'data1_admin', 'data2_admin']);
         $this->assertEquals($e->getImplicitRolesForUser('bob'), []);
 
         $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_domains_model.conf', $this->modelAndPolicyPath.'/rbac_with_hierarchy_with_domains_policy.csv');
         $this->assertEquals($e->getImplicitRolesForUser('alice', 'domain1'), ['role:global_admin', 'role:reader', 'role:writer']);
+
+        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_pattern_model.conf', $this->modelAndPolicyPath.'/rbac_with_pattern_policy.csv');
+
+        $roleManager = $e->getRoleManager();
+        if ($roleManager instanceof RoleManager) {
+            $roleManager->addMatchingFunc('matcher', function (string $key1, string $key2) {
+                return BuiltinOperations::keyMatch($key1, $key2);
+            });
+        }
+
+        $this->assertEquals($e->getImplicitRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin', '/book/*', 'book_group']);
+        $this->assertEquals($e->getRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
     }
 
     public function testGetImplicitPermissionsForUser()
