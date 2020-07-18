@@ -13,6 +13,12 @@ namespace Casbin\Rbac;
 interface RoleManager
 {
     /**
+     * @param string   $name
+     * @param \Closure $fn
+     */
+    public function addMatchingFunc(string $name, \Closure $fn): void;
+
+    /**
      * clears all stored data and resets the role manager to the initial state.
      */
     public function clear(): void;

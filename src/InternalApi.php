@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Casbin;
 
 use Casbin\Exceptions\NotImplementedException;
+use Casbin\Persist\BatchAdapter;
 
 /**
  * Trait InternalApi.
@@ -24,24 +25,49 @@ trait InternalApi
      */
     protected function addPolicyInternal(string $sec, string $ptype, array $rule): bool
     {
-        $ruleAdded = $this->model->addPolicy($sec, $ptype, $rule);
-        if (!$ruleAdded) {
-            return $ruleAdded;
+        if ($this->model->hasPolicy($sec, $ptype, $rule)) {
+            return false;
         }
 
-        if (!is_null($this->adapter) && $this->autoSave) {
+        $this->model->addPolicy($sec, $ptype, $rule);
+
+        if ($this->ShouldPersist()) {
             try {
                 $this->adapter->addPolicy($sec, $ptype, $rule);
             } catch (NotImplementedException $e) {
             }
+        }
+        $this->checkWatcher();
 
-            if (!is_null($this->watcher)) {
-                // error intentionally ignored
-                $this->watcher->update();
-            }
+        return true;
+    }
+
+    /**
+     * adds a rules to the current policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    protected function addPoliciesInternal(string $sec, string $ptype, array $rules): bool
+    {
+        if ($this->model->hasPolicies($sec, $ptype, $rules)) {
+            return false;
         }
 
-        return $ruleAdded;
+        $this->model->addPolicies($sec, $ptype, $rules);
+
+        if ($this->ShouldPersist() && $this->adapter instanceof BatchAdapter) {
+            try {
+                $this->adapter->addPolicies($sec, $ptype, $rules);
+            } catch (NotImplementedException $e) {
+            }
+        }
+        $this->checkWatcher();
+
+        return true;
     }
 
     /**
@@ -60,17 +86,40 @@ trait InternalApi
             return $ruleRemoved;
         }
 
-        if (!is_null($this->adapter) && $this->autoSave) {
+        if ($this->ShouldPersist()) {
             try {
                 $this->adapter->removePolicy($sec, $ptype, $rule);
             } catch (NotImplementedException $e) {
             }
+        }
+        $this->checkWatcher();
 
-            if (!is_null($this->watcher)) {
-                // error intentionally ignored
-                $this->watcher->update();
+        return $ruleRemoved;
+    }
+
+    /**
+     * removes a rules from the current policy.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    protected function removePoliciesInternal(string $sec, string $ptype, array $rules): bool
+    {
+        $ruleRemoved = $this->model->removePolicies($sec, $ptype, $rules);
+        if (!$ruleRemoved) {
+            return $ruleRemoved;
+        }
+
+        if ($this->ShouldPersist() && $this->adapter instanceof BatchAdapter) {
+            try {
+                $this->adapter->removePolicies($sec, $ptype, $rules);
+            } catch (NotImplementedException $e) {
             }
         }
+        $this->checkWatcher();
 
         return $ruleRemoved;
     }
@@ -92,18 +141,30 @@ trait InternalApi
             return $ruleRemoved;
         }
 
-        if (!is_null($this->adapter) && $this->autoSave) {
+        if ($this->ShouldPersist()) {
             try {
                 $this->adapter->removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
             } catch (NotImplementedException $e) {
             }
-
-            if (!is_null($this->watcher)) {
-                // error intentionally ignored
-                $this->watcher->update();
-            }
         }
+        $this->checkWatcher();
 
         return $ruleRemoved;
+    }
+
+    /**
+     * check $this->watcher ans $this->autoNotifyWatcher.
+     */
+    private function checkWatcher(): void
+    {
+        if (!is_null($this->watcher) && $this->autoNotifyWatcher) {
+            // error intentionally ignored
+            $this->watcher->update();
+        }
+    }
+
+    private function ShouldPersist(): bool
+    {
+        return !is_null($this->adapter) && $this->autoNotifyWatcher;
     }
 }

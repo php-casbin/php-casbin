@@ -10,6 +10,7 @@ use Casbin\Exceptions\NotImplementedException;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\AdapterHelper;
+use Casbin\Persist\BatchAdapter;
 use Casbin\Util\Util;
 
 /**
@@ -19,7 +20,7 @@ use Casbin\Util\Util;
  *
  * @author techlee@qq.com
  */
-class FileAdapter implements Adapter
+class FileAdapter implements Adapter, BatchAdapter
 {
     use AdapterHelper;
 
@@ -132,6 +133,20 @@ class FileAdapter implements Adapter
     }
 
     /**
+     * adds a policy rule to the storage.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @throws NotImplementedException
+     */
+    public function addPolicies(string $sec, string $ptype, array $rules): void
+    {
+        throw new NotImplementedException('not implemented');
+    }
+
+    /**
      * removes a policy rule from the storage.
      *
      * @param string $sec
@@ -141,6 +156,20 @@ class FileAdapter implements Adapter
      * @throws NotImplementedException
      */
     public function removePolicy(string $sec, string $ptype, array $rule): void
+    {
+        throw new NotImplementedException('not implemented');
+    }
+
+    /**
+     * removes a policy rules from the storage.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @throws NotImplementedException
+     */
+    public function removePolicies(string $sec, string $ptype, array $rules): void
     {
         throw new NotImplementedException('not implemented');
     }

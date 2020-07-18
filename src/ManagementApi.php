@@ -241,6 +241,20 @@ trait ManagementApi
     }
 
     /**
+     * AddPolicies adds authorization rules to the current policy.
+     * If the rule already exists, the function returns false for the corresponding rule and the rule will not be added.
+     * Otherwise the function returns true for the corresponding rule by adding the new rule.
+     *
+     * @param array $rules
+     *
+     * @return bool
+     */
+    public function addPolicies(array $rules): bool
+    {
+        return $this->addNamedPolicies('p', $rules);
+    }
+
+    /**
      * AddNamedPolicy adds an authorization rule to the current named policy.
      * If the rule already exists, the function returns false and the rule will not be added.
      * Otherwise the function returns true by adding the new rule.
@@ -260,6 +274,21 @@ trait ManagementApi
     }
 
     /**
+     * AddNamedPolicies adds authorization rules to the current named policy.
+     * If the rule already exists, the function returns false for the corresponding rule and the rule will not be added.
+     * Otherwise the function returns true for the corresponding by adding the new rule.
+     *
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    public function addNamedPolicies(string $ptype, array $rules): bool
+    {
+        return $this->addPoliciesInternal('p', $ptype, $rules);
+    }
+
+    /**
      * removes an authorization rule from the current policy.
      *
      * @param mixed ...$params
@@ -269,6 +298,18 @@ trait ManagementApi
     public function removePolicy(...$params): bool
     {
         return $this->removeNamedPolicy('p', ...$params);
+    }
+
+    /**
+     * removes an authorization rules from the current policy.
+     *
+     * @param array $rules
+     *
+     * @return bool
+     */
+    public function removePolicies(array $rules): bool
+    {
+        return $this->removeNamedPolicies('p', $rules);
     }
 
     /**
@@ -299,6 +340,19 @@ trait ManagementApi
         }
 
         return $this->removePolicyInternal('p', $ptype, $params);
+    }
+
+    /**
+     * removes an authorization rules from the current named policy.
+     *
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    public function removeNamedPolicies(string $ptype, array $rules): bool
+    {
+        return $this->removePoliciesInternal('p', $ptype, $rules);
     }
 
     /**
@@ -359,6 +413,20 @@ trait ManagementApi
     }
 
     /**
+     * AddGroupingPolicy adds a role inheritance rules to the current policy.
+     * If the rule already exists, the function returns false and the rule will not be added.
+     * Otherwise the function returns true by adding the new rule.
+     *
+     * @param array $rules
+     *
+     * @return bool
+     */
+    public function addGroupingPolicies(array $rules): bool
+    {
+        return $this->addNamedGroupingPolicies('g', $rules);
+    }
+
+    /**
      * AddNamedGroupingPolicy adds a named role inheritance rule to the current policy.
      * If the rule already exists, the function returns false and the rule will not be added.
      * Otherwise the function returns true by adding the new rule.
@@ -384,6 +452,27 @@ trait ManagementApi
     }
 
     /**
+     * AddNamedGroupingPolicy adds a named role inheritance rules to the current policy.
+     * If the rule already exists, the function returns false and the rule will not be added.
+     * Otherwise the function returns true by adding the new rule.
+     *
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    public function addNamedGroupingPolicies(string $ptype, array $rules): bool
+    {
+        $ruleAdded = $this->addPoliciesInternal('g', $ptype, $rules);
+
+        if ($this->autoBuildRoleLinks) {
+            $this->buildRoleLinks();
+        }
+
+        return $ruleAdded;
+    }
+
+    /**
      * removes a role inheritance rule from the current policy.
      *
      * @param mixed ...$params
@@ -393,6 +482,18 @@ trait ManagementApi
     public function removeGroupingPolicy(...$params): bool
     {
         return $this->removeNamedGroupingPolicy('g', ...$params);
+    }
+
+    /**
+     * removes a role inheritance rules from the current policy.
+     *
+     * @param array $rules
+     *
+     * @return bool
+     */
+    public function removeGroupingPolicies(array $rules): bool
+    {
+        return $this->removeNamedGroupingPolicies('g', $rules);
     }
 
     /**
@@ -423,6 +524,25 @@ trait ManagementApi
         }
 
         $ruleRemoved = $this->removePolicyInternal('g', $ptype, $params);
+
+        if ($this->autoBuildRoleLinks) {
+            $this->buildRoleLinks();
+        }
+
+        return $ruleRemoved;
+    }
+
+    /**
+     * removes a role inheritance rules from the current named policy.
+     *
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    public function removeNamedGroupingPolicies(string $ptype, array $rules): bool
+    {
+        $ruleRemoved = $this->removePoliciesInternal('g', $ptype, $rules);
 
         if ($this->autoBuildRoleLinks) {
             $this->buildRoleLinks();

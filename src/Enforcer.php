@@ -104,6 +104,13 @@ class Enforcer
     protected $autoBuildRoleLinks;
 
     /**
+     * $autoNotifyWatcher.
+     *
+     * @var bool
+     */
+    protected $autoNotifyWatcher;
+
+    /**
      * Enforcer constructor.
      * Creates an enforcer via file or DB.
      * File:
@@ -231,6 +238,7 @@ class Enforcer
         $this->enabled = true;
         $this->autoSave = true;
         $this->autoBuildRoleLinks = true;
+        $this->autoNotifyWatcher = true;
     }
 
     /**
@@ -322,6 +330,24 @@ class Enforcer
     public function setRoleManager(RoleManager $rm): void
     {
         $this->rm = $rm;
+    }
+
+    /**
+     * @param string   $name
+     * @param \Closure $fn
+     */
+    public function addMatchingFunc(string $name, \Closure $fn): void
+    {
+        $this->rm->addMatchingFunc($name, $fn);
+    }
+
+    /**
+     * @param string   $name
+     * @param \Closure $fn
+     */
+    public function addDomainMatchingFunc(string $name, \Closure $fn): void
+    {
+        $this->rm->addDomainMatchingFunc($name, $fn);
     }
 
     /**
@@ -439,6 +465,16 @@ class Enforcer
     public function enableLog(bool $enabled = true): void
     {
         Log::getLogger()->enableLog($enabled);
+    }
+
+    /**
+     * controls whether to save a policy rule automatically notify the Watcher when it is added or removed.
+     *
+     * @param bool $enabled
+     */
+    public function EnableAutoNotifyWatcher(bool $enabled = true): void
+    {
+        $this->autoNotifyWatcher = $enabled;
     }
 
     /**
