@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Casbin\Model;
 
+use Casbin\Exceptions\BatchOperationException;
+use Casbin\Exceptions\CasbinException;
 use Casbin\Log\Log;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\Util;
@@ -125,23 +127,57 @@ trait Policy
     }
 
     /**
+     * determines whether a model has any of the specified policies. If one is found we return false.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    public function hasPolicies(string $sec, string $ptype, array $rules): bool
+    {
+        if (!isset($this->items[$sec][$ptype])) {
+            return false;
+        }
+
+        foreach ($rules as $rule) {
+            if (!in_array($rule, $this->items[$sec][$ptype]->policy, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * adds a policy rule to the model.
      *
      * @param string $sec
      * @param string $ptype
      * @param array  $rule
-     *
-     * @return bool
      */
-    public function addPolicy(string $sec, string $ptype, array $rule): bool
+    public function addPolicy(string $sec, string $ptype, array $rule): void
     {
-        if (!$this->hasPolicy($sec, $ptype, $rule)) {
-            $this->items[$sec][$ptype]->policy[] = $rule;
+        $this->items[$sec][$ptype]->policy[] = $rule;
+    }
 
-            return true;
+    /**
+     * adds a policy rules to the model.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @throws CasbinException
+     */
+    public function addPolicies(string $sec, string $ptype, array $rules): void
+    {
+        if (count(array_unique($rules, SORT_REGULAR), COUNT_RECURSIVE) !== count($rules, COUNT_RECURSIVE)) {
+            throw new BatchOperationException('addPolicies error: $rules elements can not be duplicated.');
         }
 
-        return false;
+        $this->items[$sec][$ptype]->policy = array_merge($this->items[$sec][$ptype]->policy, $rules);
     }
 
     /**
@@ -166,6 +202,38 @@ trait Policy
         }
 
         array_splice($this->items[$sec][$ptype]->policy, $offset, 1);
+
+        return true;
+    }
+
+    /**
+     * removes a policy rules from the model.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     *
+     * @return bool
+     */
+    public function removePolicies(string $sec, string $ptype, array $rules): bool
+    {
+        if (!isset($this->items[$sec][$ptype])) {
+            return false;
+        }
+
+        $policy = $this->items[$sec][$ptype]->policy;
+
+        foreach ($rules as $rule) {
+            $offset = array_search($rule, $policy, true);
+
+            if (false === $offset) {
+                return false;
+            }
+
+            array_splice($policy, $offset, 1);
+        }
+
+        $this->items[$sec][$ptype]->policy = $policy;
 
         return true;
     }
