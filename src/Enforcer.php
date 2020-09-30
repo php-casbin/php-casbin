@@ -7,6 +7,7 @@ namespace Casbin;
 use Casbin\Effect\DefaultEffector;
 use Casbin\Effect\Effector;
 use Casbin\Exceptions\CasbinException;
+use Casbin\Exceptions\EvalFunctionException;
 use Casbin\Exceptions\InvalidFilePathException;
 use Casbin\Model\FunctionMap;
 use Casbin\Model\Model;
@@ -557,7 +558,6 @@ class Enforcer
         $hasEval = Util::hasEval($expString);
 
         if (!$hasEval) {
-            $expressionLanguage = $this->getExpressionLanguage($functions);
             $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
         }
 
@@ -628,6 +628,10 @@ class Enforcer
                 }
             }
         } else {
+            if ($hasEval) {
+                throw new EvalFunctionException("please make sure rule exists in policy when using eval() in matcher");
+            }
+
             $parameters = $rParameters;
             foreach ($this->model['p']['p']->tokens as $token) {
                 $parameters[$token] = '';
