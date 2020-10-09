@@ -554,7 +554,6 @@ class Enforcer
         }
 
         $expressionLanguage = $this->getExpressionLanguage($functions);
-        $expression = new ExpressionLanguage();
         $hasEval = Util::hasEval($expString);
 
         if (!$hasEval) {
