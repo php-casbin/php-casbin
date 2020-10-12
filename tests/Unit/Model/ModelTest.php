@@ -3,6 +3,7 @@
 namespace Casbin\Tests\Unit\Model;
 
 use Casbin\Enforcer;
+use Casbin\Exceptions\EvalFunctionException;
 use Casbin\Model\Model;
 use Casbin\Util\BuiltinOperations;
 use PHPUnit\Framework\TestCase;
@@ -71,6 +72,18 @@ EOT;
         $this->assertEquals($e->enforce($sub3, '/data2', 'read'), false);
         $this->assertEquals($e->enforce($sub3, '/data1', 'write'), false);
         $this->assertEquals($e->enforce($sub3, '/data2', 'write'), false);
+    }
+
+    public function testEvalFunctionException()
+    {
+        $this->expectException(EvalFunctionException::class);
+        $this->expectExceptionMessage("please make sure rule exists in policy when using eval() in matcher");
+
+        $e = new Enforcer($this->modelAndPolicyPath.'/abac_rule_model.conf', "");
+
+        $sub1 = new User('alice', 18);
+
+        $e->enforce($sub1, '/data1', 'read');
     }
   
     public function testRBACModelWithPattern()
