@@ -1,4 +1,4 @@
-name: Default
+name: build
 
 on:
   push:
@@ -31,15 +31,6 @@ jobs:
       - name: Validate composer.json and composer.lock
         run: composer validate
 
-      - name: Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v2
-        with:
-          path: vendor
-          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.php }}-
-
       - name: Install dependencies
         if: steps.composer-cache.outputs.cache-hit != 'true'
         run: composer install --prefer-dist --no-progress --no-suggest
@@ -48,11 +39,28 @@ jobs:
         run: ./vendor/bin/phpstan analyse
 
       - name: Run test suite
-        run: ./vendor/bin/phpunit
+        run: ./vendor/bin/phpunit -v
+
+      - name: Run Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+          COVERALLS_FLAG_NAME: ${{ runner.os }} - ${{ matrix.php }} - ${{ matrix.stability }}
+        run: ./vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+
+  upload-coverage:
+    runs-on: ubuntu-latest
+    needs: [ test ]
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
 
   semantic-release:
     runs-on: ubuntu-latest
-    needs: [ test ]
+    needs: [ test, upload-coverage ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
