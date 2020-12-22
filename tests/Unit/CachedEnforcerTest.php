@@ -12,11 +12,11 @@ use Casbin\CachedEnforcer;
  */
 class CachedEnforcerTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../examples';
+    private $modelAndPolicyPath = __DIR__ . '/../../examples';
 
     public function testEnforce()
     {
-        $e = new CachedEnforcer($this->modelAndPolicyPath.'/basic_model.conf', $this->modelAndPolicyPath.'/basic_policy.csv');
+        $e = new CachedEnforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv');
 
         $this->assertTrue($e->enforce('alice', 'data1', 'read'));
         $this->assertFalse($e->enforce('alice', 'data1', 'write'));
@@ -40,7 +40,7 @@ class CachedEnforcerTest extends TestCase
 
     public function testEnableCache()
     {
-        $e = new CachedEnforcer($this->modelAndPolicyPath.'/basic_model.conf', $this->modelAndPolicyPath.'/basic_policy.csv');
+        $e = new CachedEnforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv');
 
         $e->enableCache(false);
 

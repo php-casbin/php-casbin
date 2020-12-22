@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Casbin\Persist;
 
+use Casbin\Model\Assertion;
 use Casbin\Model\Model;
+use Casbin\Model\Policy;
 
 /**
  * Trait AdapterHelper.
@@ -14,8 +16,10 @@ use Casbin\Model\Model;
 trait AdapterHelper
 {
     /**
-     * @param string              $line
-     * @param \Casbin\Model\Model $model
+     * Loads a text line as a policy rule to model.
+     *
+     * @param string $line
+     * @param Model $model
      */
     public function loadPolicyLine(string $line, Model $model): void
     {
@@ -36,7 +40,15 @@ trait AdapterHelper
         }
 
         $assertions = $model[$sec];
-        $assertions[$key]->policy[] = \array_slice($tokens, 1);
+        $assertion = $assertions[$key];
+        if (!($assertion instanceof Assertion)) {
+            return;
+        }
+        $rule = \array_slice($tokens, 1);
+        $assertion->policy[] = $rule;
+        $assertion->policyMap[implode(Policy::DEFAULT_SEP, $rule)] = count($assertion->policy) - 1;
+
+        $assertions[$key] = $assertion;
         $model[$sec] = $assertions;
     }
 }

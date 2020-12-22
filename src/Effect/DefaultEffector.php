@@ -14,11 +14,11 @@ use Casbin\Exceptions\CasbinException;
 class DefaultEffector extends Effector
 {
     /**
-     * merges all matching results collected by the enforcer into a single decision.
+     * Merges all matching results collected by the enforcer into a single decision.
      *
      * @param string $expr
-     * @param array  $effects
-     * @param array  $results
+     * @param array $effects
+     * @param array $results
      *
      * @return bool
      *

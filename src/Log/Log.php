@@ -21,7 +21,7 @@ class Log
     public static $logger;
 
     /**
-     * sets the current logger.
+     * Sets the current logger.
      *
      * @param Logger $l
      */
@@ -31,7 +31,7 @@ class Log
     }
 
     /**
-     * returns the current logger.
+     * Returns the current logger.
      *
      * @return Logger
      */
@@ -41,7 +41,7 @@ class Log
     }
 
     /**
-     * prints the log.
+     * Prints the log.
      *
      * @param mixed ...$v
      */
@@ -51,7 +51,7 @@ class Log
     }
 
     /**
-     * prints the log with the format.
+     * Prints the log with the format.
      *
      * @param string $format
      * @param mixed  ...$v

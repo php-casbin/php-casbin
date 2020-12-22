@@ -15,13 +15,13 @@ class ConfigTest extends TestCase
 {
     public function testNewConfig()
     {
-        $cfg = Config::newConfig(__DIR__.'/test.ini');
+        $cfg = Config::newConfig(__DIR__ . '/test.ini');
         $this->getAndSetConfig($cfg);
     }
 
     public function testNewConfigFromText()
     {
-        $cfg = Config::newConfigFromText(file_get_contents(__DIR__.'/test.ini'));
+        $cfg = Config::newConfigFromText(file_get_contents(__DIR__ . '/test.ini'));
         $this->getAndSetConfig($cfg);
 
         try {

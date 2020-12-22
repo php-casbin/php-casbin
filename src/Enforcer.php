@@ -4,722 +4,417 @@ declare(strict_types=1);
 
 namespace Casbin;
 
-use Casbin\Effect\DefaultEffector;
-use Casbin\Effect\Effector;
 use Casbin\Exceptions\CasbinException;
-use Casbin\Exceptions\EvalFunctionException;
-use Casbin\Exceptions\InvalidFilePathException;
-use Casbin\Model\FunctionMap;
-use Casbin\Model\Model;
-use Casbin\Persist\Adapter;
-use Casbin\Persist\Adapters\FileAdapter;
-use Casbin\Persist\FilteredAdapter;
-use Casbin\Persist\Watcher;
-use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
-use Casbin\Rbac\RoleManager;
-use Casbin\Util\BuiltinOperations;
-use Casbin\Log\Log;
-use Casbin\Util\Util;
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
- * Class Enforcer
- * the main interface for authorization enforcement and policy management.
+ * Enforcer = ManagementEnforcer + RBAC API.
  *
  * @author techlee@qq.com
  */
-class Enforcer
+class Enforcer extends ManagementEnforcer
 {
-    use InternalApi;
-    use ManagementApi;
-    use RbacApi;
-
     /**
-     * model path.
+     * Gets the roles that a user has.
      *
-     * @var string
+     * @param string $name
+     * @param string ...$domain
+     * @return string[]
      */
-    protected $modelPath;
-
-    /**
-     * Model.
-     *
-     * @var Model
-     */
-    protected $model;
-
-    /**
-     * FunctionMap.
-     *
-     * @var FunctionMap
-     */
-    protected $fm;
-
-    /**
-     * Effector.
-     *
-     * @var Effector
-     */
-    protected $eft;
-
-    /**
-     * Adapter.
-     *
-     * @var Adapter|null
-     */
-    protected $adapter;
-
-    /**
-     * Watcher.
-     *
-     * @var Watcher|null
-     */
-    protected $watcher;
-
-    /**
-     * RoleManager.
-     *
-     * @var RoleManager
-     */
-    protected $rm;
-
-    /**
-     * $enabled.
-     *
-     * @var bool
-     */
-    protected $enabled;
-
-    /**
-     * $autoSave.
-     *
-     * @var bool
-     */
-    protected $autoSave;
-
-    /**
-     * $autoBuildRoleLinks.
-     *
-     * @var bool
-     */
-    protected $autoBuildRoleLinks;
-
-    /**
-     * $autoNotifyWatcher.
-     *
-     * @var bool
-     */
-    protected $autoNotifyWatcher;
-
-    /**
-     * Enforcer constructor.
-     * Creates an enforcer via file or DB.
-     * File:
-     * $e = new Enforcer("path/to/basic_model.conf", "path/to/basic_policy.csv")
-     * MySQL DB:
-     * $a = DatabaseAdapter::newAdapter([
-     *      'type'     => 'mysql', // mysql,pgsql,sqlite,sqlsrv
-     *      'hostname' => '127.0.0.1',
-     *      'database' => 'test',
-     *      'username' => 'root',
-     *      'password' => '123456',
-     *      'hostport' => '3306',
-     *  ]);
-     * $e = new Enforcer("path/to/basic_model.conf", $a).
-     *
-     * @param mixed ...$params
-     *
-     * @throws CasbinException
-     */
-    public function __construct(...$params)
+    public function getRolesForUser(string $name, string ...$domain): array
     {
-        $parsedParamLen = 0;
-        $paramLen = \count($params);
-        if ($paramLen >= 1) {
-            if (\is_bool($enableLog = $params[$paramLen - 1])) {
-                $this->enableLog($enableLog);
-                ++$parsedParamLen;
-            }
-        }
-
-        if (2 == $paramLen - $parsedParamLen) {
-            $p0 = $params[0];
-            if (\is_string($p0)) {
-                $p1 = $params[1];
-                if (\is_string($p1)) {
-                    $this->initWithFile($p0, $p1);
-                } else {
-                    $this->initWithAdapter($p0, $p1);
-                }
-            } else {
-                if (\is_string($params[1])) {
-                    throw new CasbinException('Invalid parameters for enforcer.');
-                } else {
-                    $this->initWithModelAndAdapter($p0, $params[1]);
-                }
-            }
-        } elseif (1 == $paramLen - $parsedParamLen) {
-            $p0 = $params[0];
-            if (\is_string($p0)) {
-                $this->initWithFile($p0, '');
-            } else {
-                $this->initWithModelAndAdapter($p0, null);
-            }
-        } elseif (0 == $paramLen - $parsedParamLen) {
-            // pass
-        } else {
-            throw new CasbinException('Invalid parameters for enforcer.');
-        }
+        return $this->model['g']['g']->rm->getRoles($name, ...$domain);
     }
 
     /**
-     * initializes an enforcer with a model file and a policy file.
+     * Gets the users that has a role.
      *
-     * @param string $modelPath
-     * @param string $policyPath
+     * @param string $name
+     * @param string ...$domain
      *
-     * @throws CasbinException
+     * @return string[]
      */
-    public function initWithFile(string $modelPath, string $policyPath): void
+    public function getUsersForRole(string $name, string ...$domain): array
     {
-        $adapter = new FileAdapter($policyPath);
-        $this->initWithAdapter($modelPath, $adapter);
+        return $this->model['g']['g']->rm->getUsers($name, ...$domain);
     }
 
     /**
-     * initializes an enforcer with a database adapter.
+     * Determines whether a user has a role.
      *
-     * @param string  $modelPath
-     * @param Adapter $adapter
-     *
-     * @throws CasbinException
-     */
-    public function initWithAdapter(string $modelPath, Adapter $adapter): void
-    {
-        $m = Model::newModelFromFile($modelPath);
-        $this->initWithModelAndAdapter($m, $adapter);
-
-        $this->modelPath = $modelPath;
-    }
-
-    /**
-     * initWithModelAndAdapter initializes an enforcer with a model and a database adapter.
-     *
-     * @param Model        $m
-     * @param Adapter|null $adapter
-     */
-    public function initWithModelAndAdapter(Model $m, Adapter $adapter = null): void
-    {
-        $this->adapter = $adapter;
-
-        $this->model = $m;
-        $this->model->printModel();
-
-        $this->fm = Model::loadFunctionMap();
-
-        $this->initialize();
-
-        // Do not initialize the full policy when using a filtered adapter
-        $ok = $this->adapter instanceof FilteredAdapter ? $this->adapter->isFiltered() : false;
-
-        if (!\is_null($this->adapter) && !$ok) {
-            $this->loadPolicy();
-        }
-    }
-
-    /**
-     * initializes an enforcer with a database adapter.
-     */
-    protected function initialize(): void
-    {
-        $this->rm = new DefaultRoleManager(10);
-        $this->eft = new DefaultEffector();
-        $this->watcher = null;
-
-        $this->enabled = true;
-        $this->autoSave = true;
-        $this->autoBuildRoleLinks = true;
-        $this->autoNotifyWatcher = true;
-    }
-
-    /**
-     * reloads the model from the model CONF file.
-     * Because the policy is attached to a model, so the policy is invalidated and needs to be reloaded by calling LoadPolicy().
-     *
-     * @throws CasbinException
-     */
-    public function loadModel(): void
-    {
-        $this->model = Model::newModelFromFile($this->modelPath);
-        $this->model->printModel();
-        $this->fm = Model::loadFunctionMap();
-
-        $this->initialize();
-    }
-
-    /**
-     * gets the current model.
-     *
-     * @return Model
-     */
-    public function getModel(): Model
-    {
-        return $this->model;
-    }
-
-    /**
-     * sets the current model.
-     *
-     * @param Model $model
-     */
-    public function setModel(Model $model): void
-    {
-        $this->model = $model;
-        $this->fm = $this->model->loadFunctionMap();
-
-        $this->initialize();
-    }
-
-    /**
-     * gets the current adapter.
-     *
-     * @return Adapter
-     */
-    public function getAdapter(): Adapter
-    {
-        return $this->adapter;
-    }
-
-    /**
-     * sets the current adapter.
-     *
-     * @param Adapter $adapter
-     */
-    public function setAdapter(Adapter $adapter): void
-    {
-        $this->adapter = $adapter;
-    }
-
-    /**
-     * sets the current watcher.
-     *
-     * @param Watcher $watcher
-     */
-    public function setWatcher(Watcher $watcher): void
-    {
-        $this->watcher = $watcher;
-        $this->watcher->setUpdateCallback(function () {
-            $this->loadPolicy();
-        });
-    }
-
-    /**
-     * gets the current role manager.
-     *
-     * @return RoleManager
-     */
-    public function getRoleManager(): RoleManager
-    {
-        return $this->rm;
-    }
-
-    /**
-     * sets the current role manager.
-     *
-     * @param RoleManager $rm
-     */
-    public function setRoleManager(RoleManager $rm): void
-    {
-        $this->rm = $rm;
-    }
-
-    /**
-     * @param string   $name
-     * @param \Closure $fn
-     */
-    public function addMatchingFunc(string $name, \Closure $fn): void
-    {
-        $this->rm->addMatchingFunc($name, $fn);
-    }
-
-    /**
-     * @param string   $name
-     * @param \Closure $fn
-     */
-    public function addDomainMatchingFunc(string $name, \Closure $fn): void
-    {
-        $this->rm->addDomainMatchingFunc($name, $fn);
-    }
-
-    /**
-     * sets the current effector.
-     *
-     * @param Effector $eft
-     */
-    public function setEffector(Effector $eft): void
-    {
-        $this->eft = $eft;
-    }
-
-    /**
-     * clears all policy.
-     */
-    public function clearPolicy(): void
-    {
-        $this->model->clearPolicy();
-    }
-
-    /**
-     * reloads the policy from file/database.
-     */
-    public function loadPolicy(): void
-    {
-        $this->model->clearPolicy();
-
-        try {
-            $this->adapter->loadPolicy($this->model);
-        } catch (InvalidFilePathException $e) {
-            //throw $e;
-        }
-
-        $this->model->printPolicy();
-        if ($this->autoBuildRoleLinks) {
-            $this->buildRoleLinks();
-        }
-    }
-
-    /**
-     * reloads a filtered policy from file/database.
-     *
-     * @param mixed $filter
-     *
-     * @throws CasbinException
-     */
-    public function loadFilteredPolicy($filter): void
-    {
-        $this->model->clearPolicy();
-
-        if ($this->adapter instanceof FilteredAdapter) {
-            $filteredAdapter = $this->adapter;
-            $filteredAdapter->loadFilteredPolicy($this->model, $filter);
-        } else {
-            throw new CasbinException('filtered policies are not supported by this adapter');
-        }
-
-        $this->model->printPolicy();
-        if ($this->autoBuildRoleLinks) {
-            $this->buildRoleLinks();
-        }
-    }
-
-    /**
-     * returns true if the loaded policy has been filtered.
+     * @param string $name
+     * @param string $role
+     * @param string ...$domain
      *
      * @return bool
      */
-    public function isFiltered(): bool
+    public function hasRoleForUser(string $name, string $role, string ...$domain): bool
     {
-        if (!$this->adapter instanceof FilteredAdapter) {
-            return false;
-        }
+        $roles = $this->getRolesForUser($name, ...$domain);
 
-        $filteredAdapter = $this->adapter;
-
-        return $filteredAdapter->isFiltered();
+        return in_array($role, $roles, true);
     }
 
     /**
-     * saves the current policy (usually after changed with Casbin API) back to file/database.
+     * Adds a role for a user.
+     * returns false if the user already has the role (aka not affected).
      *
-     * @return mixed
-     *
-     * @throws CasbinException
+     * @param string $user
+     * @param string $role
+     * @param string ...$domain
+     * @return bool
      */
-    public function savePolicy(): void
+    public function addRoleForUser(string $user, string $role, string ...$domain): bool
     {
-        if ($this->isFiltered()) {
-            throw new CasbinException('cannot save a filtered policy');
-        }
-
-        $this->adapter->savePolicy($this->model);
-
-        if (null !== $this->watcher) {
-            $this->watcher->update();
-        }
+        return $this->addGroupingPolicy(...array_merge([$user, $role], $domain));
     }
 
     /**
-     * changes the enforcing state of Casbin, when Casbin is disabled, all access will be allowed by the Enforce() function.
+     * @param string $user
+     * @param string[] $roles
+     * @param string ...$domain
      *
-     * @param bool $enabled
+     * @return bool
      */
-    public function enableEnforce(bool $enabled = true): void
+    public function addRolesForUser(string $user, array $roles, string ...$domain): bool
     {
-        $this->enabled = $enabled;
-    }
-
-    /**
-     * changes whether Casbin will log messages to the Logger.
-     *
-     * @param bool $enabled
-     */
-    public function enableLog(bool $enabled = true): void
-    {
-        Log::getLogger()->enableLog($enabled);
-    }
-
-    /**
-     * controls whether to save a policy rule automatically notify the Watcher when it is added or removed.
-     *
-     * @param bool $enabled
-     */
-    public function EnableAutoNotifyWatcher(bool $enabled = true): void
-    {
-        $this->autoNotifyWatcher = $enabled;
-    }
-
-    /**
-     * controls whether to save a policy rule automatically to the adapter when it is added or removed.
-     *
-     * @param bool $autoSave
-     */
-    public function enableAutoSave(bool $autoSave = true): void
-    {
-        $this->autoSave = $autoSave;
-    }
-
-    /**
-     * controls whether to rebuild the role inheritance relations when a role is added or deleted.
-     *
-     * @param bool $autoBuildRoleLinks
-     */
-    public function enableAutoBuildRoleLinks(bool $autoBuildRoleLinks = true): void
-    {
-        $this->autoBuildRoleLinks = $autoBuildRoleLinks;
-    }
-
-    /**
-     * manually rebuild the role inheritance relations.
-     */
-    public function buildRoleLinks(): void
-    {
-        $this->rm->clear();
-        $this->model->buildRoleLinks($this->rm);
-    }
-
-    /**
-     * use a custom matcher to decides whether a "subject" can access a "object" with the operation "action",
-     * input parameters are usually: (matcher, sub, obj, act), use model matcher by default when matcher is "".
-     *
-     * @param string $matcher
-     * @param mixed  ...$rvals
-     *
-     * @return bool|mixed
-     *
-     * @throws CasbinException
-     */
-    protected function enforcing(string $matcher, ...$rvals): bool
-    {
-        if (!$this->enabled) {
-            return true;
-        }
-
-        $functions = $this->fm->getFunctions();
-
-        if (isset($this->model['g'])) {
-            foreach ($this->model['g'] as $key => $ast) {
-                $rm = $ast->rM;
-                $functions[$key] = BuiltinOperations::generateGFunction($rm);
-            }
-        }
-
-        if (!isset($this->model['m']['m'])) {
-            throw new CasbinException('model is undefined');
-        }
-
-        $expString = '';
-        if ('' === $matcher) {
-            $expString = $this->getExpString($this->model['m']['m']->value);
-        } else {
-            $expString = Util::removeComments(Util::escapeAssertion($matcher));
-        }
-
-        $rTokens = array_values($this->model['r']['r']->tokens);
-        $pTokens = array_values($this->model['p']['p']->tokens);
-
-        $rParameters = array_combine($rTokens, $rvals);
-
-        if (false === $rParameters) {
-            throw new CasbinException('invalid request size');
-        }
-
-        $expressionLanguage = $this->getExpressionLanguage($functions);
-        $hasEval = Util::hasEval($expString);
-
-        if (!$hasEval) {
-            $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
-        }
-
-        $policyEffects = [];
-        $matcherResults = [];
-
-        $policyLen = \count($this->model['p']['p']->policy);
-
-        if (0 != $policyLen) {
-            foreach ($this->model['p']['p']->policy as $i => $pvals) {
-                $parameters = array_combine($pTokens, $pvals);
-                if (false === $parameters) {
-                    throw new CasbinException('invalid policy size');
-                }
-
-                if ($hasEval) {
-                    $ruleNames = Util::getEvalValue($expString);
-                    $expWithRule = $expString;
-                    $pTokens_flipped = array_flip($pTokens);
-                    foreach ($ruleNames as $ruleName) {
-                        if (isset($pTokens_flipped[$ruleName])) {
-                            $rule = Util::escapeAssertion($pvals[$pTokens_flipped[$ruleName]]);
-                            $expWithRule = Util::replaceEval($expWithRule, $rule);
-                        } else {
-                            throw new CasbinException('please make sure rule exists in policy when using eval() in matcher');
-                        }
-
-                        $expressionLanguage = $this->getExpressionLanguage($functions);
-                        $expression = $expressionLanguage->parse($expWithRule, array_merge($rTokens, $pTokens));
-                    }
-                }
-
-                $parameters = array_merge($rParameters, $parameters);
-                $result = $expressionLanguage->evaluate($expression, $parameters);
-
-                if (\is_bool($result)) {
-                    if (!$result) {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
-
-                        continue;
-                    }
-                } elseif (\is_float($result)) {
-                    if (0 == $result) {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
-
-                        continue;
-                    } else {
-                        $matcherResults[$i] = $result;
-                    }
-                } else {
-                    throw new CasbinException('matcher result should be bool, int or float');
-                }
-                if (isset($parameters['p_eft'])) {
-                    $eft = $parameters['p_eft'];
-                    if ('allow' == $eft) {
-                        $policyEffects[$i] = Effector::ALLOW;
-                    } elseif ('deny' == $eft) {
-                        $policyEffects[$i] = Effector::DENY;
-                    } else {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
-                    }
-                } else {
-                    $policyEffects[$i] = Effector::ALLOW;
-                }
-
-                if (isset($this->model['e']['e']) && 'priority(p_eft) || deny' == $this->model['e']['e']->value) {
-                    break;
-                }
-            }
-        } else {
-            if ($hasEval) {
-                throw new EvalFunctionException("please make sure rule exists in policy when using eval() in matcher");
-            }
-
-            $parameters = $rParameters;
-            foreach ($this->model['p']['p']->tokens as $token) {
-                $parameters[$token] = '';
-            }
-
-            $result = $expressionLanguage->evaluate($expression, $parameters);
-
-            if ($result) {
-                $policyEffects[0] = Effector::ALLOW;
-            } else {
-                $policyEffects[0] = Effector::INDETERMINATE;
-            }
-        }
-
-        $result = $this->eft->mergeEffects($this->model['e']['e']->value, $policyEffects, $matcherResults);
-
-        if (Log::getLogger()->isEnabled()) {
-            $reqStr = 'Request: ';
-            $reqStr .= implode(', ', array_values($rvals));
-
-            $reqStr .= sprintf(' ---> %s', (string) $result);
-            Log::logPrint($reqStr);
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param array $functions
-     *
-     * @return ExpressionLanguage
-     */
-    protected function getExpressionLanguage(array $functions): ExpressionLanguage
-    {
-        $expressionLanguage = new ExpressionLanguage();
-        foreach ($functions as $key => $func) {
-            $expressionLanguage->register($key, function (...$args) use ($key) {
-                return sprintf($key.'(%1$s)', implode(',', $args));
-            }, function ($arguments, ...$args) use ($func) {
-                return $func(...$args);
-            });
-        }
-
-        return $expressionLanguage;
-    }
-
-    /**
-     * @param string $expString
-     *
-     * @return string
-     */
-    protected function getExpString(string $expString): string
-    {
-        return preg_replace_callback(
-            '/([\s\S]*in\s+)\(([\s\S]+)\)([\s\S]*)/',
-            function ($m) {
-                return $m[1].'['.$m[2].']'.$m[3];
-            },
-            $expString
+        return $this->addGroupingPolicies(
+            array_map(function ($role) use ($user, $domain) {
+                return array_merge([$user, $role], $domain);
+            }, $roles)
         );
     }
 
     /**
-     * decides whether a "subject" can access a "object" with the operation "action", input parameters are usually: (sub, obj, act).
+     * Deletes a role for a user.
+     * returns false if the user does not have the role (aka not affected).
      *
-     * @param mixed ...$rvals
+     * @param string $user
+     * @param string $role
+     * @param string ...$domain
      *
      * @return bool
-     *
-     * @throws CasbinException
      */
-    public function enforce(...$rvals): bool
+    public function deleteRoleForUser(string $user, string $role, string ...$domain): bool
     {
-        return $this->enforcing('', ...$rvals);
+        return $this->removeGroupingPolicy(...array_merge([$user, $role], $domain));
     }
 
     /**
-     * use a custom matcher to decides whether a "subject" can access a "object" with the operation "action",
-     * input parameters are usually: (matcher, sub, obj, act), use model matcher by default when matcher is "".
+     * Deletes all roles for a user.
+     * Returns false if the user does not have any roles (aka not affected).
      *
-     * @param string $matcher
-     * @param mixed  ...$rvals
+     * @param string $user
+     * @param string ...$domain
      *
      * @return bool
-     *
      * @throws CasbinException
      */
-    public function enforceWithMatcher(string $matcher, ...$rvals): bool
+    public function deleteRolesForUser(string $user, string ...$domain): bool
     {
-        return $this->enforcing($matcher, ...$rvals);
+        if (count($domain) > 1) {
+            throw new CasbinException('error: domain should be 1 parameter');
+        }
+
+        return $this->removeFilteredGroupingPolicy(0, ...array_merge([$user, ''], $domain));
+    }
+
+    /**
+     * Deletes a user.
+     * Returns false if the user does not exist (aka not affected).
+     *
+     * @param string $user
+     *
+     * @return bool
+     */
+    public function deleteUser(string $user): bool
+    {
+        return $this->removeFilteredGroupingPolicy(0, $user);
+    }
+
+    /**
+     * Deletes a role.
+     *
+     * @param string $role
+     * @return bool
+     */
+    public function deleteRole(string $role): bool
+    {
+        $res1 = $this->removeFilteredGroupingPolicy(1, $role);
+        $res2 = $this->removeFilteredPolicy(0, $role);
+
+        return $res1 || $res2;
+    }
+
+    /**
+     * Deletes a permission.
+     * Returns false if the permission does not exist (aka not affected).
+     *
+     * @param string ...$permission
+     *
+     * @return bool
+     */
+    public function deletePermission(string ...$permission): bool
+    {
+        return $this->removeFilteredPolicy(1, ...$permission);
+    }
+
+    /**
+     * Adds a permission for a user or role.
+     * Returns false if the user or role already has the permission (aka not affected).
+     *
+     * @param string $user
+     * @param string ...$permission
+     *
+     * @return bool
+     */
+    public function addPermissionForUser(string $user, string ...$permission): bool
+    {
+        $params = array_merge([$user], $permission);
+
+        return $this->addPolicy(...$params);
+    }
+
+    /**
+     * Deletes a permission for a user or role.
+     * Returns false if the user or role does not have the permission (aka not affected).
+     *
+     * @param string $user
+     * @param string ...$permission
+     *
+     * @return bool
+     */
+    public function deletePermissionForUser(string $user, string ...$permission): bool
+    {
+        $params = array_merge([$user], $permission);
+
+        return $this->removePolicy(...$params);
+    }
+
+    /**
+     * Deletes permissions for a user or role.
+     * Returns false if the user or role does not have any permissions (aka not affected).
+     *
+     * @param string $user
+     *
+     * @return bool
+     */
+    public function deletePermissionsForUser(string $user): bool
+    {
+        return $this->removeFilteredPolicy(0, $user);
+    }
+
+    /**
+     * Gets permissions for a user or role.
+     *
+     * @param string $user
+     *
+     * @return array
+     */
+    public function getPermissionsForUser(string $user): array
+    {
+        return $this->getFilteredPolicy(0, $user);
+    }
+
+    /**
+     * Determines whether a user has a permission.
+     *
+     * @param string $user
+     * @param string ...$permission
+     *
+     * @return bool
+     */
+    public function hasPermissionForUser(string $user, string ...$permission): bool
+    {
+        $params = array_merge([$user], $permission);
+
+        return $this->hasPolicy($params);
+    }
+
+    /**
+     * Gets implicit roles that a user has.
+     * Compared to getRolesForUser(), this function retrieves indirect roles besides direct roles.
+     * For example:
+     * g, alice, role:admin
+     * g, role:admin, role:user.
+     *
+     * getRolesForUser("alice") can only get: ["role:admin"].
+     * But getImplicitRolesForUser("alice") will get: ["role:admin", "role:user"].
+     *
+     * @param string $name
+     * @param string ...$domain
+     *
+     * @return array
+     */
+    public function getImplicitRolesForUser(string $name, string ...$domain): array
+    {
+        $res = [];
+        $roleSet = [];
+        $roleSet[$name] = true;
+
+        $q = [];
+        $q[] = $name;
+
+        for (; count($q) > 0;) {
+            $name = $q[0];
+            $q = array_slice($q, 1);
+
+            $roles = $this->rm->getRoles($name, ...$domain);
+            foreach ($roles as $r) {
+                if (!isset($roleSet[$r])) {
+                    $res[] = $r;
+                    $q[] = $r;
+                    $roleSet[$r] = true;
+                }
+            }
+        }
+
+        return $res;
+    }
+
+    /**
+     * Gets implicit permissions for a user or role.
+     * Compared to getPermissionsForUser(), this function retrieves permissions for inherited roles.
+     * For example:
+     * p, admin, data1, read
+     * p, alice, data2, read
+     * g, alice, admin.
+     *
+     * getPermissionsForUser("alice") can only get: [["alice", "data2", "read"]].
+     * But getImplicitPermissionsForUser("alice") will get: [["admin", "data1", "read"], ["alice", "data2", "read"]].
+     *
+     * @param string $user
+     * @param string ...$domain
+     *
+     * @return array
+     * @throws CasbinException
+     */
+    public function getImplicitPermissionsForUser(string $user, string ...$domain): array
+    {
+        $roles = array_merge(
+            [$user],
+            $this->getImplicitRolesForUser($user, ...$domain)
+        );
+
+        $len = \count($domain);
+        if ($len > 1) {
+            throw new CasbinException('error: domain should be 1 parameter');
+        }
+
+        $res = [];
+        foreach ($roles as $role) {
+            if (1 == $len) {
+                $permissions = $this->getPermissionsForUserInDomain($role, $domain[0]);
+            } else {
+                $permissions = $this->getPermissionsForUser($role);
+            }
+
+            $res = array_merge($res, $permissions);
+        }
+
+        return $res;
+    }
+
+    /**
+     * Gets implicit users for a permission.
+     * For example:
+     * p, admin, data1, read
+     * p, bob, data1, read
+     * g, alice, admin
+     * getImplicitUsersForPermission("data1", "read") will get: ["alice", "bob"].
+     * Note: only users will be returned, roles (2nd arg in "g") will be excluded.
+     *
+     * @param string ...$permission
+     *
+     * @return array
+     * @throws CasbinException
+     */
+    public function getImplicitUsersForPermission(string ...$permission): array
+    {
+        $subjects = $this->getAllSubjects();
+        $roles = $this->getAllRoles();
+
+        $users = array_diff($subjects, $roles);
+
+        $res = [];
+        foreach ($users as $user) {
+            $req = $permission;
+            array_unshift($req, $user);
+            $allowed = $this->enforce(...$req);
+
+            if ($allowed) {
+                $res[] = $user;
+            }
+        }
+
+        return $res;
+    }
+
+    /**
+     * Gets the users that has a role inside a domain. Add by Gordon.
+     *
+     * @param string $name
+     * @param string $domain
+     *
+     * @return array
+     */
+    public function getUsersForRoleInDomain(string $name, string $domain): array
+    {
+        return $this->model['g']['g']->rm->getUsers($name, $domain);
+    }
+
+    /**
+     * Gets the roles that a user has inside a domain.
+     *
+     * @param string $name
+     * @param string $domain
+     *
+     * @return array
+     */
+    public function getRolesForUserInDomain(string $name, string $domain): array
+    {
+        return $this->model['g']['g']->rm->getRoles($name, $domain);
+    }
+
+    /**
+     * Gets permissions for a user or role inside a domain.
+     *
+     * @param string $name
+     * @param string $domain
+     *
+     * @return array
+     */
+    public function getPermissionsForUserInDomain(string $name, string $domain): array
+    {
+        return $this->getFilteredPolicy(0, $name, $domain);
+    }
+
+    /**
+     * Adds a role for a user inside a domain.
+     * returns false if the user already has the role (aka not affected).
+     *
+     * @param string $user
+     * @param string $role
+     * @param string $domain
+     *
+     * @return bool
+     */
+    public function addRoleForUserInDomain(string $user, string $role, string $domain): bool
+    {
+        return $this->addGroupingPolicy($user, $role, $domain);
+    }
+
+    /**
+     * Deletes a role for a user inside a domain.
+     * Returns false if the user does not have the role (aka not affected).
+     *
+     * @param string $user
+     * @param string $role
+     * @param string $domain
+     *
+     * @return bool
+     */
+    public function deleteRoleForUserInDomain(string $user, string $role, string $domain): bool
+    {
+        return $this->removeGroupingPolicy($user, $role, $domain);
     }
 }

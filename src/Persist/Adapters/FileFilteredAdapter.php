@@ -38,9 +38,9 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     }
 
     /**
-     * loads all policy rules from the storage.
+     * Loads all policy rules from the storage.
      *
-     * @param \Casbin\Model\Model $model
+     * @param Model $model
      *
      * @throws CasbinException
      */
@@ -51,7 +51,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     }
 
     /**
-     * loads only policy rules that match the filter.
+     * Loads only policy rules that match the filter.
      *
      * @param Model $model
      * @param mixed $filter
@@ -79,7 +79,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     }
 
     /**
-     * returns true if the loaded policy has been filtered.
+     * Returns true if the loaded policy has been filtered.
      *
      * @return bool
      */
@@ -92,6 +92,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      * SavePolicy saves all policy rules to the storage.
      *
      * @param Model $model
+     * @throws CannotSaveFilteredPolicy|CasbinException
      */
     public function savePolicy(Model $model): void
     {
@@ -103,11 +104,12 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     }
 
     /**
-     * loadFilteredPolicyFile function.
+     * LoadFilteredPolicyFile function.
      *
-     * @param Model    $model
-     * @param Filter   $filter
+     * @param Model $model
+     * @param Filter $filter
      * @param callable $handler
+     * @throws InvalidFilePathException
      */
     protected function loadFilteredPolicyFile(Model $model, Filter $filter, callable $handler): void
     {
@@ -127,7 +129,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     }
 
     /**
-     * filterLine function.
+     * FilterLine function.
      *
      * @param string $line
      * @param Filter $filter
@@ -144,20 +146,20 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
         $filterSlice = [];
         switch (trim($p[0])) {
             case 'p':
-            $filterSlice = $filter->p;
+                $filterSlice = $filter->p;
 
-            break;
+                break;
             case 'g':
-            $filterSlice = $filter->g;
+                $filterSlice = $filter->g;
 
-            break;
+                break;
         }
 
         return self::filterWords($p, $filterSlice);
     }
 
     /**
-     * filterWords function.
+     * FilterWords function.
      *
      * @param array $line
      * @param array $filter

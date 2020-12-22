@@ -7,17 +7,44 @@ use PHPUnit\Framework\TestCase;
 use Casbin\Enforcer;
 
 /**
- * ManagementApiTest.
+ * ManagementEnforcerTest.
  *
  * @author techlee@qq.com
  */
-class ManagementApiTest extends TestCase
+class ManagementEnforcerTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../examples';
+    private $modelAndPolicyPath = __DIR__ . '/../../examples';
+
+    public function testGetAllNamedSubjects()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        $this->assertEquals(['alice', 'bob', 'data2_admin'], $e->getAllNamedSubjects('p'));
+        $this->assertEquals([], $e->getAllNamedSubjects('g'));
+    }
+
+
+    public function testGetAllNamedObjects()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        $this->assertEquals(['data1', 'data2'], $e->getAllNamedObjects('p'));
+        $this->assertEquals([], $e->getAllNamedObjects('g'));
+    }
+
+    public function testGetAllNamedActions()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        $this->assertEquals(['read', 'write'], $e->getAllNamedActions('p'));
+    }
+
+    public function testGetAllNamedRoles()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        $this->assertEquals(['data2_admin'], $e->getAllNamedRoles('g'));
+    }
 
     public function testGetList()
     {
-        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_model.conf', $this->modelAndPolicyPath.'/rbac_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
 
         $this->assertEquals($e->getAllSubjects(), ['alice', 'bob', 'data2_admin']);
         $this->assertEquals($e->getAllObjects(), ['data1', 'data2']);
@@ -27,7 +54,7 @@ class ManagementApiTest extends TestCase
 
     public function testGetPolicyAPI()
     {
-        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_model.conf', $this->modelAndPolicyPath.'/rbac_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
 
         $this->assertEquals($e->getPolicy(), [
             ['alice', 'data1', 'read'],
@@ -70,7 +97,7 @@ class ManagementApiTest extends TestCase
 
     public function testModifyPolicyAPI()
     {
-        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_model.conf', $this->modelAndPolicyPath.'/rbac_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
 
         $this->assertEquals($e->getPolicy(), [
             ['alice', 'data1', 'read'],
@@ -92,20 +119,10 @@ class ManagementApiTest extends TestCase
             ['ham', 'data4', 'write'],
         ];
 
-        try {
-            $e->addPolicies([
-                ['jack', 'data4', 'read'],
-                ['jack', 'data4', 'read'],
-                ['katy', 'data4', 'write'],
-            ]);
-        } catch (BatchOperationException $exception) {
-            $this->assertEquals('addPolicies error: $rules elements can not be duplicated.', $exception->getMessage());
-        }
-
         $e->addPolicies($rules);
         $e->addPolicies($rules);
 
-        $this->assertEquals($e->getPolicy(), [
+        $this->assertEquals([
             ['data2_admin', 'data2', 'read'],
             ['data2_admin', 'data2', 'write'],
             ['eve', 'data3', 'read'],
@@ -113,7 +130,7 @@ class ManagementApiTest extends TestCase
             ['katy', 'data4', 'write'],
             ['leyo', 'data4', 'read'],
             ['ham', 'data4', 'write'],
-        ]);
+        ], $e->getPolicy());
 
         $e->removePolicies($rules);
         $e->removePolicies($rules);
@@ -137,7 +154,7 @@ class ManagementApiTest extends TestCase
 
     public function testModifyGroupingPolicyAPI()
     {
-        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_model.conf', $this->modelAndPolicyPath.'/rbac_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
 
         $this->assertEquals($e->getRolesForUser('alice'), ['data2_admin']);
         $this->assertEquals($e->getRolesForUser('bob'), []);
@@ -191,5 +208,25 @@ class ManagementApiTest extends TestCase
         $this->assertEquals($e->getUsersForRole('data1_admin'), []);
         $this->assertEquals($e->getUsersForRole('data2_admin'), []);
         $this->assertEquals($e->getUsersForRole('data3_admin'), ['eve']);
+    }
+
+    public function testUpdatePolicy()
+    {
+        // p, alice, data1, read
+        // p, bob, data2, write
+        // p, data2_admin, data2, read
+        // p, data2_admin, data2, write
+        //
+        // g, alice, data2_admin
+
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'write'));
+
+        $e->updatePolicy(['alice', 'data1', 'read'], ['alice', 'data1', 'write']);
+
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'write'));
     }
 }

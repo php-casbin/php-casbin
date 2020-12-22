@@ -15,22 +15,22 @@ class Filter
     /**
      * $p variable.
      *
-     * @var array
+     * @var string[]
      */
     public $p = [];
 
     /**
      * $g variable.
      *
-     * @var array
+     * @var string[]
      */
     public $g = [];
 
     /**
      * __construct function.
      *
-     * @param array $p
-     * @param array $g
+     * @param string[] $p
+     * @param string[] $g
      */
     public function __construct(array $p = [], array $g = [])
     {

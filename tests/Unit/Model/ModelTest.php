@@ -5,6 +5,7 @@ namespace Casbin\Tests\Unit\Model;
 use Casbin\Enforcer;
 use Casbin\Exceptions\EvalFunctionException;
 use Casbin\Model\Model;
+use Casbin\Rbac\DefaultRoleManager\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +16,7 @@ use PHPUnit\Framework\TestCase;
  */
 class ModelTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../../examples';
+    private $modelAndPolicyPath = __DIR__ . '/../../../examples';
 
     public function testLoadModelFromText()
     {
@@ -54,7 +55,7 @@ EOT;
 
     public function testABACPolicy()
     {
-        $e = new Enforcer($this->modelAndPolicyPath.'/abac_rule_model.conf', $this->modelAndPolicyPath.'/abac_rule_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath . '/abac_rule_model.conf', $this->modelAndPolicyPath . '/abac_rule_policy.csv');
 
         $sub1 = new User('alice', 18);
         $sub2 = new User('alice', 20);
@@ -79,18 +80,23 @@ EOT;
         $this->expectException(EvalFunctionException::class);
         $this->expectExceptionMessage("please make sure rule exists in policy when using eval() in matcher");
 
-        $e = new Enforcer($this->modelAndPolicyPath.'/abac_rule_model.conf', "");
+        $e = new Enforcer($this->modelAndPolicyPath . '/abac_rule_model.conf', "");
 
         $sub1 = new User('alice', 18);
 
         $e->enforce($sub1, '/data1', 'read');
     }
-  
+
     public function testRBACModelWithPattern()
     {
-        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_pattern_model.conf', $this->modelAndPolicyPath.'/rbac_with_pattern_policy.csv');
 
-        $e->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
+
+
+        $e->getRoleManager() instanceof RoleManager;
+
+        $e->getRoleManager()->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch2($key1, $key2);
         });
         $this->assertEquals($e->enforce('alice', '/book/1', 'GET'), true);
@@ -102,7 +108,7 @@ EOT;
         $this->assertEquals($e->enforce('bob', '/pen/1', 'GET'), true);
         $this->assertEquals($e->enforce('bob', '/pen/2', 'GET'), true);
 
-        $e->addMatchingFunc('keyMatch3', function (string $key1, string $key2) {
+        $e->getRoleManager()->addMatchingFunc('keyMatch3', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch3($key1, $key2);
         });
         $this->assertEquals($e->enforce('alice', '/book2/1', 'GET'), true);
@@ -117,8 +123,8 @@ EOT;
 
     public function testDomainMatchModel()
     {
-        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_domain_pattern_model.conf', $this->modelAndPolicyPath.'/rbac_with_domain_pattern_policy.csv');
-        $e->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domain_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_domain_pattern_policy.csv');
+        $e->getRoleManager()->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch2($key1, $key2);
         });
 
@@ -136,11 +142,11 @@ EOT;
 
     public function testAllMatchModel()
     {
-        $e = new Enforcer($this->modelAndPolicyPath.'/rbac_with_all_pattern_model.conf', $this->modelAndPolicyPath.'/rbac_with_all_pattern_policy.csv');
-        $e->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_all_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_all_pattern_policy.csv');
+        $e->getRoleManager()->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch2($key1, $key2);
         });
-        $e->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+        $e->getRoleManager()->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch2($key1, $key2);
         });
 

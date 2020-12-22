@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Casbin;
 
+use Closure;
+
 /**
- * Trait ManagementApi.
+ * ManagementEnforcer = InternalEnforcer + Management API.
  *
  * @author techlee@qq.com
  */
-trait ManagementApi
+class ManagementEnforcer extends InternalEnforcer
 {
     /**
-     * gets the list of subjects that show up in the current policy.
+     * Gets the list of subjects that show up in the current policy.
      *
      * @return array
      */
@@ -22,7 +24,7 @@ trait ManagementApi
     }
 
     /**
-     * gets the list of subjects that show up in the current named policy.
+     * Gets the list of subjects that show up in the current named policy.
      *
      * @param string $ptype
      *
@@ -34,7 +36,7 @@ trait ManagementApi
     }
 
     /**
-     * gets the list of objects that show up in the current policy.
+     * Gets the list of objects that show up in the current policy.
      *
      * @return array
      */
@@ -44,7 +46,7 @@ trait ManagementApi
     }
 
     /**
-     * gets the list of objects that show up in the current named policy.
+     * Gets the list of objects that show up in the current named policy.
      *
      * @param string $ptype
      *
@@ -56,7 +58,7 @@ trait ManagementApi
     }
 
     /**
-     * gets the list of actions that show up in the current policy.
+     * Gets the list of actions that show up in the current policy.
      *
      * @return array
      */
@@ -66,7 +68,7 @@ trait ManagementApi
     }
 
     /**
-     * gets the list of actions that show up in the current named policy.
+     * Gets the list of actions that show up in the current named policy.
      *
      * @param string $ptype
      *
@@ -78,7 +80,7 @@ trait ManagementApi
     }
 
     /**
-     * gets the list of roles that show up in the current policy.
+     * Gets the list of roles that show up in the current policy.
      *
      * @return array
      */
@@ -88,7 +90,7 @@ trait ManagementApi
     }
 
     /**
-     * gets the list of roles that show up in the current named policy.
+     * Gets the list of roles that show up in the current named policy.
      *
      * @param string $ptype
      *
@@ -100,7 +102,7 @@ trait ManagementApi
     }
 
     /**
-     * gets all the authorization rules in the policy.
+     * Gets all the authorization rules in the policy.
      *
      * @return array
      */
@@ -110,9 +112,9 @@ trait ManagementApi
     }
 
     /**
-     * gets all the authorization rules in the policy, field filters can be specified.
+     * Gets all the authorization rules in the policy, field filters can be specified.
      *
-     * @param int    $fieldIndex
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @return array
@@ -123,7 +125,7 @@ trait ManagementApi
     }
 
     /**
-     * gets all the authorization rules in the named policy.
+     * Gets all the authorization rules in the named policy.
      *
      * @param string $ptype
      *
@@ -135,10 +137,10 @@ trait ManagementApi
     }
 
     /**
-     * gets all the authorization rules in the named policy, field filters can be specified.
+     * Gets all the authorization rules in the named policy, field filters can be specified.
      *
      * @param string $ptype
-     * @param int    $fieldIndex
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @return array
@@ -149,7 +151,7 @@ trait ManagementApi
     }
 
     /**
-     * gets all the role inheritance rules in the policy.
+     * Gets all the role inheritance rules in the policy.
      *
      * @return array
      */
@@ -159,9 +161,9 @@ trait ManagementApi
     }
 
     /**
-     * gets all the role inheritance rules in the policy, field filters can be specified.
+     * Gets all the role inheritance rules in the policy, field filters can be specified.
      *
-     * @param int    $fieldIndex
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @return array
@@ -172,7 +174,7 @@ trait ManagementApi
     }
 
     /**
-     * gets all the role inheritance rules in the policy.
+     * Gets all the role inheritance rules in the policy.
      *
      * @param string $ptype
      *
@@ -184,10 +186,10 @@ trait ManagementApi
     }
 
     /**
-     * gets all the role inheritance rules in the policy, field filters can be specified.
+     * Gets all the role inheritance rules in the policy, field filters can be specified.
      *
      * @param string $ptype
-     * @param int    $fieldIndex
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @return array
@@ -198,7 +200,7 @@ trait ManagementApi
     }
 
     /**
-     * determines whether an authorization rule exists.
+     * Determines whether an authorization rule exists.
      *
      * @param mixed ...$params
      *
@@ -210,10 +212,10 @@ trait ManagementApi
     }
 
     /**
-     * determines whether a named authorization rule exists.
+     * Determines whether a named authorization rule exists.
      *
      * @param string $ptype
-     * @param mixed  ...$params
+     * @param mixed ...$params
      *
      * @return bool
      */
@@ -245,9 +247,10 @@ trait ManagementApi
      * If the rule already exists, the function returns false for the corresponding rule and the rule will not be added.
      * Otherwise the function returns true for the corresponding rule by adding the new rule.
      *
-     * @param array $rules
+     * @param string[][] $rules
      *
      * @return bool
+     * @throws Exceptions\CasbinException
      */
     public function addPolicies(array $rules): bool
     {
@@ -260,7 +263,7 @@ trait ManagementApi
      * Otherwise the function returns true by adding the new rule.
      *
      * @param string $ptype
-     * @param mixed  ...$params
+     * @param mixed ...$params
      *
      * @return bool
      */
@@ -279,9 +282,10 @@ trait ManagementApi
      * Otherwise the function returns true for the corresponding by adding the new rule.
      *
      * @param string $ptype
-     * @param array  $rules
+     * @param string[][] $rules
      *
      * @return bool
+     * @throws Exceptions\CasbinException
      */
     public function addNamedPolicies(string $ptype, array $rules): bool
     {
@@ -289,7 +293,7 @@ trait ManagementApi
     }
 
     /**
-     * removes an authorization rule from the current policy.
+     * Removes an authorization rule from the current policy.
      *
      * @param mixed ...$params
      *
@@ -301,7 +305,7 @@ trait ManagementApi
     }
 
     /**
-     * removes an authorization rules from the current policy.
+     * Removes an authorization rules from the current policy.
      *
      * @param array $rules
      *
@@ -313,9 +317,36 @@ trait ManagementApi
     }
 
     /**
-     * removes an authorization rule from the current policy, field filters can be specified.
+     * Removes an authorization rule from the current policy.
      *
-     * @param int    $fieldIndex
+     * @param string[] $oldRule
+     * @param string[] $newRule
+     *
+     * @return bool
+     */
+    public function updatePolicy(array $oldRule, array $newRule): bool
+    {
+        return $this->updateNamedPolicy("p", $oldRule, $newRule);
+    }
+
+    /**
+     * Updates an authorization rule from the current policy.
+     *
+     * @param string $ptype
+     * @param string[] $oldRule
+     * @param string[] $newRule
+     *
+     * @return bool
+     */
+    public function updateNamedPolicy(string $ptype, array $oldRule, array $newRule): bool
+    {
+        return $this->updatePolicyInternal("p", $ptype, $oldRule, $newRule);
+    }
+
+    /**
+     * Removes an authorization rule from the current policy, field filters can be specified.
+     *
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @return bool
@@ -326,10 +357,10 @@ trait ManagementApi
     }
 
     /**
-     * removes an authorization rule from the current named policy.
+     * Removes an authorization rule from the current named policy.
      *
      * @param string $ptype
-     * @param mixed  ...$params
+     * @param mixed ...$params
      *
      * @return bool
      */
@@ -343,10 +374,10 @@ trait ManagementApi
     }
 
     /**
-     * removes an authorization rules from the current named policy.
+     * Removes an authorization rules from the current named policy.
      *
      * @param string $ptype
-     * @param array  $rules
+     * @param array $rules
      *
      * @return bool
      */
@@ -356,10 +387,10 @@ trait ManagementApi
     }
 
     /**
-     * removes an authorization rule from the current named policy, field filters can be specified.
+     * Removes an authorization rule from the current named policy, field filters can be specified.
      *
      * @param string $ptype
-     * @param int    $fieldIndex
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @return bool
@@ -370,7 +401,7 @@ trait ManagementApi
     }
 
     /**
-     * determines whether a role inheritance rule exists.
+     * Determines whether a role inheritance rule exists.
      *
      * @param mixed ...$params
      *
@@ -382,10 +413,10 @@ trait ManagementApi
     }
 
     /**
-     * determines whether a named role inheritance rule exists.
+     * Determines whether a named role inheritance rule exists.
      *
      * @param string $ptype
-     * @param mixed  ...$params
+     * @param mixed ...$params
      *
      * @return bool
      */
@@ -432,7 +463,7 @@ trait ManagementApi
      * Otherwise the function returns true by adding the new rule.
      *
      * @param string $ptype
-     * @param mixed  ...$params
+     * @param mixed ...$params
      *
      * @return bool
      */
@@ -457,7 +488,7 @@ trait ManagementApi
      * Otherwise the function returns true by adding the new rule.
      *
      * @param string $ptype
-     * @param array  $rules
+     * @param array $rules
      *
      * @return bool
      */
@@ -473,7 +504,7 @@ trait ManagementApi
     }
 
     /**
-     * removes a role inheritance rule from the current policy.
+     * Removes a role inheritance rule from the current policy.
      *
      * @param mixed ...$params
      *
@@ -485,7 +516,7 @@ trait ManagementApi
     }
 
     /**
-     * removes a role inheritance rules from the current policy.
+     * Removes a role inheritance rules from the current policy.
      *
      * @param array $rules
      *
@@ -497,9 +528,9 @@ trait ManagementApi
     }
 
     /**
-     * removes a role inheritance rule from the current policy, field filters can be specified.
+     * Removes a role inheritance rule from the current policy, field filters can be specified.
      *
-     * @param int    $fieldIndex
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @return bool
@@ -510,10 +541,10 @@ trait ManagementApi
     }
 
     /**
-     * removes a role inheritance rule from the current named policy.
+     * Removes a role inheritance rule from the current named policy.
      *
      * @param string $ptype
-     * @param mixed  ...$params
+     * @param mixed ...$params
      *
      * @return bool
      */
@@ -533,10 +564,10 @@ trait ManagementApi
     }
 
     /**
-     * removes a role inheritance rules from the current named policy.
+     * Removes a role inheritance rules from the current named policy.
      *
      * @param string $ptype
-     * @param array  $rules
+     * @param array $rules
      *
      * @return bool
      */
@@ -552,10 +583,10 @@ trait ManagementApi
     }
 
     /**
-     * removes a role inheritance rule from the current named policy, field filters can be specified.
+     * Removes a role inheritance rule from the current named policy, field filters can be specified.
      *
      * @param string $ptype
-     * @param int    $fieldIndex
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @return bool
@@ -572,12 +603,12 @@ trait ManagementApi
     }
 
     /**
-     * adds a customized function.
+     * Adds a customized function.
      *
-     * @param string   $name
-     * @param \Closure $func
+     * @param string $name
+     * @param Closure $func
      */
-    public function addFunction(string $name, \Closure $func): void
+    public function addFunction(string $name, Closure $func): void
     {
         $this->fm->addFunction($name, $func);
     }

@@ -16,11 +16,12 @@ class Util
     const REGEXP = '/\beval\((?P<rule>[^),]*)\)/';
 
     /**
-     * escapes the dots in the assertion, because the expression evaluation doesn't support such variable names.
+     * Escapes the dots in the assertion, because the expression evaluation doesn't support such variable names.
      *
      * @param string $s
      *
      * @return string
+     * @throws CasbinException
      */
     public static function escapeAssertion(string $s): string
     {
@@ -32,7 +33,7 @@ class Util
         }
 
         $s = preg_replace_callback("~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)(r|p)(\.)~", function ($m) {
-            return $m[1].$m[2].'_';
+            return $m[1] . $m[2] . '_';
         }, $s);
 
         if (null === $s) {
@@ -43,7 +44,7 @@ class Util
     }
 
     /**
-     * removes the comments starting with # in the text.
+     *Removes the comments starting with # in the text.
      *
      * @param string $s
      *
@@ -57,7 +58,7 @@ class Util
     }
 
     /**
-     * gets a printable string for a string array.
+     * Gets a printable string for a string array.
      *
      * @param array $s
      *
@@ -69,7 +70,7 @@ class Util
     }
 
     /**
-     * removes any duplicated elements in a string array.
+     * Removes any duplicated elements in a string array.
      *
      * @param array $s
      */
@@ -79,7 +80,7 @@ class Util
     }
 
     /**
-     * determine whether matcher contains function eval.
+     * Determine whether matcher contains function eval.
      *
      * @param string $s
      *
@@ -87,11 +88,11 @@ class Util
      */
     public static function hasEval(string $s): bool
     {
-        return (bool) preg_match(self::REGEXP, $s);
+        return (bool)preg_match(self::REGEXP, $s);
     }
 
     /**
-     * replace function eval with the value of its parameters.
+     * Replace function eval with the value of its parameters.
      *
      * @param string $s
      * @param string $rule
@@ -100,11 +101,11 @@ class Util
      */
     public static function replaceEval(string $s, string $rule): string
     {
-        return preg_replace(self::REGEXP, '('.$rule.')', $s);
+        return (string)preg_replace(self::REGEXP, '(' . $rule . ')', $s);
     }
 
     /**
-     * returns the parameters of function eval.
+     * Returns the parameters of function eval.
      *
      * @param string $s
      *

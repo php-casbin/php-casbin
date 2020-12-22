@@ -13,13 +13,13 @@ use PHPUnit\Framework\TestCase;
  */
 class FileAdapterTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../../../examples';
+    private $modelAndPolicyPath = __DIR__ . '/../../../../examples';
 
     public function testSavePolicy()
     {
-        $adapter = new FileAdapter(__DIR__.'/basic_policy_test.csv');
+        $adapter = new FileAdapter(__DIR__ . '/basic_policy_test.csv');
         $m = new Model();
-        $m->loadModel($this->modelAndPolicyPath.'/basic_model.conf');
+        $m->loadModel($this->modelAndPolicyPath . '/basic_model.conf');
 
         $rule = ['admin', 'domain1', 'data1', 'read2'];
 

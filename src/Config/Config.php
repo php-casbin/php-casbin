@@ -27,11 +27,12 @@ final class Config implements ConfigContract
     public $data = [];
 
     /**
-     * create an empty configuration representation from file.
+     * Create an empty configuration representation from file.
      *
      * @param string $confName
      *
      * @return ConfigContract
+     * @throws CasbinException
      */
     public static function newConfig(string $confName): ConfigContract
     {
@@ -42,22 +43,23 @@ final class Config implements ConfigContract
     }
 
     /**
-     * create an empty configuration representation from text.
+     * Create an empty configuration representation from text.
      *
      * @param string $text
      *
      * @return ConfigContract
+     * @throws CasbinException
      */
     public static function newConfigFromText(string $text): ConfigContract
     {
-        $c = new static();
+        $c = new Config();
         $c->parseBuffer($text);
 
         return $c;
     }
 
     /**
-     * adds a new section->key:value to the configuration.
+     * Adds a new section->key:value to the configuration.
      *
      * @param string $section
      * @param string $option
@@ -91,9 +93,7 @@ final class Config implements ConfigContract
     {
         $buf = file_get_contents($fname);
 
-        $res = $this->parseBuffer($buf);
-
-        return $res;
+        return $buf === false ? false : $this->parseBuffer($buf);
     }
 
     /**
@@ -111,7 +111,7 @@ final class Config implements ConfigContract
         $canWrite = null;
 
         $buf = preg_replace('/[\r\n]+/', PHP_EOL, $buf);
-        $buf = explode(PHP_EOL, $buf);
+        $buf = explode(PHP_EOL, $buf == null ? "" : $buf);
 
         for ($i = 0, $len = \count($buf); $i <= $len; ++$i) {
             if ($canWrite) {
@@ -157,7 +157,7 @@ final class Config implements ConfigContract
 
     /**
      * @param string $section
-     * @param int    $lineNum
+     * @param int $lineNum
      * @param string $b
      *
      * @throws CasbinException
@@ -183,7 +183,7 @@ final class Config implements ConfigContract
     }
 
     /**
-     * lookups up the value using the provided key and converts the value to a string.
+     * Lookups up the value using the provided key and converts the value to a string.
      *
      * @param string $key
      *
@@ -195,7 +195,7 @@ final class Config implements ConfigContract
     }
 
     /**
-     * lookups up the value using the provided key and converts the value to an array of string
+     * Lookups up the value using the provided key and converts the value to an array of string
      * by splitting the string by comma.
      *
      * @param string $key
@@ -213,7 +213,7 @@ final class Config implements ConfigContract
     }
 
     /**
-     * sets the value for the specific key in the Config.
+     * Sets the value for the specific key in the Config.
      *
      * @param string $key
      * @param string $value

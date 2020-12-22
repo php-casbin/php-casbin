@@ -15,15 +15,15 @@ use PHPUnit\Framework\TestCase;
  */
 class FileFilteredAdapterTest extends TestCase
 {
-    private $modelAndPolicyPath = __DIR__.'/../../../../examples';
+    private $modelAndPolicyPath = __DIR__ . '/../../../../examples';
 
     public function testFileFilteredPolicy()
     {
-        $adapter = new FileFilteredAdapter($this->modelAndPolicyPath.'/rbac_with_domains_policy.csv');
+        $adapter = new FileFilteredAdapter($this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
         $this->assertTrue($adapter->isFiltered());
 
         $m = new Model();
-        $m->loadModel($this->modelAndPolicyPath.'/rbac_with_domains_model.conf');
+        $m->loadModel($this->modelAndPolicyPath . '/rbac_with_domains_model.conf');
 
         $adapter->loadFilteredPolicy($m, null);
         $this->assertFalse($adapter->isFiltered());

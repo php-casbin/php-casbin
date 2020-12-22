@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Casbin\Util;
 
 use Casbin\Rbac\RoleManager;
+use Closure;
 use IPTools\IP;
 use IPTools\Range;
 
@@ -16,7 +17,7 @@ use IPTools\Range;
 class BuiltinOperations
 {
     /**
-     * determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
+     * Determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
      * For example, "/foo/bar" matches "/foo/*".
      *
      * @param string $key1
@@ -32,11 +33,11 @@ class BuiltinOperations
 
         $needle = rtrim($key2, '*');
 
-        return substr($key1, 0, \strlen($needle)) === (string) $needle;
+        return substr($key1, 0, \strlen($needle)) === (string)$needle;
     }
 
     /**
-     * the wrapper for KeyMatch.
+     * The wrapper for KeyMatch.
      *
      * @param mixed ...$args
      *
@@ -51,7 +52,7 @@ class BuiltinOperations
     }
 
     /**
-     * determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
+     * Determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
      * For example, "/foo/bar" matches "/foo/*", "/resource1" matches "/:resource".
      *
      * @param string $key1
@@ -76,11 +77,11 @@ class BuiltinOperations
             $key2
         );
 
-        return self::regexMatch($key1, '^'.$key2.'$');
+        return self::regexMatch($key1, '^' . $key2 . '$');
     }
 
     /**
-     * the wrapper for KeyMatch2.
+     * The wrapper for KeyMatch2.
      *
      * @param mixed ...$args
      *
@@ -95,7 +96,7 @@ class BuiltinOperations
     }
 
     /**
-     * determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
+     * Determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
      * For example, "/foo/bar" matches "/foo/*", "/resource1" matches "/{resource}".
      *
      * @param string $key1
@@ -116,11 +117,11 @@ class BuiltinOperations
             $key2
         );
 
-        return self::regexMatch($key1, '^'.$key2.'$');
+        return self::regexMatch($key1, '^' . $key2 . '$');
     }
 
     /**
-     * the wrapper for KeyMatch3.
+     * The wrapper for KeyMatch3.
      *
      * @param mixed ...$args
      *
@@ -135,7 +136,7 @@ class BuiltinOperations
     }
 
     /**
-     * determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
+     * Determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
      * Besides what KeyMatch3 does, KeyMatch4 can also match repeated patterns:
      * "/parent/123/child/123" matches "/parent/{id}/child/{id}"
      * "/parent/123/child/456" does not match "/parent/{id}/child/{id}"
@@ -162,7 +163,7 @@ class BuiltinOperations
             $key2
         );
 
-        $matched = preg_match_all('~^'.$key2.'$~', $key1, $matches);
+        $matched = preg_match_all('~^' . $key2 . '$~', $key1, $matches);
         if (!$matched) {
             return false;
         }
@@ -181,7 +182,7 @@ class BuiltinOperations
     }
 
     /**
-     * the wrapper for KeyMatch4.
+     * The wrapper for KeyMatch4.
      *
      * @param mixed ...$args
      *
@@ -196,7 +197,7 @@ class BuiltinOperations
     }
 
     /**
-     * determines whether key1 matches the pattern of key2 in regular expression.
+     * Determines whether key1 matches the pattern of key2 in regular expression.
      *
      * @param string $key1
      * @param string $key2
@@ -205,11 +206,11 @@ class BuiltinOperations
      */
     public static function regexMatch(string $key1, string $key2): bool
     {
-        return (bool) preg_match('~'.$key2.'~', $key1);
+        return (bool)preg_match('~' . $key2 . '~', $key1);
     }
 
     /**
-     * the wrapper for RegexMatch.
+     * The wrapper for RegexMatch.
      *
      * @param mixed ...$args
      *
@@ -224,7 +225,7 @@ class BuiltinOperations
     }
 
     /**
-     * determines whether IP address ip1 matches the pattern of IP address ip2, ip2 can be an IP address or a CIDR
+     * Determines whether IP address ip1 matches the pattern of IP address ip2, ip2 can be an IP address or a CIDR
      * pattern.
      *
      * @param string $ip1
@@ -244,7 +245,7 @@ class BuiltinOperations
     }
 
     /**
-     * the wrapper for IPMatch.
+     * The wrapper for IPMatch.
      *
      * @param mixed ...$args
      *
@@ -261,13 +262,13 @@ class BuiltinOperations
     }
 
     /**
-     * the factory method of the g(_, _) function.
+     * The factory method of the g(_, _) function.
      *
      * @param RoleManager|null $rm
      *
-     * @return \Closure
+     * @return Closure
      */
-    public static function generateGFunction(RoleManager $rm = null): \Closure
+    public static function generateGFunction(RoleManager $rm = null): Closure
     {
         return function (...$args) use ($rm) {
             $name1 = $args[0];
@@ -276,14 +277,10 @@ class BuiltinOperations
             if (null === $rm) {
                 return $name1 == $name2;
             } elseif (2 == \count($args)) {
-                $res = $rm->hasLink($name1, $name2);
-
-                return $res;
+                return $rm->hasLink($name1, $name2);
             } else {
-                $domain = (string) $args[2];
-                $res = $rm->hasLink($name1, $name2, $domain);
-
-                return $res;
+                $domain = (string)$args[2];
+                return $rm->hasLink($name1, $name2, $domain);
             }
         };
     }

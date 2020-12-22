@@ -33,23 +33,30 @@ class Assertion
     /**
      * $tokens.
      *
-     * @var array
+     * @var string[]
      */
     public $tokens = [];
 
     /**
      * $policy.
      *
-     * @var array
+     * @var string[][]
      */
     public $policy = [];
 
     /**
-     * $rM.
+     * $policyMap
+     *
+     * @var array<string, int>
+     */
+    public $policyMap = [];
+
+    /**
+     * $rm.
      *
      * @var RoleManager
      */
-    public $rM;
+    public $rm;
 
     /**
      * @param RoleManager $rm
@@ -58,7 +65,7 @@ class Assertion
      */
     public function buildRoleLinks(RoleManager $rm): void
     {
-        $this->rM = $rm;
+        $this->rm = $rm;
         $count = substr_count($this->value, '_');
 
         foreach ($this->policy as $rule) {
@@ -70,15 +77,15 @@ class Assertion
             }
 
             if (2 == $count) {
-                $this->rM->addLink($rule[0], $rule[1]);
+                $this->rm->addLink($rule[0], $rule[1]);
             } elseif (3 == $count) {
-                $this->rM->addLink($rule[0], $rule[1], $rule[2]);
+                $this->rm->addLink($rule[0], $rule[1], $rule[2]);
             } elseif (4 == $count) {
-                $this->rM->addLink($rule[0], $rule[1], $rule[2], $rule[3]);
+                $this->rm->addLink($rule[0], $rule[1], $rule[2], $rule[3]);
             }
         }
 
-        Log::logPrint('Role links for: '.$this->key);
-        $this->rM->printRoles();
+        Log::logPrint('Role links for: ' . $this->key);
+        $this->rm->printRoles();
     }
 }

@@ -6,7 +6,7 @@ namespace Casbin;
 
 /**
  * Class CachedEnforcer
- * wraps Enforcer and provides decision cache.
+ * Wraps Enforcer and provides decision cache.
  *
  * @author techlee@qq.com
  */
@@ -36,7 +36,7 @@ class CachedEnforcer extends Enforcer
     }
 
     /**
-     * determines whether to enable cache on Enforce(). When enableCache is enabled, cached result (true | false) will be returned for previous decisions.
+     * Determines whether to enable cache on Enforce(). When enableCache is enabled, cached result (true | false) will be returned for previous decisions.
      *
      * @param bool $enableCache
      */
@@ -47,7 +47,7 @@ class CachedEnforcer extends Enforcer
 
     /**
      * Enforce decides whether a "subject" can access a "object" with the operation "action", input parameters are usually: (sub, obj, act).
-     * if rvals is not string , ingore the cache.
+     * If rvals is not string , ingore the cache.
      *
      * @param mixed ...$rvals
      *
@@ -81,7 +81,7 @@ class CachedEnforcer extends Enforcer
     }
 
     /**
-     * deletes all the existing cached decisions.
+     * Deletes all the existing cached decisions.
      */
     public function invalidateCache(): void
     {

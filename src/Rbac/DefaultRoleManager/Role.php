@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Casbin\Rbac;
+namespace Casbin\Rbac\DefaultRoleManager;
 
 /**
  * Role.
- * represents the data structure for a role in RBAC.
+ * Represents the data structure for a role in RBAC.
  *
  * @author techlee@qq.com
  */
@@ -18,7 +18,7 @@ class Role
     public $name = '';
 
     /**
-     * @var array
+     * @var Role[]
      */
     private $roles = [];
 
@@ -61,7 +61,7 @@ class Role
 
     /**
      * @param string $name
-     * @param int    $hierarchyLevel
+     * @param int $hierarchyLevel
      *
      * @return bool
      */
@@ -113,18 +113,18 @@ class Role
         $names = implode(', ', $this->getRoles());
 
         if (1 == $len) {
-            return $this->name.' < '.$names;
+            return $this->name . ' < ' . $names;
         } else {
-            return $this->name.' < ('.$names.')';
+            return $this->name . ' < (' . $names . ')';
         }
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public function getRoles(): array
     {
-        return array_map(function ($role) {
+        return array_map(function (Role $role) {
             return $role->name;
         }, $this->roles);
     }

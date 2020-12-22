@@ -4,21 +4,23 @@ declare(strict_types=1);
 
 namespace Casbin\Persist;
 
+use Closure;
+
 /**
  * Interface Watcher
- * the interface for Casbin watchers.
+ * The interface for Casbin watchers.
  *
  * @author techlee@qq.com
  */
 interface Watcher
 {
     /**
-     * sets the callback function that the watcher will call when the policy in DB has been changed by other instances.
+     * Sets the callback function that the watcher will call when the policy in DB has been changed by other instances.
      * A classic callback is Enforcer.LoadPolicy().
      *
-     * @param \Closure $func
+     * @param Closure $func
      */
-    public function setUpdateCallback(\Closure $func): void;
+    public function setUpdateCallback(Closure $func): void;
 
     /**
      * Update calls the update callback of other instances to synchronize their policy.
@@ -26,4 +28,9 @@ interface Watcher
      * Enforcer.AddPolicy(), Enforcer.RemovePolicy(), etc.
      */
     public function update(): void;
+
+    /**
+     * Close stops and releases the watcher, the callback function will not be called any more.
+     */
+    public function close(): void;
 }

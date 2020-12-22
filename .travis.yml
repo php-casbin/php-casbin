@@ -6,14 +6,15 @@ matrix:
     - php: 7.2
     - php: 7.3
     - php: 7.4
+    - php: 8.0
 
 install:
- - composer install --prefer-dist --dev --no-interaction
+  - composer install --prefer-dist --dev --no-interaction
 
 script:
- - mkdir -p build/logs
- - vendor/bin/phpunit
- - vendor/bin/phpstan
+  - mkdir -p build/logs
+  - vendor/bin/phpstan analyse
+  - vendor/bin/phpunit
 
 after_script:
- - travis_retry vendor/bin/php-coveralls -v
+  - travis_retry vendor/bin/php-coveralls -v

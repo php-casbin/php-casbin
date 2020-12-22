@@ -7,7 +7,7 @@ namespace Casbin\Config;
 use Casbin\Exceptions\CasbinException;
 
 /**
- * Interface ConfigContract.
+ * ConfigContract defines the behavior of a Config implementation.
  *
  * @author techlee@qq.com
  */

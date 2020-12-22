@@ -6,36 +6,31 @@ namespace Casbin\Rbac;
 
 /**
  * Interface RoleManager.
- * provides interface to define the operations for managing roles.
+ * Provides interface to define the operations for managing roles.
  *
  * @author techlee@qq.com
  */
 interface RoleManager
 {
     /**
-     * @param string   $name
-     * @param \Closure $fn
-     */
-    public function addMatchingFunc(string $name, \Closure $fn): void;
-
-    /**
-     * clears all stored data and resets the role manager to the initial state.
+     * Clears all stored data and resets the role manager to the initial state.
      */
     public function clear(): void;
 
     /**
-     * adds the inheritance link between role: name1 and role: name2.
+     * Adds the inheritance link between role: name1 and role: name2.
      * aka role: name1 inherits role: name2.
      * domain is a prefix to the roles.
      *
      * @param string $name1
      * @param string $name2
+     *
      * @param string ...$domain
      */
     public function addLink(string $name1, string $name2, string ...$domain): void;
 
     /**
-     * deletes the inheritance link between role: name1 and role: name2.
+     * Deletes the inheritance link between role: name1 and role: name2.
      * aka role: name1 does not inherit role: name2 any more.
      * domain is a prefix to the roles.
      *
@@ -46,7 +41,7 @@ interface RoleManager
     public function deleteLink(string $name1, string $name2, string ...$domain): void;
 
     /**
-     * determines whether role: name1 inherits role: name2.
+     * Determines whether role: name1 inherits role: name2.
      * domain is a prefix to the roles.
      *
      * @param string $name1
@@ -58,29 +53,29 @@ interface RoleManager
     public function hasLink(string $name1, string $name2, string ...$domain): bool;
 
     /**
-     * gets the roles that a subject inherits.
+     * Gets the roles that a subject inherits.
      * domain is a prefix to the roles.
      *
      * @param string $name
      * @param string ...$domain
      *
-     * @return array
+     * @return string[]
      */
     public function getRoles(string $name, string ...$domain): array;
 
     /**
-     * gets the users that inherits a subject.
+     * Gets the users that inherits a subject.
      * domain is an unreferenced parameter here, may be used in other implementations.
      *
      * @param string $name
      * @param string ...$domain
      *
-     * @return array
+     * @return string[]
      */
     public function getUsers(string $name, string ...$domain): array;
 
     /**
-     * prints all the roles to log.
+     * Prints all the roles to log.
      */
     public function printRoles(): void;
 }

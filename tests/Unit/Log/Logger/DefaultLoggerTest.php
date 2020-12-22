@@ -22,7 +22,7 @@ class DefaultLoggerTest extends TestCase
 
         $path = $logger->path;
         $name = $logger->name;
-        $logfile = $logger->path.DIRECTORY_SEPARATOR.$logger->name;
+        $logfile = $logger->path . DIRECTORY_SEPARATOR . $logger->name;
 
         if (file_exists($logfile)) {
             unlink($logfile);

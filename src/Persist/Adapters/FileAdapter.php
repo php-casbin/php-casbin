@@ -15,8 +15,8 @@ use Casbin\Util\Util;
 
 /**
  * Class FileAdapter
- * the file adapter for Casbin.
- * it can load policy from file or save policy to file.
+ * The file adapter for Casbin.
+ * It can load policy from file or save policy to file.
  *
  * @author techlee@qq.com
  */
@@ -40,9 +40,9 @@ class FileAdapter implements Adapter, BatchAdapter
     }
 
     /**
-     * loads all policy rules from the storage.
+     * Loads all policy rules from the storage.
      *
-     * @param \Casbin\Model\Model $model
+     * @param Model $model
      *
      * @throws CasbinException
      */
@@ -56,9 +56,9 @@ class FileAdapter implements Adapter, BatchAdapter
     }
 
     /**
-     * saves all policy rules to the storage.
+     * Saves all policy rules to the storage.
      *
-     * @param \Casbin\Model\Model $model
+     * @param Model $model
      *
      * @throws CasbinException
      */
@@ -73,7 +73,7 @@ class FileAdapter implements Adapter, BatchAdapter
         if (isset($model['p'])) {
             foreach ($model['p'] as $ptype => $ast) {
                 foreach ($ast->policy as $rule) {
-                    $writeString .= $ptype.', ';
+                    $writeString .= $ptype . ', ';
                     $writeString .= Util::arrayToString($rule);
                     $writeString .= PHP_EOL;
                 }
@@ -83,7 +83,7 @@ class FileAdapter implements Adapter, BatchAdapter
         if (isset($model['g'])) {
             foreach ($model['g'] as $ptype => $ast) {
                 foreach ($ast->policy as $rule) {
-                    $writeString .= $ptype.', ';
+                    $writeString .= $ptype . ', ';
                     $writeString .= Util::arrayToString($rule);
                     $writeString .= PHP_EOL;
                 }
@@ -94,7 +94,8 @@ class FileAdapter implements Adapter, BatchAdapter
     }
 
     /**
-     * @param \Casbin\Model\Model $model
+     * @param Model $model
+     * @throws InvalidFilePathException
      */
     protected function loadPolicyFile(Model $model): void
     {
@@ -119,11 +120,11 @@ class FileAdapter implements Adapter, BatchAdapter
     }
 
     /**
-     * adds a policy rule to the storage.
+     * Adds a policy rule to the storage.
      *
      * @param string $sec
      * @param string $ptype
-     * @param array  $rule
+     * @param string[] $rule
      *
      * @throws NotImplementedException
      */
@@ -133,11 +134,11 @@ class FileAdapter implements Adapter, BatchAdapter
     }
 
     /**
-     * adds a policy rule to the storage.
+     * Adds a policy rule to the storage.
      *
      * @param string $sec
      * @param string $ptype
-     * @param array  $rules
+     * @param string[][] $rules
      *
      * @throws NotImplementedException
      */
@@ -147,11 +148,11 @@ class FileAdapter implements Adapter, BatchAdapter
     }
 
     /**
-     * removes a policy rule from the storage.
+     * Removes a policy rule from the storage.
      *
      * @param string $sec
      * @param string $ptype
-     * @param array  $rule
+     * @param string[] $rule
      *
      * @throws NotImplementedException
      */
@@ -161,11 +162,11 @@ class FileAdapter implements Adapter, BatchAdapter
     }
 
     /**
-     * removes a policy rules from the storage.
+     * Removes a policy rules from the storage.
      *
      * @param string $sec
      * @param string $ptype
-     * @param array  $rules
+     * @param string[][] $rules
      *
      * @throws NotImplementedException
      */
@@ -175,11 +176,11 @@ class FileAdapter implements Adapter, BatchAdapter
     }
 
     /**
-     * removes policy rules that match the filter from the storage.
+     * Removes policy rules that match the filter from the storage.
      *
      * @param string $sec
      * @param string $ptype
-     * @param int    $fieldIndex
+     * @param int $fieldIndex
      * @param string ...$fieldValues
      *
      * @throws NotImplementedException

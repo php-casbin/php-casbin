@@ -14,22 +14,22 @@ class BuiltinOperationsTest extends TestCase
 {
     private function keyMatchFunc($name1, $name2)
     {
-        return (bool) BuiltinOperations::keyMatchFunc($name1, $name2);
+        return (bool)BuiltinOperations::keyMatchFunc($name1, $name2);
     }
 
     private function keyMatch2Func($name1, $name2)
     {
-        return (bool) BuiltinOperations::keyMatch2Func($name1, $name2);
+        return (bool)BuiltinOperations::keyMatch2Func($name1, $name2);
     }
 
     private function keyMatch3Func($name1, $name2)
     {
-        return (bool) BuiltinOperations::keyMatch3Func($name1, $name2);
+        return (bool)BuiltinOperations::keyMatch3Func($name1, $name2);
     }
 
     private function keyMatch4Func($name1, $name2)
     {
-        return (bool) BuiltinOperations::keyMatch4Func($name1, $name2);
+        return (bool)BuiltinOperations::keyMatch4Func($name1, $name2);
     }
 
     public function testKeyMatchFunc()

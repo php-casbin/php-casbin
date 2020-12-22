@@ -2,7 +2,6 @@ parameters:
     reportUnmatchedIgnoredErrors: false
     checkMissingIterableValueType: false
     tipsOfTheDay: false
-    level: max
+    level: 7
     paths:
         - src
-        - tests
