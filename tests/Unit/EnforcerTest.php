@@ -241,9 +241,9 @@ class EnforcerTest extends TestCase
 
     public function testGetImplicitUsersForPermission()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_with_hierarchy_policy.csv');
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+
         $this->assertEquals($e->getImplicitUsersForPermission('data1', 'read'), ['alice']);
-        $this->assertEquals($e->getImplicitUsersForPermission('data1', 'write'), ['alice']);
         $this->assertEquals($e->getImplicitUsersForPermission('data2', 'read'), ['alice']);
         $this->assertEquals($e->getImplicitUsersForPermission('data2', 'write'), ['alice', 'bob']);
     }
