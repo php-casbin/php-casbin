@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Casbin;
 
 use Casbin\Exceptions\CasbinException;
+use Casbin\Util\Util;
 
 /**
  * Enforcer = ManagementEnforcer + RBAC API.
@@ -330,13 +331,17 @@ class Enforcer extends ManagementEnforcer
      */
     public function getImplicitUsersForPermission(string ...$permission): array
     {
-        $subjects = $this->getAllSubjects();
-        $roles = $this->getAllRoles();
+        $pSubjects = $this->getAllSubjects();
+        $gInherit = $this->model->getValuesForFieldInPolicyAllTypes("g", 1);
+        $gSubjects = $this->model->getValuesForFieldInPolicyAllTypes("g", 0);
 
-        $users = array_diff($subjects, $roles);
+        $subjects = array_merge($pSubjects, $gSubjects);
+        Util::ArrayRemoveDuplicates($subjects);
+
+        $subjects = array_diff($subjects, $gInherit);
 
         $res = [];
-        foreach ($users as $user) {
+        foreach ($subjects as $user) {
             $req = $permission;
             array_unshift($req, $user);
             $allowed = $this->enforce(...$req);
