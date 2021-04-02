@@ -157,10 +157,8 @@ https://casbin.org/docs/en/tutorials
 
 php-casbin provides two sets of APIs to manage permissions:
 
-- [Management API](https://github.com/php-casbin/php-casbin/blob/master/src/ManagementApi.php): the primitive API that provides full support for php-casbin policy management. See [here](https://github.com/php-casbin/php-casbin/blob/master/tests/Unit/ManagementApiTest.php) for examples.
-- [RBAC API](https://github.com/php-casbin/php-casbin/blob/master/src/RbacApi.php): a more friendly API for RBAC. This API is a subset of Management API. The RBAC users could use this API to simplify the code. See [here](https://github.com/php-casbin/php-casbin/blob/master/tests/Unit/RbacApiTest.php) for examples.
-
-We also provide a web-based UI for model management and policy management:
+- [Management API](https://casbin.org/docs/en/management-api): the primitive API that provides full support for php-casbin policy management. 
+- [RBAC API](https://casbin.org/docs/en/rbac-api): a more friendly API for RBAC. This API is a subset of Management API. The RBAC users could use this API to simplify the code.
 
 ![model editor](https://hsluoyz.github.io/casbin/ui_model_editor.png)
 
