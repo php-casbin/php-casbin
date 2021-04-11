@@ -489,13 +489,14 @@ class CoreEnforcer
      * input parameters are usually: (matcher, sub, obj, act), use model matcher by default when matcher is "".
      *
      * @param string $matcher
+     * @param array $explains
      * @param mixed ...$rvals
      *
      * @return bool
      *
      * @throws CasbinException
      */
-    protected function enforcing(string $matcher, ...$rvals): bool
+    protected function enforcing(string $matcher, &$explains = [], ...$rvals): bool
     {
         if (!$this->enabled) {
             return true;
@@ -623,13 +624,30 @@ class CoreEnforcer
             }
         }
 
-        $result = $this->eft->mergeEffects($this->model['e']['e']->value, $policyEffects, $matcherResults);
+        list($result, $explainIndex) = $this->eft->mergeEffects($this->model['e']['e']->value, $policyEffects, $matcherResults);
+
+        if ($explains !== null) {
+            if (($explainIndex != -1) && (count($this->model['p']['p']->policy) > $explainIndex)) {
+                $explains = $this->model['p']['p']->policy[$explainIndex];
+            }
+        }
 
         if (Log::getLogger()->isEnabled()) {
             $reqStr = 'Request: ';
             $reqStr .= implode(', ', array_values($rvals));
 
-            $reqStr .= sprintf(' ---> %s', (string)$result);
+            $reqStr .= sprintf(" ---> %s\n", var_export($result, true));
+
+            $reqStr = 'Hit Policy: ';
+            if (count($explains) == count($explains, COUNT_RECURSIVE)) {
+                // if $explains is not multidimensional
+                $reqStr .= sprintf("%s \n", '[' . implode(', ', $explains) . ']');
+            } else {
+                // if $explains is multidimensional
+                foreach ($explains as $i => $pval) {
+                    $reqStr .= sprintf("%s \n", '[' . implode(', ', $pval) . ']');
+                }
+            }
             Log::logPrint($reqStr);
         }
 
@@ -682,7 +700,8 @@ class CoreEnforcer
      */
     public function enforce(...$rvals): bool
     {
-        return $this->enforcing('', ...$rvals);
+        $explains = [];
+        return $this->enforcing('', $explains, ...$rvals);
     }
 
     /**
@@ -698,6 +717,20 @@ class CoreEnforcer
      */
     public function enforceWithMatcher(string $matcher, ...$rvals): bool
     {
-        return $this->enforcing($matcher, ...$rvals);
+        $explains = [];
+        return $this->enforcing($matcher, $explains, ...$rvals);
+    }
+
+    /**
+     * EnforceEx explain enforcement by informing matched rules
+     *
+     * @param mixed ...$rvals
+     * @return array
+     */
+    public function enforceEx(...$rvals)
+    {
+        $explain = [];
+        $result = $this->enforcing("", $explain, ...$rvals);
+        return [$result, $explain];
     }
 }
