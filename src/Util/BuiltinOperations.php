@@ -6,6 +6,7 @@ namespace Casbin\Util;
 
 use Casbin\Rbac\RoleManager;
 use Closure;
+use Exception;
 use IPTools\IP;
 use IPTools\Range;
 
@@ -233,7 +234,7 @@ class BuiltinOperations
      *
      * @return bool
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function ipMatch(string $ip1, string $ip2): bool
     {
@@ -251,7 +252,7 @@ class BuiltinOperations
      *
      * @return bool
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function ipMatchFunc(...$args): bool
     {
@@ -259,6 +260,38 @@ class BuiltinOperations
         $ip2 = $args[1];
 
         return self::ipMatch($ip1, $ip2);
+    }
+
+    /**
+     * Returns true if the specified `string` matches the given glob `pattern`.
+     *
+     * @param string $str
+     * @param string $pattern
+     *
+     * @return bool
+     *
+     * @throws Exception
+     */
+    public static function globMatch(string $str, string $pattern): bool
+    {
+        return fnmatch($pattern, $str, FNM_PATHNAME | FNM_PERIOD);
+    }
+
+    /**
+     * The wrapper for globMatch.
+     *
+     * @param mixed ...$args
+     *
+     * @return bool
+     *
+     * @throws Exception
+     */
+    public static function globMatchFunc(...$args): bool
+    {
+        $str = $args[0];
+        $pattern = $args[1];
+
+        return self::globMatch($str, $pattern);
     }
 
     /**
