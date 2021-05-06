@@ -50,6 +50,9 @@ class FunctionMap
         $fm->addFunction('ipMatch', function (...$args) {
             return BuiltinOperations::ipMatchFunc(...$args);
         });
+        $fm->addFunction('globMatch', function (...$args) {
+            return BuiltinOperations::globMatchFunc(...$args);
+        });
 
         return $fm;
     }
