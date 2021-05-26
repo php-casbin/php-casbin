@@ -22,7 +22,7 @@ abstract class Effector
      * @param array  $effects
      * @param array  $results
      *
-     * @return bool
+     * @return array
      */
-    abstract public function mergeEffects(string $expr, array $effects, array $results): bool;
+    abstract public function mergeEffects(string $expr, array $effects, array $results): array;
 }

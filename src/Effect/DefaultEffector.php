@@ -20,44 +20,47 @@ class DefaultEffector extends Effector
      * @param array $effects
      * @param array $results
      *
-     * @return bool
+     * @return array
      *
      * @throws CasbinException
      */
-    public function mergeEffects(string $expr, array $effects, array $results): bool
+    public function mergeEffects(string $expr, array $effects, array $results): array
     {
         $result = false;
+        $explainIndex = -1;
         if ('some(where (p_eft == allow))' == $expr) {
-            if (in_array(self::ALLOW, $effects, true)) {
+            $explainIndex = array_search(self::ALLOW, $effects, true);
+            if ($explainIndex !== false) {
                 $result = true;
             }
         } elseif ('!some(where (p_eft == deny))' == $expr) {
             $result = true;
-            if (in_array(self::DENY, $effects, true)) {
+            $explainIndex = array_search(self::DENY, $effects, true);
+            if ($explainIndex !== false) {
                 $result = false;
             }
         } elseif ('some(where (p_eft == allow)) && !some(where (p_eft == deny))' == $expr) {
-            if (in_array(self::DENY, $effects, true)) {
+            $result = true;
+            $explainIndex = array_search(self::DENY, $effects, true);
+            if ($explainIndex !== false) {
                 $result = false;
-            } elseif (in_array(self::ALLOW, $effects, true)) {
-                $result = true;
             }
         } elseif ('priority(p_eft) || deny' == $expr) {
-            foreach ($effects as $eft) {
-                if (self::INDETERMINATE != $eft) {
-                    if (self::ALLOW == $eft) {
-                        $result = true;
-                    } else {
-                        $result = false;
-                    }
-
-                    break;
+            $explain = array_filter($effects, function ($val) {
+                return $val != self::INDETERMINATE;
+            });
+            $explainIndex = $explain ? array_key_first($explain) : false;
+            if ($explainIndex !== false) {
+                if (self::ALLOW == $explain[$explainIndex]) {
+                    $result = true;
+                } else {
+                    $result = false;
                 }
             }
         } else {
             throw new CasbinException('unsupported effect');
         }
-
-        return $result;
+        $explainIndex = $explainIndex === false ? -1 : $explainIndex;
+        return [$result, $explainIndex];
     }
 }
