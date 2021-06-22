@@ -40,10 +40,15 @@ class DefaultEffector extends Effector
                 $result = false;
             }
         } elseif ('some(where (p_eft == allow)) && !some(where (p_eft == deny))' == $expr) {
-            $result = true;
-            $explainIndex = array_search(self::DENY, $effects, true);
-            if ($explainIndex !== false) {
-                $result = false;
+            $result = false;
+            foreach ($effects as $i => $eft) {
+                if ($eft === self::ALLOW) {
+                    $result = true;
+                } elseif ($eft === self::DENY) {
+                    $result = false;
+                    $explainIndex = $i;
+                    break;
+                }
             }
         } elseif ('priority(p_eft) || deny' == $expr) {
             $explain = array_filter($effects, function ($val) {
