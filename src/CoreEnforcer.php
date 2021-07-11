@@ -16,6 +16,7 @@ use Casbin\Persist\Adapter;
 use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\FilteredAdapter;
 use Casbin\Persist\Watcher;
+use Casbin\Persist\WatcherEx;
 use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
@@ -420,8 +421,12 @@ class CoreEnforcer
 
         $this->adapter->savePolicy($this->model);
 
-        if (null !== $this->watcher) {
-            $this->watcher->update();
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            if ($this->watcher instanceof WatcherEx) {
+                $this->watcher->updateForSavePolicy($this->model);
+            } else {
+                $this->watcher->update();
+            }
         }
     }
 
@@ -450,7 +455,7 @@ class CoreEnforcer
      *
      * @param bool $enabled
      */
-    public function EnableAutoNotifyWatcher(bool $enabled = true): void
+    public function enableAutoNotifyWatcher(bool $enabled = true): void
     {
         $this->autoNotifyWatcher = $enabled;
     }
