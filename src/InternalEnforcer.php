@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Casbin;
 
 use Casbin\Exceptions\NotImplementedException;
+use Casbin\Log\Log;
 use Casbin\Persist\BatchAdapter;
 use Casbin\Persist\UpdatableAdapter;
+use Casbin\Persist\WatcherEx;
+use Casbin\Persist\WatcherUpdatable;
 
 /**
  * InternalEnforcer = CoreEnforcer + Internal API.
@@ -47,8 +50,13 @@ class InternalEnforcer extends CoreEnforcer
 
         $this->model->addPolicy($sec, $ptype, $rule);
 
-
-        $this->updateWatcher();
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            if ($this->watcher instanceof WatcherEx) {
+                $this->watcher->updateForAddPolicy($sec, $ptype, ...$rule);
+            } else {
+                $this->watcher->update();
+            }
+        }
 
         return true;
     }
@@ -78,7 +86,9 @@ class InternalEnforcer extends CoreEnforcer
 
         $this->model->addPolicies($sec, $ptype, $rules);
 
-        $this->updateWatcher();
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            $this->watcher->update();
+        }
 
         return true;
     }
@@ -105,7 +115,18 @@ class InternalEnforcer extends CoreEnforcer
             return false;
         }
 
-        $this->updateWatcher();
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            try {
+                if ($this->watcher instanceof WatcherUpdatable) {
+                    $this->watcher->updateForUpdatePolicy($oldRule, $newRule);
+                } else {
+                    $this->watcher->update();
+                }
+            } catch (\Exception $e) {
+                Log::logPrint("An exception occurred:" . $e->getMessage());
+                return false;
+            }
+        }
 
         return true;
     }
@@ -133,8 +154,13 @@ class InternalEnforcer extends CoreEnforcer
             return false;
         }
 
-
-        $this->updateWatcher();
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            if ($this->watcher instanceof WatcherEx) {
+                $this->watcher->updateForRemovePolicy($sec, $ptype, ...$rule);
+            } else {
+                $this->watcher->update();
+            }
+        }
 
         return true;
     }
@@ -166,7 +192,10 @@ class InternalEnforcer extends CoreEnforcer
             return false;
         }
 
-        $this->updateWatcher();
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            // error intentionally ignored
+            $this->watcher->update();
+        }
 
         return true;
     }
@@ -195,19 +224,15 @@ class InternalEnforcer extends CoreEnforcer
             return false;
         }
 
-
-        $this->updateWatcher();
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            // error intentionally ignored
+            if ($this->watcher instanceof WatcherEx) {
+                $this->watcher->updateForRemoveFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
+            } else {
+                $this->watcher->update();
+            }
+        }
 
         return true;
-    }
-
-    /**
-     * Check $this->watcher ans $this->autoNotifyWatcher.
-     */
-    private function updateWatcher(): void
-    {
-        if (!is_null($this->watcher) && $this->autoNotifyWatcher) {
-            $this->watcher->update();
-        }
     }
 }
