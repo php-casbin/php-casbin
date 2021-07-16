@@ -70,9 +70,9 @@ class Model extends Policy
         $ast->value = $value;
 
         if ('r' == $sec || 'p' == $sec) {
-            $ast->tokens = explode(', ', $ast->value);
+            $ast->tokens = explode(',', $ast->value);
             foreach ($ast->tokens as $i => $token) {
-                $ast->tokens[$i] = $key . '_' . $token;
+                $ast->tokens[$i] = $key . '_' . trim($token);
             }
         } else {
             $ast->value = Util::removeComments(Util::escapeAssertion($ast->value));
