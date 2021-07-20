@@ -19,6 +19,10 @@ use Casbin\Util\Util;
  */
 abstract class Policy implements ArrayAccess
 {
+    public const POLICY_ADD = 0;
+
+    public const POLICY_REMOVE = 1;
+
     const DEFAULT_SEP = ",";
 
     /**
@@ -27,6 +31,23 @@ abstract class Policy implements ArrayAccess
      * @var array<string, array<string, Assertion>>
      */
     protected $items = [];
+
+    /**
+     * BuildIncrementalRoleLinks provides incremental build the role inheritance relations.
+     *
+     * @param RoleManager $rm
+     * @param integer $op
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $rules
+     * @return void
+     */
+    public function buildIncrementalRoleLinks(RoleManager $rm, int $op, string $sec, string $ptype, array $rules): void
+    {
+        if ($sec == "g") {
+            $this->items[$sec][$ptype]->buildIncrementalRoleLinks($rm, $op, $rules);
+        }
+    }
 
     /**
      * Initializes the roles in RBAC.

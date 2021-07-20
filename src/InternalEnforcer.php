@@ -6,6 +6,7 @@ namespace Casbin;
 
 use Casbin\Exceptions\NotImplementedException;
 use Casbin\Log\Log;
+use Casbin\Model\Policy;
 use Casbin\Persist\BatchAdapter;
 use Casbin\Persist\UpdatableAdapter;
 use Casbin\Persist\WatcherEx;
@@ -50,6 +51,10 @@ class InternalEnforcer extends CoreEnforcer
 
         $this->model->addPolicy($sec, $ptype, $rule);
 
+        if ($sec == "g") {
+            $this->buildIncrementalRoleLinks(Policy::POLICY_ADD, $ptype, [$rule]);
+        }
+
         if ($this->watcher !== null && $this->autoNotifyWatcher) {
             if ($this->watcher instanceof WatcherEx) {
                 $this->watcher->updateForAddPolicy($sec, $ptype, ...$rule);
@@ -86,6 +91,10 @@ class InternalEnforcer extends CoreEnforcer
 
         $this->model->addPolicies($sec, $ptype, $rules);
 
+        if ($sec == "g") {
+            $this->buildIncrementalRoleLinks(Policy::POLICY_ADD, $ptype, $rules);
+        }
+
         if ($this->watcher !== null && $this->autoNotifyWatcher) {
             $this->watcher->update();
         }
@@ -113,6 +122,14 @@ class InternalEnforcer extends CoreEnforcer
         $ruleUpdated = $this->model->updatePolicy($sec, $ptype, $oldRule, $newRule);
         if (!$ruleUpdated) {
             return false;
+        }
+
+        if ($sec == "g") {
+            // remove the old rule
+            $this->buildIncrementalRoleLinks(Policy::POLICY_REMOVE, $ptype, [$oldRule]);
+
+            // add the new rule
+            $this->buildIncrementalRoleLinks(Policy::POLICY_ADD, $ptype, [$newRule]);
         }
 
         if ($this->watcher !== null && $this->autoNotifyWatcher) {
@@ -154,6 +171,10 @@ class InternalEnforcer extends CoreEnforcer
             return false;
         }
 
+        if ($sec == "g") {
+            $this->buildIncrementalRoleLinks(Policy::POLICY_REMOVE, $ptype, [$rule]);
+        }
+
         if ($this->watcher !== null && $this->autoNotifyWatcher) {
             if ($this->watcher instanceof WatcherEx) {
                 $this->watcher->updateForRemovePolicy($sec, $ptype, ...$rule);
@@ -192,6 +213,10 @@ class InternalEnforcer extends CoreEnforcer
             return false;
         }
 
+        if ($sec == "g") {
+            $this->buildIncrementalRoleLinks(Policy::POLICY_REMOVE, $ptype, $rules);
+        }
+
         if ($this->watcher !== null && $this->autoNotifyWatcher) {
             // error intentionally ignored
             $this->watcher->update();
@@ -222,6 +247,10 @@ class InternalEnforcer extends CoreEnforcer
         $ruleRemoved = $this->model->removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
         if (!$ruleRemoved) {
             return false;
+        }
+
+        if ($sec == "g") {
+            $this->buildIncrementalRoleLinks(Policy::POLICY_REMOVE, $ptype, $ruleRemoved);
         }
 
         if ($this->watcher !== null && $this->autoNotifyWatcher) {

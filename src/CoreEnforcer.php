@@ -738,4 +738,17 @@ class CoreEnforcer
         $result = $this->enforcing("", $explain, ...$rvals);
         return [$result, $explain];
     }
+
+    /**
+     * BuildIncrementalRoleLinks provides incremental build the role inheritance relations.
+     *
+     * @param integer $op policy operations.
+     * @param string $ptype policy type.
+     * @param string[][] $rules the rules.
+     * @return void
+     */
+    public function buildIncrementalRoleLinks(int $op, string $ptype, array $rules): void
+    {
+        $this->model->buildIncrementalRoleLinks($this->rm, $op, "g", $ptype, $rules);
+    }
 }
