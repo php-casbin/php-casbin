@@ -21,4 +21,15 @@ interface UpdatableAdapter extends Adapter
      * @param string[] $newPolicy
      */
     public function updatePolicy(string $sec, string $ptype, array $oldRule, array $newPolicy): void;
+
+    /**
+     * UpdatePolicies updates some policy rules to storage, like db, redis.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $oldRules
+     * @param string[][] $newRules
+     * @return void
+     */
+    public function updatePolicies(string $sec, string $ptype, array $oldRules, array $newRules): void;
 }

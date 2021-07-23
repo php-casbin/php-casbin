@@ -5,6 +5,8 @@ namespace Casbin\Tests\Unit;
 use Casbin\Exceptions\BatchOperationException;
 use PHPUnit\Framework\TestCase;
 use Casbin\Enforcer;
+use Casbin\Tests\Watcher\SampleWatcher;
+use Casbin\Tests\Watcher\SampleWatcherUpdatable;
 
 /**
  * ManagementEnforcerTest.
@@ -228,5 +230,48 @@ class ManagementEnforcerTest extends TestCase
 
         $this->assertFalse($e->hasPolicy('alice', 'data1', 'read'));
         $this->assertTrue($e->hasPolicy('alice', 'data1', 'write'));
+    }
+
+    public function testUpdatePolicies()
+    {
+        // p, alice, data1, read
+        // p, bob, data2, write
+        // p, data2_admin, data2, read
+        // p, data2_admin, data2, write
+        //
+        // g, alice, data2_admin
+
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        $watcherUpdatable = new SampleWatcherUpdatable();
+        $e->setWatcher($watcherUpdatable);
+
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'write'));
+        $this->assertTrue($e->hasPolicy('bob', 'data2', 'write'));
+        $this->assertFalse($e->hasPolicy('bob', 'data2', 'read'));
+
+        $oldPolicies = [
+            ['alice', 'data1', 'read'],
+            ['bob', 'data2', 'write']
+        ];
+        $newPolicies = [
+            ['alice', 'data1', 'write'],
+            ['bob', 'data2', 'read']
+        ];
+        $e->updatePolicies($newPolicies, $oldPolicies);
+        $watcherUpdatable->setUpdateCallback(function () {
+            throw new \Exception('');
+        });
+        $e->updatePolicies($oldPolicies, $newPolicies);
+
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'write'));
+        $this->assertFalse($e->hasPolicy('bob', 'data2', 'write'));
+        $this->assertTrue($e->hasPolicy('bob', 'data2', 'read'));
+        $watcher = new SampleWatcher();
+        $e->setWatcher($watcher);
+        $watcher->setUpdateCallback(function () {
+        });
+        $e->updatePolicies($newPolicies, $oldPolicies);
     }
 }

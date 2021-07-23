@@ -148,6 +148,44 @@ class InternalEnforcer extends CoreEnforcer
         return true;
     }
 
+    protected function updatePoliciesInternal(string $sec, string $ptype, array $oldRules, array $newRules): bool
+    {
+        if ($this->shouldPersist() && $this->adapter instanceof UpdatableAdapter) {
+            try {
+                $this->adapter->updatePolicies($sec, $ptype, $oldRules, $newRules);
+            } catch (NotImplementedException $e) {
+            }
+        }
+    
+        $ruleUpdated = $this->model->updatePolicies($sec, $ptype, $oldRules, $newRules);
+        if (!$ruleUpdated) {
+            return false;
+        }
+
+        if ($sec == "g") {
+            // remove the old rule
+            $this->buildIncrementalRoleLinks(Policy::POLICY_REMOVE, $ptype, $oldRules);
+
+            // add the new rule
+            $this->buildIncrementalRoleLinks(Policy::POLICY_ADD, $ptype, $newRules);
+        }
+
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            try {
+                if ($this->watcher instanceof WatcherUpdatable) {
+                    $this->watcher->updateForUpdatePolicies($oldRules, $newRules);
+                } else {
+                    $this->watcher->update();
+                }
+            } catch (\Exception $e) {
+                Log::logPrint("An exception occurred:" . $e->getMessage());
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Removes a rule from the current policy.
      *
