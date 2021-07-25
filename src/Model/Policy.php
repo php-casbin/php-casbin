@@ -242,6 +242,45 @@ abstract class Policy implements ArrayAccess
     }
 
     /**
+     * UpdatePolicies updates a policy rule from the model.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $oldRules
+     * @param string[][] $newRules
+     * @return boolean
+     */
+    public function updatePolicies(string $sec, string $ptype, array $oldRules, array $newRules): bool
+    {
+        $modifiedRuleIndex = [];
+
+        $newIndex = 0;
+        foreach ($oldRules as $oldIndex => $oldRule) {
+            $oldPolicy = implode(self::DEFAULT_SEP, $oldRule);
+            $index = $this->items[$sec][$ptype]->policyMap[$oldPolicy] ?? null;
+            if (is_null($index)) {
+                // rollback
+                foreach ($modifiedRuleIndex as $index => $oldNewIndex) {
+                    $this->items[$sec][$ptype]->policy[$index] = $oldRules[$oldNewIndex[0]];
+                    $oldPolicy = implode(self::DEFAULT_SEP, $oldRules[$oldNewIndex[0]]);
+                    $newPolicy = implode(self::DEFAULT_SEP, $newRules[$oldNewIndex[1]]);
+                    unset($this->items[$sec][$ptype]->policyMap[$newPolicy]);
+                    $this->items[$sec][$ptype]->policyMap[$oldPolicy] = $index;
+                }
+                return false;
+            }
+
+            $this->items[$sec][$ptype]->policy[$index] = $newRules[$newIndex];
+            unset($this->items[$sec][$ptype]->policyMap[$oldPolicy]);
+            $this->items[$sec][$ptype]->policyMap[implode(self::DEFAULT_SEP, $newRules[$newIndex])] = $index;
+            $modifiedRuleIndex[$index] = [$oldIndex, $newIndex];
+            $newIndex++;
+        }
+
+        return true;
+    }
+
+    /**
      * Removes a policy rule from the model.
      *
      * @param string $sec

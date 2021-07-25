@@ -11,6 +11,7 @@ use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\AdapterHelper;
 use Casbin\Persist\BatchAdapter;
+use Casbin\Persist\UpdatableAdapter;
 use Casbin\Util\Util;
 
 /**
@@ -20,7 +21,7 @@ use Casbin\Util\Util;
  *
  * @author techlee@qq.com
  */
-class FileAdapter implements Adapter, BatchAdapter
+class FileAdapter implements Adapter, BatchAdapter, UpdatableAdapter
 {
     use AdapterHelper;
 
@@ -186,6 +187,34 @@ class FileAdapter implements Adapter, BatchAdapter
      * @throws NotImplementedException
      */
     public function removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): void
+    {
+        throw new NotImplementedException('not implemented');
+    }
+
+    /**
+     * Updates a policy rule from storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[] $oldRule
+     * @param string[] $newPolicy
+     */
+    public function updatePolicy(string $sec, string $ptype, array $oldRule, array $newPolicy): void
+    {
+        throw new NotImplementedException('not implemented');
+    }
+
+    /**
+     * UpdatePolicies updates some policy rules to storage, like db, redis.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $oldRules
+     * @param string[][] $newRules
+     * @return void
+     */
+    public function updatePolicies(string $sec, string $ptype, array $oldRules, array $newRules): void
     {
         throw new NotImplementedException('not implemented');
     }
