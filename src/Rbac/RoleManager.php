@@ -78,4 +78,22 @@ interface RoleManager
      * Prints all the roles to log.
      */
     public function printRoles(): void;
+
+    /**
+     * Support use pattern in g.
+     *
+     * @param string $name
+     * @param \Closure $fn
+     * @return void
+     */
+    public function addMatchingFunc(string $name, \Closure $fn): void;
+
+    /**
+     * Support use domain pattern in g.
+     *
+     * @param string $name
+     * @param \Closure $fn
+     * @return void
+     */
+    public function addDomainMatchingFunc(string $name, \Closure $fn): void;
 }

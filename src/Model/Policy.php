@@ -35,33 +35,34 @@ abstract class Policy implements ArrayAccess
     /**
      * BuildIncrementalRoleLinks provides incremental build the role inheritance relations.
      *
-     * @param RoleManager $rm
+     * @param RoleManager[] $rmMap
      * @param integer $op
      * @param string $sec
      * @param string $ptype
      * @param string[][] $rules
      * @return void
      */
-    public function buildIncrementalRoleLinks(RoleManager $rm, int $op, string $sec, string $ptype, array $rules): void
+    public function buildIncrementalRoleLinks(array $rmMap, int $op, string $sec, string $ptype, array $rules): void
     {
         if ($sec == "g") {
-            $this->items[$sec][$ptype]->buildIncrementalRoleLinks($rm, $op, $rules);
+            $this->items[$sec][$ptype]->buildIncrementalRoleLinks($rmMap[$ptype], $op, $rules);
         }
     }
 
     /**
      * Initializes the roles in RBAC.
      *
-     * @param RoleManager $rm
+     * @param RoleManager[] $rmMap
      * @throws CasbinException
      */
-    public function buildRoleLinks(RoleManager $rm): void
+    public function buildRoleLinks(array $rmMap): void
     {
         if (!isset($this->items['g'])) {
             return;
         }
 
-        foreach ($this->items['g'] as $ast) {
+        foreach ($this->items['g'] as $ptype => $ast) {
+            $rm = $rmMap[$ptype];
             $ast->buildRoleLinks($rm);
         }
     }

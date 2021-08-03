@@ -75,11 +75,11 @@ class CoreEnforcer
     protected $watcher;
 
     /**
-     * RoleManager.
+     * RmMap.
      *
-     * @var RoleManager
+     * @var RoleManager[]
      */
-    protected $rm;
+    protected $rmMap;
 
     /**
      * $enabled.
@@ -209,7 +209,6 @@ class CoreEnforcer
     public function initWithModelAndAdapter(Model $m, Adapter $adapter = null): void
     {
         $this->adapter = $adapter;
-
         $this->model = $m;
         $this->model->printModel();
 
@@ -230,7 +229,7 @@ class CoreEnforcer
      */
     protected function initialize(): void
     {
-        $this->rm = new DefaultRoleManager(10);
+        $this->rmMap = [];
         $this->eft = new DefaultEffector();
         $this->watcher = null;
 
@@ -238,6 +237,7 @@ class CoreEnforcer
         $this->autoSave = true;
         $this->autoBuildRoleLinks = true;
         $this->autoNotifyWatcher = true;
+        $this->initRmMap();
     }
 
     /**
@@ -318,7 +318,7 @@ class CoreEnforcer
      */
     public function getRoleManager(): RoleManager
     {
-        return $this->rm;
+        return $this->rmMap['g'];
     }
 
     /**
@@ -328,7 +328,7 @@ class CoreEnforcer
      */
     public function setRoleManager(RoleManager $rm): void
     {
-        $this->rm = $rm;
+        $this->rmMap['g'] = $rm;
     }
 
     /**
@@ -386,6 +386,7 @@ class CoreEnforcer
             throw new CasbinException('filtered policies are not supported by this adapter');
         }
 
+        $this->initRmMap();
         $this->model->printPolicy();
         if ($this->autoBuildRoleLinks) {
             $this->buildRoleLinks();
@@ -426,6 +427,25 @@ class CoreEnforcer
                 $this->watcher->updateForSavePolicy($this->model);
             } else {
                 $this->watcher->update();
+            }
+        }
+    }
+
+    /**
+     * initRmMap initializes rmMap.
+     *
+     * @return void
+     */
+    public function initRmMap(): void
+    {
+        if (isset($this->model['g'])) {
+            foreach ($this->model['g'] as $ptype => $value) {
+                if (isset($this->rmMap[$ptype])) {
+                    $rm = $this->rmMap[$ptype];
+                    $rm->clear();
+                } else {
+                    $this->rmMap[$ptype] = new DefaultRoleManager(10);
+                }
             }
         }
     }
@@ -485,8 +505,11 @@ class CoreEnforcer
      */
     public function buildRoleLinks(): void
     {
-        $this->rm->clear();
-        $this->model->buildRoleLinks($this->rm);
+        foreach ($this->rmMap as $rm) {
+            $rm->clear();
+        }
+
+        $this->model->buildRoleLinks($this->rmMap);
     }
 
     /**
@@ -749,6 +772,42 @@ class CoreEnforcer
      */
     public function buildIncrementalRoleLinks(int $op, string $ptype, array $rules): void
     {
-        $this->model->buildIncrementalRoleLinks($this->rm, $op, "g", $ptype, $rules);
+        $this->model->buildIncrementalRoleLinks($this->rmMap, $op, "g", $ptype, $rules);
+    }
+
+    /**
+     * AddNamedMatchingFunc add MatchingFunc by ptype RoleManager
+     *
+     * @param string $ptype
+     * @param string $name
+     * @param \Closure $fn
+     * @return boolean
+     */
+    public function addNamedMatchingFunc(string $ptype, string $name, \Closure $fn): bool
+    {
+        if (isset($this->rmMap[$ptype])) {
+            $rm = $this->rmMap[$ptype];
+            $rm->addMatchingFunc($name, $fn);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * AddNamedDomainMatchingFunc add MatchingFunc by ptype to RoleManager
+     *
+     * @param string $ptype
+     * @param string $name
+     * @param \Closure $fn
+     * @return boolean
+     */
+    public function addNamedDomainMatchingFunc(string $ptype, string $name, \Closure $fn): bool
+    {
+        if (isset($this->rmMap[$ptype])) {
+            $rm = $this->rmMap[$ptype];
+            $rm->addDomainMatchingFunc($name, $fn);
+            return true;
+        }
+        return false;
     }
 }

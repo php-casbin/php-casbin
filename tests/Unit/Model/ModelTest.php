@@ -89,14 +89,14 @@ EOT;
 
     public function testRBACModelWithPattern()
     {
-
-
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
 
-
-        $e->getRoleManager() instanceof RoleManager;
-
-        $e->getRoleManager()->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+        // Here's a little confusing: the matching function here is not the custom function used in matcher.
+        // It is the matching function used by "g" (and "g2", "g3" if any..)
+        // You can see in policy that: "g2, /book/:id, book_group", so in "g2()" function in the matcher, instead
+        // of checking whether "/book/:id" equals the obj: "/book/1", it checks whether the pattern matches.
+        // You can see it as normal RBAC: "/book/:id" == "/book/1" becomes KeyMatch2("/book/:id", "/book/1")
+        $e->addNamedMatchingFunc('g2', 'keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch2($key1, $key2);
         });
         $this->assertEquals($e->enforce('alice', '/book/1', 'GET'), true);
@@ -108,7 +108,9 @@ EOT;
         $this->assertEquals($e->enforce('bob', '/pen/1', 'GET'), true);
         $this->assertEquals($e->enforce('bob', '/pen/2', 'GET'), true);
 
-        $e->getRoleManager()->addMatchingFunc('keyMatch3', function (string $key1, string $key2) {
+        // AddMatchingFunc() is actually setting a function because only one function is allowed,
+        // so when we set "KeyMatch3", we are actually replacing "KeyMatch2" with "KeyMatch3".
+        $e->addNamedMatchingFunc('g2', 'keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch3($key1, $key2);
         });
         $this->assertEquals($e->enforce('alice', '/book2/1', 'GET'), true);
@@ -124,7 +126,7 @@ EOT;
     public function testDomainMatchModel()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domain_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_domain_pattern_policy.csv');
-        $e->getRoleManager()->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+        $e->addNamedDomainMatchingFunc('g', 'keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch2($key1, $key2);
         });
 
@@ -143,10 +145,10 @@ EOT;
     public function testAllMatchModel()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_all_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_all_pattern_policy.csv');
-        $e->getRoleManager()->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+        $e->addNamedMatchingFunc('g', 'keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch2($key1, $key2);
         });
-        $e->getRoleManager()->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
+        $e->addNamedDomainMatchingFunc('g', 'keyMatch2', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch2($key1, $key2);
         });
 
