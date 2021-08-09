@@ -120,7 +120,7 @@ EOT
 
     public function testGetRoleManager()
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf');
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf');
         $rm = $e->getRoleManager();
         $this->assertTrue($rm instanceof RoleManager);
     }

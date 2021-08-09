@@ -259,12 +259,14 @@ class Enforcer extends ManagementEnforcer
             $name = $q[0];
             $q = array_slice($q, 1);
 
-            $roles = $this->rm->getRoles($name, ...$domain);
-            foreach ($roles as $r) {
-                if (!isset($roleSet[$r])) {
-                    $res[] = $r;
-                    $q[] = $r;
-                    $roleSet[$r] = true;
+            foreach ($this->rmMap as $rm) {
+                $roles = $rm->getRoles($name, ...$domain);
+                foreach ($roles as $r) {
+                    if (!isset($roleSet[$r])) {
+                        $res[] = $r;
+                        $q[] = $r;
+                        $roleSet[$r] = true;
+                    }
                 }
             }
         }
