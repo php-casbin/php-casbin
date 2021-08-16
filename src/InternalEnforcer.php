@@ -302,4 +302,44 @@ class InternalEnforcer extends CoreEnforcer
 
         return true;
     }
+
+    protected function updateFilteredPoliciesInternal(string $sec, string $ptype, array $newRules, int $fieldIndex, string ...$fieldValues): bool
+    {
+        $oldRules = [];
+        if ($this->shouldPersist()) {
+            try {
+                if ($this->adapter instanceof UpdatableAdapter) {
+                    $oldRules = $this->adapter->updateFilteredPolicies($sec, $ptype, $newRules, $fieldIndex, ...$fieldValues);
+                }
+            } catch (NotImplementedException $e) {
+            }
+        }
+
+        $ruleChanged = $this->model->removePolicies($sec, $ptype, $oldRules);
+        $this->model->addPolicies($sec, $ptype, $newRules);
+
+        $ruleChanged = $ruleChanged && count($newRules) !== 0;
+        if (!$ruleChanged) {
+            return $ruleChanged;
+        }
+    
+        if ($sec == "g") {
+            // remove the old rules
+            $this->buildIncrementalRoleLinks(Policy::POLICY_REMOVE, $ptype, $oldRules);
+            // add the new rules
+            $this->buildIncrementalRoleLinks(Policy::POLICY_ADD, $ptype, $newRules);
+        }
+    
+        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+            // error intentionally ignored
+            if ($this->watcher instanceof WatcherUpdatable) {
+                $this->watcher->updateForUpdatePolicies($oldRules, $newRules);
+            } else {
+                $this->watcher->update();
+            }
+            return $ruleChanged;
+        }
+    
+        return $ruleChanged;
+    }
 }

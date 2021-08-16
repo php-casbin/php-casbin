@@ -218,4 +218,19 @@ class FileAdapter implements Adapter, BatchAdapter, UpdatableAdapter
     {
         throw new NotImplementedException('not implemented');
     }
+
+    /**
+     * UpdateFilteredPolicies deletes old rules and adds new rules.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array $newPolicies
+     * @param integer $fieldIndex
+     * @param string ...$fieldValues
+     * @return array
+     */
+    public function updateFilteredPolicies(string $sec, string $ptype, array $newPolicies, int $fieldIndex, string ...$fieldValues): array
+    {
+        throw new NotImplementedException('not implemented');
+    }
 }

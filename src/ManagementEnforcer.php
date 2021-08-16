@@ -368,6 +368,25 @@ class ManagementEnforcer extends InternalEnforcer
         return $this->updatePoliciesInternal("p", $ptype, $oldPolices, $newPolicies);
     }
 
+    public function updateFilteredPolicies(array $newPolicies, int $fieldIndex, string ...$fieldValues): bool
+    {
+        return $this->updateFilteredNamedPolicies("p", $newPolicies, $fieldIndex, ...$fieldValues);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string $ptype
+     * @param array $newPolicies
+     * @param integer $fieldIndex
+     * @param string ...$fieldValues
+     * @return boolean
+     */
+    public function updateFilteredNamedPolicies(string $ptype, array $newPolicies, int $fieldIndex, string ...$fieldValues): bool
+    {
+        return $this->updateFilteredPoliciesInternal("p", $ptype, $newPolicies, $fieldIndex, ...$fieldValues);
+    }
+
     /**
      * Removes an authorization rule from the current policy, field filters can be specified.
      *

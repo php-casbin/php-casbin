@@ -5,8 +5,11 @@ namespace Casbin\Tests\Unit;
 use Casbin\Exceptions\BatchOperationException;
 use PHPUnit\Framework\TestCase;
 use Casbin\Enforcer;
+use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Tests\Watcher\SampleWatcher;
 use Casbin\Tests\Watcher\SampleWatcherUpdatable;
+use Mockery;
+use Casbin\Exceptions\NotImplementedException;
 
 /**
  * ManagementEnforcerTest.
@@ -273,5 +276,94 @@ class ManagementEnforcerTest extends TestCase
         $watcher->setUpdateCallback(function () {
         });
         $e->updatePolicies($newPolicies, $oldPolicies);
+    }
+
+    public function testupdateFilteredPolicies()
+    {
+        // p, alice, data1, read
+        // p, bob, data2, write
+        // p, data2_admin, data2, read
+        // p, data2_admin, data2, write
+        //
+        // g, alice, data2_admin
+
+        $testAdapter = Mockery::mock(FileAdapter::class);
+        $model = Mockery::type("Casbin\Model\Model");
+        $testAdapter->shouldReceive('loadPolicy')->once()->with($model)->andReturn(null);
+    
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $testAdapter);
+        $rules = [
+            ['alice', 'data1', 'read'],
+            ['bob', 'data2', 'write']
+        ];
+
+        $testAdapter->shouldReceive('addPolicies')->once()->with('p', 'p', $rules)->andReturn(null);
+        $e->addPolicies($rules);
+
+        $watcherUpdatable = new SampleWatcherUpdatable();
+        $e->setWatcher($watcherUpdatable);
+        $watcherUpdatable->setUpdateCallback(function () {
+        });
+
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'write'));
+        $this->assertTrue($e->hasPolicy('bob', 'data2', 'write'));
+        $this->assertFalse($e->hasPolicy('bob', 'data2', 'read'));
+
+        $testAdapter->shouldReceive('updateFilteredPolicies')->once()->with('p', 'p', [['alice', 'data1', 'write']], 0, 'alice', 'data1', 'read')->andReturn([['alice', 'data1', 'read']]);
+        $e->updateFilteredPolicies([['alice', 'data1', 'write']], 0, 'alice', 'data1', 'read');
+        $testAdapter->shouldReceive('updateFilteredPolicies')->once()->with('p', 'p', [['bob', 'data2', 'read']], 0, 'bob', 'data2', 'write')->andReturn([['bob', 'data2', 'write']]);
+        $e->updateFilteredPolicies([['bob', 'data2', 'read']], 0, 'bob', 'data2', 'write');
+
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'write'));
+        $this->assertFalse($e->hasPolicy('bob', 'data2', 'write'));
+        $this->assertTrue($e->hasPolicy('bob', 'data2', 'read'));
+
+        $watcher = new SampleWatcher();
+        $e->setWatcher($watcher);
+        $watcher->setUpdateCallback(function () {
+        });
+        
+        $testAdapter->shouldReceive('updateFilteredPolicies')->once()->with('p', 'p', [['alice', 'data1', 'read']], 0, 'alice', 'data1', 'write')->andReturn([['alice', 'data1', 'write']]);
+        $e->updateFilteredPolicies([['alice', 'data1', 'read']], 0, 'alice', 'data1', 'write');
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'write'));
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'read'));
+    }
+
+    public function testupdateFilteredPoliciesWithoutWatcher()
+    {
+        $testAdapter = Mockery::mock(FileAdapter::class);
+        $model = Mockery::type("Casbin\Model\Model");
+        $testAdapter->shouldReceive('loadPolicy')->once()->with($model)->andReturn(null);
+    
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $testAdapter);
+        $rules = [
+            ['alice', 'data1', 'read'],
+        ];
+        $testAdapter->shouldReceive('addPolicies')->once()->with('p', 'p', $rules)->andReturn(null);
+        
+        $e->addPolicies($rules);
+
+
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'write'));
+
+        // throw exception
+        $testAdapter->shouldReceive('updateFilteredPolicies')->once()->with('p', 'p', [['alice', 'data1', 'write']], 0, 'alice', 'data1', 'read')->andReturn([['alice', 'data1', 'read']])->andThrow(new NotImplementedException());
+
+        $e->updateFilteredPolicies([['alice', 'data1', 'write']], 0, 'alice', 'data1', 'read');
+
+        $testAdapter->shouldReceive('updateFilteredPolicies')->once()->with('p', 'p', [['alice', 'data1', 'write']], 0, 'alice', 'data1', 'read')->andReturn([['alice', 'data1', 'read']]);
+
+        $e->updateFilteredPolicies([['alice', 'data1', 'write']], 0, 'alice', 'data1', 'read');
+
+        // if $ruleChanged is 0
+        $testAdapter->shouldReceive('updateFilteredPolicies')->once()->with('p', 'p', [], 0, 'alice', 'data1', 'read')->andReturn([['alice', 'data1', 'read']]);
+
+        $e->updateFilteredPolicies([], 0, 'alice', 'data1', 'read');
+
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'write'));
     }
 }
