@@ -25,14 +25,14 @@ class Util
      */
     public static function escapeAssertion(string $s): string
     {
-        if (0 === strpos($s, 'r.')) {
-            $s = substr_replace($s, 'r_', 0, 2);
-        }
-        if (0 === strpos($s, 'p.')) {
-            $s = substr_replace($s, 'p_', 0, 2);
+        if (0 === strpos($s, "r") || 0 === strpos($s, "p")) {
+            $pos = strpos($s, '.');
+            if ($pos !== false) {
+                $s[$pos] = '_';
+            }
         }
 
-        $s = preg_replace_callback("~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)(r|p)(\.)~", function ($m) {
+        $s = preg_replace_callback("~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)((r|p)[0-9]*)(\.)~", function ($m) {
             return $m[1] . $m[2] . '_';
         }, $s);
 
@@ -116,5 +116,37 @@ class Util
         preg_match_all(self::REGEXP, $s, $matches);
 
         return $matches['rule'];
+    }
+
+    /**
+     * ReplaceEvalWithMap replace function eval with the value of its parameters via given sets.
+     *
+     * @param string $src
+     * @param array $sets
+     * @return string
+     */
+    public static function replaceEvalWithMap(string $src, array $sets): string
+    {
+        return preg_replace_callback(self::REGEXP, function ($s) use ($sets): string {
+            $s = $s[0];
+            preg_match(self::REGEXP, $s, $subs);
+
+            if ($subs === null) {
+                return $s;
+            }
+            $key = $subs[1];
+            
+            if (isset($sets[$key])) {
+                $found = true;
+                $value = $sets[$key];
+            } else {
+                $found = false;
+            }
+            
+            if (!$found) {
+                return $s;
+            }
+            return preg_replace(self::REGEXP, $s, $value);
+        }, $src);
     }
 }

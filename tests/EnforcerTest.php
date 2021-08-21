@@ -2,6 +2,7 @@
 
 namespace Casbin\Tests;
 
+use Casbin\EnforceContext;
 use Casbin\Enforcer;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapters\FileAdapter;
@@ -397,5 +398,19 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->enforceEx('bob', 'data1', 'write'), [false, []]);
         $this->assertEquals($e->enforceEx('bob', 'data2', 'read'), [false, []]);
         $this->assertEquals($e->enforceEx('bob', 'data2', 'write'), [true, ['bob', 'data2', 'write']]);
+    }
+
+    public function testMultiplePolicyDefinitions()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/multiple_policy_definitions_model.conf', $this->modelAndPolicyPath . '/multiple_policy_definitions_policy.csv');
+
+        $enforceContext = new EnforceContext('2');
+        $enforceContext->eType = "e";
+        $this->assertEquals($e->enforce('alice', 'data2', 'read'), true);
+        $tmp = new \stdClass();
+        $tmp->Age = 70;
+        $this->assertEquals($e->enforce($enforceContext, $tmp, '/data1', 'read'), false);
+        $tmp->Age = 30;
+        $this->assertEquals($e->enforce($enforceContext, $tmp, '/data1', 'read'), true);
     }
 }
