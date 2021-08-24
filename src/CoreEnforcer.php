@@ -543,15 +543,33 @@ class CoreEnforcer
             throw new CasbinException('model is undefined');
         }
 
+        $rType = "r";
+        $pType = "p";
+        $eType = "e";
+        $mType = "m";
+
+        switch (true) {
+            case $rvals[0] instanceof EnforceContext:
+                $enforceContext = $rvals[0];
+                $rType = $enforceContext->rType;
+                $pType = $enforceContext->pType;
+                $eType = $enforceContext->eType;
+                $mType = $enforceContext->mType;
+                array_shift($rvals);
+                break;
+            default:
+                break;
+        }
+
         $expString = '';
         if ('' === $matcher) {
-            $expString = $this->getExpString($this->model['m']['m']->value);
+            $expString = $this->model['m'][$mType]->value;
         } else {
             $expString = Util::removeComments(Util::escapeAssertion($matcher));
         }
 
-        $rTokens = array_values($this->model['r']['r']->tokens);
-        $pTokens = array_values($this->model['p']['p']->tokens);
+        $rTokens = array_values($this->model['r'][$rType]->tokens);
+        $pTokens = array_values($this->model['p'][$pType]->tokens);
 
         $rParameters = array_combine($rTokens, $rvals);
 
@@ -571,10 +589,10 @@ class CoreEnforcer
         $policyEffects = [];
         $matcherResults = [];
 
-        $policyLen = \count($this->model['p']['p']->policy);
+        $policyLen = \count($this->model['p'][$pType]->policy);
 
         if (0 != $policyLen) {
-            foreach ($this->model['p']['p']->policy as $i => $pvals) {
+            foreach ($this->model['p'][$pType]->policy as $i => $pvals) {
                 $parameters = array_combine($pTokens, $pvals);
                 if (false == $parameters) {
                     throw new CasbinException('invalid policy size');
@@ -582,18 +600,19 @@ class CoreEnforcer
 
                 if ($hasEval) {
                     $ruleNames = Util::getEvalValue($expString);
-                    $expWithRule = $expString;
+                    $replacements = [];
                     $pTokens_flipped = array_flip($pTokens);
                     foreach ($ruleNames as $ruleName) {
                         if (isset($pTokens_flipped[$ruleName])) {
                             $rule = Util::escapeAssertion($pvals[$pTokens_flipped[$ruleName]]);
-                            $expWithRule = Util::replaceEval($expWithRule, $rule);
+                            $replacements[$ruleName] = $rule;
                         } else {
                             throw new CasbinException('please make sure rule exists in policy when using eval() in matcher');
                         }
-
-                        $expression = $expressionLanguage->parse($expWithRule, array_merge($rTokens, $pTokens));
                     }
+
+                    $expWithRule = Util::replaceEvalWithMap($expString, $replacements);
+                    $expression = $expressionLanguage->parse($expWithRule, array_merge($rTokens, $pTokens));
                 }
 
                 $parameters = array_merge($rParameters, $parameters);
@@ -616,8 +635,8 @@ class CoreEnforcer
                 } else {
                     throw new CasbinException('matcher result should be bool, int or float');
                 }
-                if (isset($parameters['p_eft'])) {
-                    $eft = $parameters['p_eft'];
+                if (isset($parameters[$pType . '_eft'])) {
+                    $eft = $parameters[$pType . '_eft'];
                     if ('allow' == $eft) {
                         $policyEffects[$i] = Effector::ALLOW;
                     } elseif ('deny' == $eft) {
@@ -629,7 +648,7 @@ class CoreEnforcer
                     $policyEffects[$i] = Effector::ALLOW;
                 }
 
-                if (isset($this->model['e']['e']) && 'priority(p_eft) || deny' == $this->model['e']['e']->value) {
+                if (isset($this->model['e'][$eType]) && 'priority(p_eft) || deny' == $this->model['e'][$eType]->value) {
                     break;
                 }
             }
@@ -639,7 +658,7 @@ class CoreEnforcer
             }
 
             $parameters = $rParameters;
-            foreach ($this->model['p']['p']->tokens as $token) {
+            foreach ($this->model['p'][$pType]->tokens as $token) {
                 $parameters[$token] = '';
             }
 
@@ -652,11 +671,11 @@ class CoreEnforcer
             }
         }
 
-        list($result, $explainIndex) = $this->eft->mergeEffects($this->model['e']['e']->value, $policyEffects, $matcherResults);
+        list($result, $explainIndex) = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults);
 
         if ($explains !== null) {
-            if (($explainIndex != -1) && (count($this->model['p']['p']->policy) > $explainIndex)) {
-                $explains = $this->model['p']['p']->policy[$explainIndex];
+            if (($explainIndex != -1) && (count($this->model['p'][$pType]->policy) > $explainIndex)) {
+                $explains = $this->model['p'][$pType]->policy[$explainIndex];
             }
         }
 
