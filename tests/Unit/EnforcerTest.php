@@ -216,6 +216,41 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->getImplicitRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin', '/book/*', 'book_group']);
         $this->assertEquals($e->getRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
     }
+    
+    public function testGetImplicitResourcesForUser()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
+        $this->assertEqualsCanonicalizing([
+            ["alice", "/pen/1", "GET"],
+            ["alice", "/pen2/1", "GET"],
+            ["alice", "/book/:id", "GET"],
+            ["alice", "/book2/{id}", "GET"],
+            ["alice", "/book/*", "GET"],
+            ["alice", "book_group", "GET"],
+        ], $e->getImplicitResourcesForUser('alice'));
+
+        $this->assertEqualsCanonicalizing([
+            ["bob", "pen_group", "GET"],
+            ["bob", "/pen/:id", "GET"],
+            ["bob", "/pen2/{id}", "GET"],
+        ], $e->getImplicitResourcesForUser('bob'));
+
+        $this->assertEqualsCanonicalizing([
+            ["cathy", "pen_group", "GET"],
+            ["cathy", "/pen/:id", "GET"],
+            ["cathy", "/pen2/{id}", "GET"],
+        ], $e->getImplicitResourcesForUser('cathy'));
+    }
+
+    public function testImplicitUsersForRole()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
+
+        $this->assertEqualsCanonicalizing(['alice'], $e->getImplicitUsersForRole('book_admin'));
+        $this->assertEqualsCanonicalizing(['cathy', 'bob'], $e->getImplicitUsersForRole('pen_admin'));
+        $this->assertEqualsCanonicalizing(['/book/*', '/book/:id', '/book2/{id}'], $e->getImplicitUsersForRole('book_group'));
+        $this->assertEqualsCanonicalizing(['/pen/:id', '/pen2/{id}'], $e->getImplicitUsersForRole('pen_group'));
+    }
 
     public function testGetImplicitPermissionsForUser()
     {
