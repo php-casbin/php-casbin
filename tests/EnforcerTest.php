@@ -413,4 +413,17 @@ class EnforcerTest extends TestCase
         $tmp->Age = 30;
         $this->assertEquals($e->enforce($enforceContext, $tmp, '/data1', 'read'), true);
     }
+
+    public function testMatcherUsingInOperatorBracket()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model_matcher_using_in_op_bracket.conf');
+        $e->addPermissionForUser('alice', 'data1', 'read');
+
+        $this->assertTrue($e->enforce('alice', 'data1', 'read'));
+        $this->assertTrue($e->enforce('alice', 'data2', 'read'));
+        $this->assertTrue($e->enforce('alice', 'data3', 'read'));
+        $this->assertFalse($e->enforce('anyone', 'data1', 'read'));
+        $this->assertTrue($e->enforce('anyone', 'data2', 'read'));
+        $this->assertTrue($e->enforce('anyone', 'data3', 'read'));
+    }
 }
