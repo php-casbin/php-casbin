@@ -275,6 +275,83 @@ class Enforcer extends ManagementEnforcer
     }
 
     /**
+     * GetImplicitUsersForRole gets implicit users for a role.
+     *
+     * @param string $name
+     * @param string ...$domain
+     * @return array
+     */
+    public function getImplicitUsersForRole(string $name, string ...$domain): array
+    {
+        $res = [];
+        $roleSet = [];
+        $roleSet[$name] = true;
+
+        $q = [];
+        $q[] = $name;
+
+        for (; count($q) > 0;) {
+            $name = $q[0];
+            $q = array_slice($q, 1);
+
+            foreach ($this->rmMap as $rm) {
+                $roles = $rm->getUsers($name, ...$domain);
+                foreach ($roles as $r) {
+                    if (!isset($roleSet[$r])) {
+                        $res[] = $r;
+                        $q[] = $r;
+                        $roleSet[$r] = true;
+                    }
+                }
+            }
+        }
+        return $res;
+    }
+
+    /**
+     * GetImplicitResourcesForUser returns all policies that user obtaining in domain
+     *
+     * @param string $user
+     * @param string ...$domain
+     * @return array
+     */
+    public function getImplicitResourcesForUser(string $user, string ...$domain): array
+    {
+        $permissions = $this->getImplicitPermissionsForUser($user, ...$domain);
+        
+        $res = [];
+        foreach ($permissions as $permission) {
+            if ($permission[0] == $user) {
+                $res[] = $permission;
+                continue;
+            }
+            $resLocal = [[$user]];
+            $tokensLength = count($permission);
+            $t = [[]];
+            foreach (array_slice($permission, 1) as $token) {
+                $tokens = $this->getImplicitUsersForRole($token, ...$domain);
+                $tokens[] = $token;
+                $t[] = $tokens;
+            }
+
+            for ($i = 1; $i < $tokensLength; $i++) {
+                $n = [];
+                foreach ($t[$i] as $tokens) {
+                    foreach ($resLocal as $policy) {
+                        $temp = [];
+                        $temp = array_merge($temp, $policy);
+                        $temp[] = $tokens;
+                        $n[] = $temp;
+                    }
+                }
+                $resLocal = $n;
+            }
+            $res = array_merge($res, $resLocal);
+        }
+        return $res;
+    }
+
+    /**
      * Gets implicit permissions for a user or role.
      * Compared to getPermissionsForUser(), this function retrieves permissions for inherited roles.
      * For example:
