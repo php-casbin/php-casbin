@@ -32,7 +32,19 @@ trait AdapterHelper
         }
 
         $tokens = explode(', ', $line);
-        $key = $tokens[0];
+
+        $this->loadPolicyArray($tokens, $model);
+    }
+
+    /**
+     * Loads a policy rule to model.
+     *
+     * @param array $rule
+     * @param Model $model
+     */
+    public function loadPolicyArray(array $rule, Model $model): void
+    {
+        $key = $rule[0];
         $sec = $key[0];
 
         if (!isset($model[$sec][$key])) {
@@ -44,7 +56,8 @@ trait AdapterHelper
         if (!($assertion instanceof Assertion)) {
             return;
         }
-        $rule = \array_slice($tokens, 1);
+
+        $rule = \array_slice($rule, 1);
         $assertion->policy[] = $rule;
         $assertion->policyMap[implode(Policy::DEFAULT_SEP, $rule)] = count($assertion->policy) - 1;
 
