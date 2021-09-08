@@ -31,7 +31,7 @@ trait AdapterHelper
             return;
         }
 
-        $tokens = explode(', ', $line);
+        $tokens = array_map("trim", str_getcsv($line));
 
         $this->loadPolicyArray($tokens, $model);
     }
