@@ -53,6 +53,43 @@ class BuiltinOperations
     }
 
     /**
+     * KeyGet returns the matched part
+     * For example, "/foo/bar/foo" matches "/foo/*"
+     * "bar/foo" will been returned
+     *
+     * @param string $key1
+     * @param string $key2
+     * @return string
+     */
+    public static function keyGet(string $key1, string $key2): string
+    {
+        $i = strpos($key2, '*');
+        if ($i === false) {
+            return "";
+        }
+        if (strlen($key1) > $i) {
+            if (substr($key1, 0, $i) == substr($key2, 0, $i)) {
+                return substr($key1, $i);
+            }
+        }
+        return '';
+    }
+
+    /**
+     * KeyGetFunc is the wrapper for KeyGet
+     *
+     * @param mixed ...$args
+     * @return string
+     */
+    public static function keyGetFunc(...$args)
+    {
+        $name1 = $args[0];
+        $name2 = $args[1];
+
+        return self::keyGet($name1, $name2);
+    }
+
+    /**
      * Determines whether key1 matches the pattern of key2 (similar to RESTful path), key2 can contain a *.
      * For example, "/foo/bar" matches "/foo/*", "/resource1" matches "/:resource".
      *
@@ -94,6 +131,62 @@ class BuiltinOperations
         $name2 = $args[1];
 
         return self::keyMatch2($name1, $name2);
+    }
+
+    /**
+     * KeyGet2 returns value matched pattern
+     * For example, "/resource1" matches "/:resource"
+     * if the pathVar == "resource", then "resource1" will be returned
+     *
+     * @param string $key1
+     * @param string $key2
+     * @param string $pathVar
+     * @return string
+     */
+    public static function keyGet2(string $key1, string $key2, string $pathVar): string
+    {
+        $key2 = str_replace(['/*'], ['/.*'], $key2);
+
+        $pattern = '/:[^\/]+/';
+        $keys = [];
+        preg_match_all($pattern, $key2, $keys);
+        $keys = $keys[0];
+        $key2 = preg_replace_callback(
+            $pattern,
+            function ($m) {
+                return '([^\/]+)';
+            },
+            $key2
+        );
+
+        $key2 = "~^" . $key2 . "$~";
+        $values = [];
+        preg_match($key2, $key1, $values);
+
+        if (count($values) === 0) {
+            return '';
+        }
+        foreach ($keys as $i => $key) {
+            if ($pathVar == substr($key, 1)) {
+                return $values[$i + 1];
+            }
+        }
+        return '';
+    }
+
+    /**
+     * KeyGet2Func is the wrapper for KeyGet2
+     *
+     * @param mixed ...$args
+     * @return string
+     */
+    public static function keyGet2Func(...$args)
+    {
+        $name1 = $args[0];
+        $name2 = $args[1];
+        $key   = $args[2];
+
+        return self::keyGet2($name1, $name2, $key);
     }
 
     /**
