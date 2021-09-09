@@ -41,8 +41,14 @@ class FunctionMap
         $fm->addFunction('keyMatch', function (...$args) {
             return BuiltinOperations::keyMatchFunc(...$args);
         });
+        $fm->addFunction('keyGet', function (...$args) {
+            return BuiltinOperations::keyGetFunc(...$args);
+        });
         $fm->addFunction('keyMatch2', function (...$args) {
             return BuiltinOperations::keyMatch2Func(...$args);
+        });
+        $fm->addFunction('keyGet2', function (...$args) {
+            return BuiltinOperations::keyGet2Func(...$args);
         });
         $fm->addFunction('regexMatch', function (...$args) {
             return BuiltinOperations::regexMatchFunc(...$args);
