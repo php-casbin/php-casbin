@@ -363,6 +363,7 @@ class CoreEnforcer
         }
 
         $this->model->printPolicy();
+        $this->model->sortPoliciesByPriority();
         if ($this->autoBuildRoleLinks) {
             $this->buildRoleLinks();
         }
@@ -386,6 +387,7 @@ class CoreEnforcer
             throw new CasbinException('filtered policies are not supported by this adapter');
         }
 
+        $this->model->sortPoliciesByPriority();
         $this->initRmMap();
         $this->model->printPolicy();
         if ($this->autoBuildRoleLinks) {

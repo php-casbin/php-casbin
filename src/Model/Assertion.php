@@ -59,6 +59,18 @@ class Assertion
     public $rm;
 
     /**
+     * $priorityIndex.
+     *
+     * @var int|bool
+     */
+    public $priorityIndex;
+
+    public function initPriorityIndex(): void
+    {
+        $this->priorityIndex = false;
+    }
+
+    /**
      * @param RoleManager $rm
      *
      * @throws CasbinException

@@ -68,6 +68,7 @@ class Model extends Policy
         $ast = new Assertion();
         $ast->key = $key;
         $ast->value = $value;
+        $ast->initPriorityIndex();
 
         if ('r' == $sec || 'p' == $sec) {
             $ast->tokens = explode(',', $ast->value);
@@ -215,5 +216,29 @@ class Model extends Policy
     public static function loadFunctionMap(): FunctionMap
     {
         return FunctionMap::loadFunctionMap();
+    }
+
+    public function sortPoliciesByPriority(): void
+    {
+        foreach ($this->items['p'] as $ptype => $assertion) {
+            $index = array_search(sprintf("%s_priority", $ptype), $assertion->tokens);
+            if ($index !== false) {
+                $assertion->priorityIndex = intval($index);
+            } else {
+                continue;
+            }
+            $policies = &$assertion->policy;
+            usort($policies, function ($i, $j) use ($assertion): int {
+                $p1 = $i[$assertion->priorityIndex];
+                $p2 = $j[$assertion->priorityIndex];
+                if ($p1 == $p2) {
+                    return 0;
+                }
+                return ($p1 < $p2) ? -1 : 1;
+            });
+            foreach ($assertion->policy as $i => $policy) {
+                $assertion->policyMap[implode(',', $policy)] = $i;
+            }
+        }
     }
 }
