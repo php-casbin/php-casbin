@@ -193,8 +193,23 @@ abstract class Policy implements ArrayAccess
      */
     public function addPolicy(string $sec, string $ptype, array $rule): void
     {
-        $this->items[$sec][$ptype]->policy[] = $rule;
-        $this->items[$sec][$ptype]->policyMap[implode(self::DEFAULT_SEP, $rule)] = count($this->items[$sec][$ptype]->policy) - 1;
+        $assertion = &$this->items[$sec][$ptype];
+        $assertion->policy[] = $rule;
+
+        if ($sec == 'p' && $assertion->priorityIndex !== false && $assertion->priorityIndex >= 0) {
+            $idxInsert = $rule[$assertion->priorityIndex];
+            for ($i = count($assertion->policy) - 1; $i > 0; $i--) {
+                $idx = $assertion->policy[$i-1][$assertion->priorityIndex];
+                if ($idx > $idxInsert) {
+                    $assertion->policy[$i] = $assertion->policy[$i-1];
+                } else {
+                    break;
+                }
+            }
+            $assertion->policy[$i] = $rule;
+            $assertion->policyMap[implode(self::DEFAULT_SEP, $rule)] = $i;
+        }
+        $assertion->policyMap[implode(self::DEFAULT_SEP, $rule)] = count($this->items[$sec][$ptype]->policy) - 1;
     }
 
     /**
@@ -211,9 +226,7 @@ abstract class Policy implements ArrayAccess
             if (isset($this->items[$sec][$ptype]->policyMap[$hashKey])) {
                 continue;
             }
-
-            $this->items[$sec][$ptype]->policy[] = $rule;
-            $this->items[$sec][$ptype]->policyMap[$hashKey] = count($this->items[$sec][$ptype]->policy) - 1;
+            $this->addPolicy($sec, $ptype, $rule);
         }
     }
 

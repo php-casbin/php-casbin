@@ -236,4 +236,28 @@ EOT
         $this->assertFalse($e->enforce('bob', 'data2', 'read'));
         $this->assertTrue($e->enforce('bob', 'data2', 'write'));
     }
+
+    public function testPriorityExplicit()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/priority_model_explicit.conf', $this->modelAndPolicyPath . '/priority_policy_explicit.csv');
+        $this->assertTrue($e->enforce('alice', 'data1', 'write'));
+        $this->assertTrue($e->enforce('alice', 'data1', 'read'));
+        $this->assertFalse($e->enforce('bob', 'data2', 'read'));
+        $this->assertTrue($e->enforce('bob', 'data2', 'write'));
+        $this->assertFalse($e->enforce('data1_deny_group', 'data1', 'read'));
+        $this->assertFalse($e->enforce('data1_deny_group', 'data1', 'write'));
+        $this->assertTrue($e->enforce('data2_allow_group', 'data2', 'read'));
+        $this->assertTrue($e->enforce('data2_allow_group', 'data2', 'write'));
+
+        $e->addPolicy('1', 'bob', 'data2', 'write', 'deny');
+
+        $this->assertTrue($e->enforce('alice', 'data1', 'write'));
+        $this->assertTrue($e->enforce('alice', 'data1', 'read'));
+        $this->assertFalse($e->enforce('bob', 'data2', 'read'));
+        $this->assertFalse($e->enforce('bob', 'data2', 'write'));
+        $this->assertFalse($e->enforce('data1_deny_group', 'data1', 'read'));
+        $this->assertFalse($e->enforce('data1_deny_group', 'data1', 'write'));
+        $this->assertTrue($e->enforce('data2_allow_group', 'data2', 'read'));
+        $this->assertTrue($e->enforce('data2_allow_group', 'data2', 'write'));
+    }
 }
