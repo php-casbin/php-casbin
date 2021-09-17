@@ -354,18 +354,35 @@ class CoreEnforcer
      */
     public function loadPolicy(): void
     {
-        $this->model->clearPolicy();
+        $flag = false;
+        $needToRebuild = false;
+        $newModel = clone $this->model;
+        $newModel->clearPolicy();
 
         try {
-            $this->adapter->loadPolicy($this->model);
-        } catch (InvalidFilePathException $e) {
-            //throw $e;
-        }
+            $this->adapter->loadPolicy($newModel);
+            $newModel->printPolicy();
+            $newModel->sortPoliciesByPriority();
 
-        $this->model->printPolicy();
-        $this->model->sortPoliciesByPriority();
-        if ($this->autoBuildRoleLinks) {
-            $this->buildRoleLinks();
+            if ($this->autoBuildRoleLinks) {
+                $needToRebuild = true;
+                foreach ($this->rmMap as $rm) {
+                    $rm->clear();
+                }
+                $newModel->buildRoleLinks($this->rmMap);
+            }
+            $this->model = $newModel;
+        } catch (InvalidFilePathException $e) {
+            // Ignore throw $e;
+        } catch (\Throwable $e) {
+            $flag = true;
+            throw $e;
+        } finally {
+            if ($flag) {
+                if ($this->autoBuildRoleLinks && $needToRebuild) {
+                    $this->buildRoleLinks();
+                }
+            }
         }
     }
 

@@ -6,6 +6,7 @@ use Casbin\Rbac\DefaultRoleManager\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use PHPUnit\Framework\TestCase;
 use Casbin\Enforcer;
+use Casbin\Persist\Adapters\FileAdapter;
 
 /**
  * EnforcerTest.
@@ -352,5 +353,32 @@ class EnforcerTest extends TestCase
 
         $this->assertEquals(['alice', 'admin'], $e->getAllUsersByDomain('domain1'));
         $this->assertEquals(['bob', 'admin'], $e->getAllUsersByDomain('domain2'));
+    }
+
+    public function testFailedToLoadPolicy()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
+        $e->addNamedMatchingFunc('g2', 'matchingFunc', function (string $key1, string $key2) {
+            return BuiltinOperations::keyMatch2($key1, $key2);
+        });
+        $this->assertTrue($e->enforce('alice', '/pen/1', 'GET'));
+        $this->assertTrue($e->enforce('alice', '/pen2/1', 'GET'));
+        $e->setAdapter(new FileAdapter('not found'));
+        $e->loadPolicy();
+        $this->assertTrue($e->enforce('alice', '/pen/1', 'GET'));
+        $this->assertTrue($e->enforce('alice', '/pen2/1', 'GET'));
+    }
+    
+    public function testReloadPolicyWithFunc()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
+        $e->addNamedMatchingFunc('g2', 'matchingFunc', function (string $key1, string $key2) {
+            return BuiltinOperations::keyMatch2($key1, $key2);
+        });
+        $this->assertTrue($e->enforce('alice', '/pen/1', 'GET'));
+        $this->assertTrue($e->enforce('alice', '/pen2/1', 'GET'));
+        $e->loadPolicy();
+        $this->assertTrue($e->enforce('alice', '/pen/1', 'GET'));
+        $this->assertTrue($e->enforce('alice', '/pen2/1', 'GET'));
     }
 }

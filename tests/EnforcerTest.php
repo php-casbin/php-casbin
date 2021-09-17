@@ -33,6 +33,8 @@ class EnforcerTest extends TestCase
         $this->assertFalse($e->enforce('bob', '/alice_data/resource1', 'GET'));
 
         $e = new Enforcer($m);
+        $a->loadPolicy($e->getModel());
+
         $this->assertTrue($e->enforce('alice', '/alice_data/resource1', 'GET'));
         $this->assertFalse($e->enforce('bob', '/alice_data/resource1', 'GET'));
     }
