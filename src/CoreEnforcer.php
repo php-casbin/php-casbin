@@ -814,6 +814,33 @@ class CoreEnforcer
     }
 
     /**
+     * BatchEnforce enforce in batches
+     *
+     * @param string[][] $requests
+     * @return bool[]
+     */
+    public function batchEnforce(array $requests): array
+    {
+        return array_map(function (array $request) {
+            return  $this->enforce(...$request);
+        }, $requests);
+    }
+
+    /**
+     * BatchEnforceWithMatcher enforce with matcher in batches
+     *
+     * @param string $matcher
+     * @param string[][] $requests
+     * @return bool[]
+     */
+    public function batchEnforceWithMatcher(string $matcher, array $requests): array
+    {
+        return array_map(function (array $request) use ($matcher) {
+            return  $this->enforceWithMatcher($matcher, ...$request);
+        }, $requests);
+    }
+
+    /**
      * AddNamedMatchingFunc add MatchingFunc by ptype RoleManager
      *
      * @param string $ptype
