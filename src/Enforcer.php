@@ -434,6 +434,40 @@ class Enforcer extends ManagementEnforcer
     }
 
     /**
+     * GetAllUsersByDomain would get all users associated with the domain.
+     *
+     * @param string $domain
+     * @return string[]
+     */
+    public function getAllUsersByDomain(string $domain): array
+    {
+        $m = [];
+        $g = $this->model['g']['g'];
+        $p = $this->model['p']['p'];
+        $users = [];
+        $index = $this->getDomainIndex('p');
+
+        $getUser = function (int $index, array $policies, string $domain, array $m): array {
+            if (count($policies) == 0 || count($policies[0]) <= $index) {
+                return [];
+            }
+            $res = [];
+            foreach ($policies as $policy) {
+                $ok = isset($m[$policy[0]]);
+                if ($policy[$index] == $domain && !$ok) {
+                    $res[] = $policy[0];
+                    $m[$policy[0]] = [];
+                }
+            }
+            return $res;
+        };
+
+        $users = array_merge($users, $getUser(2, $g->policy, $domain, $m));
+        $users = array_merge($users, $getUser($index, $p->policy, $domain, $m));
+        return $users;
+    }
+
+    /**
      * Gets the users that has a role inside a domain. Add by Gordon.
      *
      * @param string $name

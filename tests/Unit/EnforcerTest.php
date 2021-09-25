@@ -345,4 +345,12 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->getPermissionsForUserInDomain('admin', 'domain2'), [['admin', 'domain2', 'data2', 'read'], ['admin', 'domain2', 'data2', 'write']]);
         $this->assertEquals($e->getPermissionsForUserInDomain('non_exist', 'domain2'), []);
     }
+
+    public function testGetAllUsersByDomain()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+
+        $this->assertEquals(['alice', 'admin'], $e->getAllUsersByDomain('domain1'));
+        $this->assertEquals(['bob', 'admin'], $e->getAllUsersByDomain('domain2'));
+    }
 }
