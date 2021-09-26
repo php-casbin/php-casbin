@@ -34,6 +34,18 @@ class Model extends Policy
     {
     }
 
+    public function __clone()
+    {
+        $this->sectionNameMap = $this->sectionNameMap;
+        $newAstMap = [];
+        foreach ($this->items as $ptype => $ast) {
+            foreach ($ast as $i => $v) {
+                $newAstMap[$ptype][$i] = clone $v;
+            }
+        }
+        $this->items = $newAstMap;
+    }
+
     /**
      * @param ConfigContract $cfg
      * @param string $sec
