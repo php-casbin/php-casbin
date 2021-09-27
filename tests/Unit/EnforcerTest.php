@@ -381,4 +381,16 @@ class EnforcerTest extends TestCase
         $this->assertTrue($e->enforce('alice', '/pen/1', 'GET'));
         $this->assertTrue($e->enforce('alice', '/pen2/1', 'GET'));
     }
+
+    public function testBatchEnforce()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv');
+
+        $res = $e->batchEnforce([
+            ['alice', 'data1', 'read'],
+            ['bob', 'data2', 'write'],
+            ['jack', 'data3', 'read']
+        ]);
+        $this->assertEquals([true, true, false], $res);
+    }
 }
