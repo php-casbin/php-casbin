@@ -393,10 +393,8 @@ class CoreEnforcer
      *
      * @throws CasbinException
      */
-    public function loadFilteredPolicy($filter): void
+    public function _loadFilteredPolicy($filter): void
     {
-        $this->model->clearPolicy();
-
         if ($this->adapter instanceof FilteredAdapter) {
             $filteredAdapter = $this->adapter;
             $filteredAdapter->loadFilteredPolicy($this->model, $filter);
@@ -410,6 +408,31 @@ class CoreEnforcer
         if ($this->autoBuildRoleLinks) {
             $this->buildRoleLinks();
         }
+    }
+
+    /**
+     * Reloads a filtered policy from file/database.
+     *
+     * @param mixed $filter
+     *
+     * @throws CasbinException
+     */
+    public function loadFilteredPolicy($filter): void
+    {
+        $this->model->clearPolicy();
+
+        $this->_loadFilteredPolicy($filter);
+    }
+
+    /**
+     * LoadIncrementalFilteredPolicy append a filtered policy from file/database.
+     *
+     * @param mixed $filter
+     * @return void
+     */
+    public function loadIncrementalFilteredPolicy($filter): void
+    {
+        $this->_loadFilteredPolicy($filter);
     }
 
     /**
