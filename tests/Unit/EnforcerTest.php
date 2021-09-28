@@ -393,4 +393,54 @@ class EnforcerTest extends TestCase
         ]);
         $this->assertEquals([true, true, false], $res);
     }
+
+    public function testDeleteAllUsersByDomain()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+    
+        $e->deleteAllUsersByDomain('domain1');
+        $this->assertEquals([
+            ['admin', 'domain2', 'data2', 'read'],
+            ['admin', 'domain2', 'data2', 'write'],
+        ], $e->getPolicy());
+        $this->assertEquals([
+            ['bob', 'admin', 'domain2']
+        ], $e->getGroupingPolicy());
+
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+        $e->deleteAllUsersByDomain('domain2');
+        $this->assertEquals([
+            ['admin', 'domain1', 'data1', 'read'],
+            ['admin', 'domain1', 'data1', 'write'],
+        ], $e->getPolicy());
+        $this->assertEquals([
+            ['alice', 'admin', 'domain1']
+        ], $e->getGroupingPolicy());
+    }
+
+    public function testDeleteDomains()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+
+        $e->deleteDomains();
+        $this->assertEquals([], $e->getPolicy());
+        $this->assertEquals([], $e->getGroupingPolicy());
+
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+
+        $e->deleteDomains('domain1');
+        $this->assertEquals([
+            ['admin', 'domain2', 'data2', 'read'],
+            ['admin', 'domain2', 'data2', 'write'],
+        ], $e->getPolicy());
+        $this->assertEquals([
+            ['bob', 'admin', 'domain2']
+        ], $e->getGroupingPolicy());
+
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+
+        $e->deleteDomains('domain1', 'domain2');
+        $this->assertEquals([], $e->getPolicy());
+        $this->assertEquals([], $e->getGroupingPolicy());
+    }
 }
