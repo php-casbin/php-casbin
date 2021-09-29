@@ -210,6 +210,39 @@ EOT
         $this->assertInstanceOf(CasbinException::class, $th);
     }
 
+    public function testAppendFilteredPolicy()
+    {
+        $e = new Enforcer();
+
+        $adapter = new FileFilteredAdapter($this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+        $e->initWithAdapter($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $adapter);
+        $e->loadPolicy();
+
+        // validate initial conditions
+        $this->assertTrue($e->hasPolicy('admin', 'domain1', 'data1', 'read'));
+        $this->assertTrue($e->hasPolicy('admin', 'domain2', 'data2', 'read'));
+
+        $filter = new Filter();
+        $filter->p = ['', 'domain1'];
+        $filter->g = ['', '', 'domain1'];
+        $e->loadFilteredPolicy($filter);
+        $this->assertTrue($adapter->isFiltered());
+
+        // only policies for domain1 should be loaded
+        $this->assertTrue($e->hasPolicy('admin', 'domain1', 'data1', 'read'));
+        $this->assertFalse($e->hasPolicy('admin', 'domain2', 'data2', 'read'));
+
+        // disable clear policy and load second domain
+        $filter = new Filter();
+        $filter->p = ['', 'domain2'];
+        $filter->g = ['', '', 'domain2'];
+        $e->loadIncrementalFilteredPolicy($filter);
+
+        // both domain policies should be loaded
+        $this->assertTrue($e->hasPolicy('admin', 'domain1', 'data1', 'read'));
+        $this->assertTrue($e->hasPolicy('admin', 'domain2', 'data2', 'read'));
+    }
+
     public function testEnableEnforce()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv');
