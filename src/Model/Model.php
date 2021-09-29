@@ -19,6 +19,9 @@ use Casbin\Util\Util;
  */
 class Model extends Policy
 {
+    const DEFAULT_DOMAIN = '';
+    const DEFAULT_SEPARATOR = '::';
+
     /**
      * @var array<string, string>
      */
@@ -228,6 +231,107 @@ class Model extends Policy
     public static function loadFunctionMap(): FunctionMap
     {
         return FunctionMap::loadFunctionMap();
+    }
+
+    public function getNameWithDomain(string $domain, string $name): string
+    {
+        return $domain . self::DEFAULT_SEPARATOR . $name;
+    }
+
+    public function getSubjectHierarchyMap(array $policies): array
+    {
+        $subjectHierarchyMap = [];
+        // Tree structure of role
+        $policyMap = [];
+        foreach ($policies as $policy) {
+            if (count($policy) < 2) {
+                throw new CasbinException('policy g expect 2 more params');
+            }
+            $domain = self::DEFAULT_DOMAIN;
+            if (count($policy) != 2) {
+                $domain = $policy[2];
+            }
+            $child = $this->getNameWithDomain($domain, $policy[0]);
+            $parent = $this->getNameWithDomain($domain, $policy[1]);
+            $policyMap[$parent][] = $child;
+            if (!isset($subjectHierarchyMap[$child])) {
+                $subjectHierarchyMap[$child] = 0;
+            }
+            if (!isset($subjectHierarchyMap[$parent])) {
+                $subjectHierarchyMap[$parent] = 0;
+            }
+            $subjectHierarchyMap[$child] = 1;
+        }
+        // Use queues for levelOrder
+        $queue = [];
+        foreach ($subjectHierarchyMap as $k => $v) {
+            $root = $k;
+            if ($v != 0) {
+                continue;
+            }
+            $lv = 0;
+            $queue[] = $root;
+            while (count($queue) != 0) {
+                $sz = count($queue);
+                for ($i = 0; $i < $sz; $i++) {
+                    $node = $queue[array_key_first($queue)];
+                    unset($queue[array_key_first($queue)]);
+
+                    $nodeValue = $node;
+                    $subjectHierarchyMap[$nodeValue] = $lv;
+                    if (isset($policyMap[$nodeValue])) {
+                        foreach ($policyMap[$nodeValue] as $child) {
+                            $queue[] = $child;
+                        }
+                    }
+                }
+                $lv++;
+            }
+        }
+
+        return $subjectHierarchyMap;
+    }
+
+    public function sortPoliciesBySubjectHierarchy(): void
+    {
+        if ($this->items['e']['e']->value != 'subjectPriority(p_eft) || deny') {
+            return;
+        }
+        $subIndex = 0;
+        $domainIndex = -1;
+        foreach ($this->items['p'] as $ptype => $assertion) {
+            foreach ($assertion->tokens as $index => $token) {
+                if ($token == sprintf('%s_dom', $ptype)) {
+                    $domainIndex = $index;
+                    break;
+                }
+            }
+            $policies = &$assertion->policy;
+            $subjectHierarchyMap = $this->getSubjectHierarchyMap($this->items['g']['g']->policy);
+
+            usort($policies, function ($i, $j) use ($subIndex, $domainIndex, $subjectHierarchyMap): int {
+                $domain1 = self::DEFAULT_DOMAIN;
+                $domain2 = self::DEFAULT_DOMAIN;
+                if ($domainIndex != -1) {
+                    $domain1 = $i[$domainIndex];
+                    $domain2 = $j[$domainIndex];
+                }
+                $name1 = $this->getNameWithDomain($domain1, $i[$subIndex]);
+                $name2 = $this->getNameWithDomain($domain2, $j[$subIndex]);
+
+                $p1 = $subjectHierarchyMap[$name1];
+                $p2 = $subjectHierarchyMap[$name2];
+
+                if ($p1 == $p2) {
+                    return 0;
+                }
+                return ($p1 > $p2) ? -1 : 1;
+            });
+
+            foreach ($assertion->policy as $i => $policy) {
+                $assertion->policyMap[implode(',', $policy)] = $i;
+            }
+        }
     }
 
     public function sortPoliciesByPriority(): void

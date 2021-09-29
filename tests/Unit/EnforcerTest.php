@@ -368,7 +368,7 @@ class EnforcerTest extends TestCase
         $this->assertTrue($e->enforce('alice', '/pen/1', 'GET'));
         $this->assertTrue($e->enforce('alice', '/pen2/1', 'GET'));
     }
-    
+
     public function testReloadPolicyWithFunc()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
@@ -392,6 +392,20 @@ class EnforcerTest extends TestCase
             ['jack', 'data3', 'read']
         ]);
         $this->assertEquals([true, true, false], $res);
+    }
+
+    public function testSubjectPriority()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/subject_priority_model.conf', $this->modelAndPolicyPath . '/subject_priority_policy.csv');
+        $this->assertTrue($e->enforce('jane', 'data1', 'read'));
+        $this->assertTrue($e->enforce('alice', 'data1', 'read'));
+    }
+
+    public function testSubjectPriorityWithDomain()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/subject_priority_model_with_domain.conf', $this->modelAndPolicyPath . '/subject_priority_policy_with_domain.csv');
+        $this->assertTrue($e->enforce('alice', 'data1', 'domain1', 'write'));
+        $this->assertTrue($e->enforce('bob', 'data2', 'domain2', 'write'));
     }
 
     public function testDeleteAllUsersByDomain()
