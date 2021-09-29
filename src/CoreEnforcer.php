@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Casbin;
 
-use Casbin\Effect\DefaultEffector;
-use Casbin\Effect\Effector;
+use Casbin\Effector\DefaultEffector;
+use Casbin\Effector\Effector;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Exceptions\EvalFunctionException;
 use Casbin\Exceptions\InvalidFilePathException;
@@ -605,13 +605,19 @@ class CoreEnforcer
             $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
         }
 
+        if (count($this->model['r']['r']->tokens) != count($rvals)) {
+            throw new CasbinException(sprintf('invalid request size: expected %d, got %d', count($this->model['r']['r']->tokens), count($rvals)));
+        }
+    
         $policyEffects = [];
         $matcherResults = [];
 
-        $policyLen = \count($this->model['p'][$pType]->policy);
+        $effect = 0;
+        $explainIndex = 0;
 
+        $policyLen = \count($this->model['p'][$pType]->policy);
         if (0 != $policyLen) {
-            foreach ($this->model['p'][$pType]->policy as $i => $pvals) {
+            foreach ($this->model['p'][$pType]->policy as $policyIndex => $pvals) {
                 $parameters = array_combine($pTokens, $pvals);
                 if (false == $parameters) {
                     throw new CasbinException('invalid policy size');
@@ -637,19 +643,15 @@ class CoreEnforcer
                 $parameters = array_merge($rParameters, $parameters);
                 $result = $expressionLanguage->evaluate($expression, $parameters);
 
+                // set to no-match at first
+                $matcherResults[$policyIndex] = 0;
                 if (\is_bool($result)) {
-                    if (!$result) {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
-
-                        continue;
+                    if ($result) {
+                        $matcherResults[$policyIndex] = 1;
                     }
                 } elseif (\is_float($result)) {
-                    if (0 == $result) {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
-
-                        continue;
-                    } else {
-                        $matcherResults[$i] = $result;
+                    if ($result != 0) {
+                        $matcherResults[$policyIndex] = 1;
                     }
                 } else {
                     throw new CasbinException('matcher result should be bool, int or float');
@@ -657,17 +659,18 @@ class CoreEnforcer
                 if (isset($parameters[$pType . '_eft'])) {
                     $eft = $parameters[$pType . '_eft'];
                     if ('allow' == $eft) {
-                        $policyEffects[$i] = Effector::ALLOW;
+                        $policyEffects[$policyIndex] = Effector::ALLOW;
                     } elseif ('deny' == $eft) {
-                        $policyEffects[$i] = Effector::DENY;
+                        $policyEffects[$policyIndex] = Effector::DENY;
                     } else {
-                        $policyEffects[$i] = Effector::INDETERMINATE;
+                        $policyEffects[$policyIndex] = Effector::INDETERMINATE;
                     }
                 } else {
-                    $policyEffects[$i] = Effector::ALLOW;
+                    $policyEffects[$policyIndex] = Effector::ALLOW;
                 }
 
-                if (isset($this->model['e'][$eType]) && 'priority(p_eft) || deny' == $this->model['e'][$eType]->value) {
+                list($effect, $explainIndex) = $this->eft->mergeEffects($this->model['e'][$eType]->value, array_slice($policyEffects, 0, $policyIndex + 1), array_slice($matcherResults, 0, $policyIndex + 1), $policyIndex, $policyLen);
+                if ($effect != Effector::INDETERMINATE) {
                     break;
                 }
             }
@@ -675,6 +678,8 @@ class CoreEnforcer
             if ($hasEval) {
                 throw new EvalFunctionException("please make sure rule exists in policy when using eval() in matcher");
             }
+
+            $matcherResults[0] = 1;
 
             $parameters = $rParameters;
             foreach ($this->model['p'][$pType]->tokens as $token) {
@@ -688,15 +693,17 @@ class CoreEnforcer
             } else {
                 $policyEffects[0] = Effector::INDETERMINATE;
             }
-        }
 
-        list($result, $explainIndex) = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults);
+            list($effect, $explainIndex) = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults, 0, 1);
+        }
 
         if ($explains !== null) {
             if (($explainIndex != -1) && (count($this->model['p'][$pType]->policy) > $explainIndex)) {
                 $explains = $this->model['p'][$pType]->policy[$explainIndex];
             }
         }
+
+        $result = $effect == Effector::ALLOW;
 
         if (Log::getLogger()->isEnabled()) {
             $reqStr = 'Request: ';

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Casbin\Effect;
+namespace Casbin\Effector;
 
 /**
  * Class Effector.
@@ -20,9 +20,11 @@ abstract class Effector
     /**
      * @param string $expr
      * @param array  $effects
-     * @param array  $results
-     *
+     * @param array  $matches
+     * @param int    $policyIndex
+     * @param int    $policyLength
+     * 
      * @return array
      */
-    abstract public function mergeEffects(string $expr, array $effects, array $results): array;
+    abstract public function mergeEffects(string $expr, array $effects, array $matches, int $policyIndex, int $policyLength): array;
 }
