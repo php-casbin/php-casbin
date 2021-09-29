@@ -535,4 +535,55 @@ class Enforcer extends ManagementEnforcer
     {
         return $this->removeGroupingPolicy($user, $role, $domain);
     }
+
+    /**
+     * DeleteAllUsersByDomain would delete all users associated with the domain.
+     *
+     * @param string $domain
+     * @return bool
+     */
+    public function deleteAllUsersByDomain(string $domain): bool
+    {
+        $g = $this->model['g']['g'];
+        $p = $this->model['p']['p'];
+        $index = $this->getDomainIndex('p');
+
+        $getUser = function (int $index, array $policies, string $domain): array {
+            if (count($policies) == 0 || count($policies[0]) <= $index) {
+                return [];
+            }
+            $res = [];
+            foreach ($policies as $policy) {
+                if ($policy[$index] == $domain) {
+                    $res[] = $policy;
+                }
+            }
+            return $res;
+        };
+
+        $users = $getUser(2, $g->policy, $domain);
+        $this->removeGroupingPolicies($users);
+        $users = $getUser($index, $p->policy, $domain);
+        $this->removePolicies($users);
+        return true;
+    }
+
+    /**
+     * DeleteDomains would delete all associated users and roles.
+     * It would delete all domains if parameter is not provided.
+     *
+     * @param string ...$domains
+     * @return bool
+     */
+    public function deleteDomains(string ...$domains): bool
+    {
+        if (count($domains) == 0) {
+            $this->clearPolicy();
+            return true;
+        }
+        foreach ($domains as $domain) {
+            $this->deleteAllUsersByDomain($domain);
+        }
+        return true;
+    }
 }
