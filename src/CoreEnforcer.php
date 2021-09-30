@@ -362,6 +362,7 @@ class CoreEnforcer
         try {
             $this->adapter->loadPolicy($newModel);
             $newModel->printPolicy();
+            $newModel->sortPoliciesBySubjectHierarchy();
             $newModel->sortPoliciesByPriority();
 
             if ($this->autoBuildRoleLinks) {

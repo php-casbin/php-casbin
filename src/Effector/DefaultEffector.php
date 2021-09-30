@@ -32,7 +32,7 @@ class DefaultEffector extends Effector
         $explainIndex = -1;
 
         // short-circuit some effects in the middle
-        if ($expr != 'priority(p_eft) || deny') {
+        if ($expr != 'priority(p_eft) || deny' && $expr != 'subjectPriority(p_eft) || deny') {
             if ($policyIndex < $policyLength - 1) {
                 // choose not to short-circuit
                 return [$result, $explainIndex];
@@ -82,7 +82,7 @@ class DefaultEffector extends Effector
                     break;
                 }
             }
-        } elseif ($expr == 'priority(p_eft) || deny') {
+        } elseif ($expr == 'priority(p_eft) || deny' || $expr == 'subjectPriority(p_eft) || deny') {
             $result = Effector::INDETERMINATE;
             foreach ($effects as $i => $eft) {
                 if ($matches[$i] == 0) {
