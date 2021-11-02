@@ -157,6 +157,14 @@ class EnforcerTest extends TestCase
         $this->assertTrue($e->enforce('bob', 'write'));
     }
 
+    public function testAddPermissionsForUser()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/basic_without_resources_model.conf', $this->modelAndPolicyPath . '/basic_without_resources_policy.csv');
+        $e->addPermissionsForUser('jack', ['read'], ['write']);
+        $this->assertTrue($e->enforce('jack', 'read'));
+        $this->assertTrue($e->enforce('jack', 'write'));
+    }
+
     public function testDeletePermissionForUser()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/basic_without_resources_model.conf', $this->modelAndPolicyPath . '/basic_without_resources_policy.csv');

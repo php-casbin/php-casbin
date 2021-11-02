@@ -176,6 +176,23 @@ class Enforcer extends ManagementEnforcer
     }
 
     /**
+     * AddPermissionsForUser adds multiple permissions for a user or role.
+     * Returns false if the user or role already has one of the permissions (aka not affected).
+     *
+     * @param string $user
+     * @param array  ...$permissions
+     * @return bool
+     */
+    public function addPermissionsForUser(string $user, array ...$permissions): bool
+    {
+        $rules = [];
+        foreach ($permissions as $permission) {
+            $rules[] = array_merge([$user], $permission);
+        }
+        return $this->addPolicies($rules);
+    }
+
+    /**
      * Deletes a permission for a user or role.
      * Returns false if the user or role does not have the permission (aka not affected).
      *
