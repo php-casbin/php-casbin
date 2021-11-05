@@ -291,6 +291,40 @@ class BuiltinOperations
     }
 
     /**
+     * Determines whether key1 matches the pattern of key2 and ignores the parameters in key2.
+     * For example, "/foo/bar?status=1&type=2" matches "/foo/bar"
+     *
+     * @param string $key1
+     * @param string $key2
+     *
+     * @return bool
+     */
+    public static function keyMatch5(string $key1, string $key2): bool
+    {
+        $pos = strpos($key1, '?');
+        if ($pos == false) {
+            return $key1 == $key2;
+        }
+
+        return substr($key1, 0, $pos) == $key2;
+    }
+
+    /**
+     * the wrapper for KeyMatch5.
+     *
+     * @param mixed ...$args
+     *
+     * @return bool
+     */
+    public static function keyMatch5Func(...$args): bool
+    {
+        $name1 = $args[0];
+        $name2 = $args[1];
+
+        return self::keyMatch5($name1, $name2);
+    }
+
+    /**
      * Determines whether key1 matches the pattern of key2 in regular expression.
      *
      * @param string $key1
