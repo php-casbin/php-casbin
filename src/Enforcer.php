@@ -225,12 +225,26 @@ class Enforcer extends ManagementEnforcer
      * Gets permissions for a user or role.
      *
      * @param string $user
+     * @param string ...$domain
      *
      * @return array
      */
-    public function getPermissionsForUser(string $user): array
+    public function getPermissionsForUser(string $user, string ...$domain): array
     {
-        return $this->getFilteredPolicy(0, $user);
+        $permission = [];
+        foreach ($this->model['p'] as $ptype => $assertion) {
+            $args = [];
+            $args[0] = $user;
+            foreach ($assertion->tokens as $i => $token) {
+                if ($token == sprintf('%s_dom', $ptype)) {
+                    $args[$i] = $domain[0];
+                    break;
+                }
+            }
+            $perm = $this->getFilteredPolicy(0, ...$args);
+            $permission = array_merge($permission, $perm);
+        }
+        return $permission;
     }
 
     /**
