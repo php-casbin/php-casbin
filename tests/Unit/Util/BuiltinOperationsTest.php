@@ -32,6 +32,11 @@ class BuiltinOperationsTest extends TestCase
         return (bool)BuiltinOperations::keyMatch4Func($name1, $name2);
     }
 
+    private function keyMatch5Func($name1, $name2)
+    {
+        return (bool)BuiltinOperations::keyMatch5Func($name1, $name2);
+    }
+
     private function globMatchFunc($name1, $name2)
     {
         return BuiltinOperations::globMatchFunc($name1, $name2);
@@ -134,6 +139,17 @@ class BuiltinOperationsTest extends TestCase
         $this->assertFalse($this->keyMatch4Func('/parent/123/child/456', '/parent/{id}/child/{id}/book/{id}'));
 
         $this->assertFalse($this->keyMatch4Func('/parent/123/child/123', '/parent/{i/d}/child/{i/d}'));
+    }
+
+    public function testKeyMatch5Func()
+    {
+        $this->assertTrue($this->keyMatch5Func('/parent/child', '/parent/child'));
+        $this->assertTrue($this->keyMatch5Func('/parent/child?status=1&type=2', '/parent/child'));
+        $this->assertFalse($this->keyMatch5Func('/parent?status=1&type=2', '/parent/child'));
+
+        $this->assertTrue($this->keyMatch5Func('/parent/child/?status=1&type=2', '/parent/child/'));
+        $this->assertFalse($this->keyMatch5Func('/parent/child/?status=1&type=2', '/parent/child'));
+        $this->assertFalse($this->keyMatch5Func('/parent/child?status=1&type=2', '/parent/child/'));
     }
 
     public function testGlobMatchFunc()
