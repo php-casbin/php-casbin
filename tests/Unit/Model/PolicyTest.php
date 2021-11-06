@@ -169,6 +169,10 @@ class PolicyTest extends TestCase
 
         $m->addPolicy('p', 'p', $rule);
 
+        $res = $m->removeFilteredPolicy('p1', 'p1', 1, 'domain1', 'data1');
+
+        $this->assertFalse($res);
+
         $res = $m->removeFilteredPolicy('p', 'p', 1, 'domain1', 'data1');
 
         $this->assertNotFalse($res);
