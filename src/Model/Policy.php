@@ -365,11 +365,12 @@ abstract class Policy implements ArrayAccess
         $tmp = [];
         $effects = [];
         $res = false;
-        $firstIndex = -1;
 
         if (!isset($this->items[$sec][$ptype])) {
             return $res;
         }
+
+        $this->items[$sec][$ptype]->policyMap = [];
 
         foreach ($this->items[$sec][$ptype]->policy as $index => $rule) {
             $matched = true;
@@ -381,23 +382,16 @@ abstract class Policy implements ArrayAccess
             }
 
             if ($matched) {
-                if ($firstIndex == -1) {
-                    $firstIndex = $index;
-                }
-                unset($this->items[$sec][$ptype]->policyMap[implode(self::DEFAULT_SEP, $rule)]);
                 $effects[] = $rule;
-                $res = true;
             } else {
                 $tmp[] = $rule;
+                $this->items[$sec][$ptype]->policyMap[implode(self::DEFAULT_SEP, $rule)] = count($tmp) - 1;
             }
         }
 
-        if ($fieldIndex != -1) {
+        if (count($tmp) != count($this->items[$sec][$ptype]->policy)) {
             $this->items[$sec][$ptype]->policy = $tmp;
-            $count = count($this->items[$sec][$ptype]->policy);
-            for ($i = $fieldIndex; $i < $count; $i++) {
-                $this->items[$sec][$ptype]->policyMap[implode(self::DEFAULT_SEP, $this->items[$sec][$ptype]->policy[$i])] = $i;
-            }
+            $res = true;
         }
 
         return $res ? $effects : false;
