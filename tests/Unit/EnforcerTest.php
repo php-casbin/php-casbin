@@ -222,7 +222,7 @@ class EnforcerTest extends TestCase
             });
         }
 
-        $this->assertEquals($e->getImplicitRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin', '/book/*', 'book_group']);
+        $this->assertEquals($e->getImplicitRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
         $this->assertEquals($e->getRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
     }
     
