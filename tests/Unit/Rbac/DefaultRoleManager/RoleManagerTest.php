@@ -136,4 +136,28 @@ class RoleManagerTest extends TestCase
         $this->assertEquals($rm->hasLink('/book/1', 'book_group', 'domain1'), true);
         $this->assertEquals($rm->hasLink('/book/2', 'book_group', 'domain1'), true);
     }
+
+    public function testMatchingFuncOrder()
+    {
+        $rm = new RoleManager(10);
+        $rm->addMatchingFunc('regexMatch', function (string $key1, string $key2) {
+            return BuiltinOperations::regexMatch($key1, $key2);
+        });
+
+        $rm->addLink('g\\d+', 'root');
+        $rm->addLink('u1', 'g1');
+        $this->assertEquals($rm->hasLink('u1', 'root'), true);
+
+        $rm->clear();
+
+        $rm->AddLink('u1', 'g1');
+        $rm->AddLink('g\\d+', 'root');
+        $this->assertEquals($rm->hasLink('u1', 'root'), true);
+
+        $rm->clear();
+
+        $rm->AddLink('u1', 'g\\d+');
+        $this->assertEquals($rm->hasLink('u1', 'g1'), true);
+        $this->assertEquals($rm->hasLink('u1', 'g1'), true);
+    }
 }
