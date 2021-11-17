@@ -195,6 +195,7 @@ abstract class Policy implements ArrayAccess
     {
         $assertion = &$this->items[$sec][$ptype];
         $assertion->policy[] = $rule;
+        $assertion->policyMap[implode(self::DEFAULT_SEP, $rule)] = count($this->items[$sec][$ptype]->policy) - 1;
 
         if ($sec == 'p' && $assertion->priorityIndex !== false && $assertion->priorityIndex >= 0) {
             $idxInsert = $rule[$assertion->priorityIndex];
@@ -202,6 +203,7 @@ abstract class Policy implements ArrayAccess
                 $idx = $assertion->policy[$i-1][$assertion->priorityIndex];
                 if ($idx > $idxInsert) {
                     $assertion->policy[$i] = $assertion->policy[$i-1];
+                    $assertion->policyMap[implode(self::DEFAULT_SEP, $assertion->policy[$i-1])]++;
                 } else {
                     break;
                 }
@@ -209,7 +211,6 @@ abstract class Policy implements ArrayAccess
             $assertion->policy[$i] = $rule;
             $assertion->policyMap[implode(self::DEFAULT_SEP, $rule)] = $i;
         }
-        $assertion->policyMap[implode(self::DEFAULT_SEP, $rule)] = count($this->items[$sec][$ptype]->policy) - 1;
     }
 
     /**
