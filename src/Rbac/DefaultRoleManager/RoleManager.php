@@ -305,7 +305,7 @@ class RoleManager implements RoleManagerContract
         $names = [];
         foreach ($patternDomain as $domain) {
             $allRoles = &$this->loadOrStoreRoles($domain, new Roles());
-            if (!$allRoles->hasRole($name, $this->domainMatchingFunc)) {
+            if (!$allRoles->hasRole($name, $this->matchingFunc)) {
                 return [];
             }
 
