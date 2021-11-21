@@ -326,9 +326,9 @@ class EnforcerTest extends TestCase
     public function testEnforceExRbacWithDeny()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_deny_model.conf', $this->modelAndPolicyPath . '/rbac_with_deny_policy.csv');
-        $this->assertEquals($e->enforceEx('alice', 'data1', 'read'), [true, []]);
-        $this->assertEquals($e->enforceEx('bob', 'data2', 'write'), [true, []]);
-        $this->assertEquals($e->enforceEx('alice', 'data2', 'read'), [true, []]);
+        $this->assertEquals($e->enforceEx('alice', 'data1', 'read'), [true, ['alice', 'data1', 'read', 'allow']]);
+        $this->assertEquals($e->enforceEx('bob', 'data2', 'write'), [true, ['bob', 'data2', 'write', 'allow']]);
+        $this->assertEquals($e->enforceEx('alice', 'data2', 'read'), [true, ['data2_admin', 'data2', 'read', 'allow']]);
         $this->assertEquals($e->enforceEx('alice', 'data2', 'write'), [false, ['alice', 'data2', 'write', 'deny']]);
     }
 

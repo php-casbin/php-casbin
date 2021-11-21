@@ -75,9 +75,14 @@ class DefaultEffector extends Effector
                 }
     
                 if ($eft == Effector::ALLOW) {
+                    // set hit rule to first matched allow rule, maybe overridden by the deny part
+                    if ($result == Effector::INDETERMINATE) {
+                        $explainIndex = $i;
+                    }
                     $result = Effector::ALLOW;
                 } elseif ($eft == Effector::DENY) {
                     $result = Effector::DENY;
+                    // set hit rule to the (first) matched deny rule
                     $explainIndex = $i;
                     break;
                 }
