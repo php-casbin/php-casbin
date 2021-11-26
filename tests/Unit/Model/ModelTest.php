@@ -8,6 +8,7 @@ use Casbin\Model\Model;
 use Casbin\Rbac\DefaultRoleManager\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 /**
  * ModelTest.
@@ -17,6 +18,14 @@ use PHPUnit\Framework\TestCase;
 class ModelTest extends TestCase
 {
     private $modelAndPolicyPath = __DIR__ . '/../../../examples';
+
+    public static function newTestResource(string $name, string $owner): stdClass
+    {
+        $r = new stdClass();
+        $r->name = $name;
+        $r->owner = $owner;
+        return $r;
+    }
 
     public function testLoadModelFromText()
     {
@@ -51,6 +60,18 @@ EOT;
         $this->assertFalse($e->enforce('alice', 'data2', 'write'));
         $this->assertFalse($e->enforce('bob', 'data1', 'read'));
         $this->assertTrue($e->enforce('bob', 'data2', 'write'));
+    }
+
+    public function testABACNotUsingPolicy()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/abac_not_using_policy_model.conf', $this->modelAndPolicyPath . '/abac_rule_effect_policy.csv');
+        $data1 = self::newTestResource('data1', 'alice');
+        $data2 = self::newTestResource('data2', 'bob');
+
+        $this->assertEquals($e->enforce('alice', $data1, 'read'), true);
+        $this->assertEquals($e->enforce('alice', $data1, 'write'), true);
+        $this->assertEquals($e->enforce('alice', $data2, 'read'), false);
+        $this->assertEquals($e->enforce('alice', $data2, 'write'), false);
     }
 
     public function testABACPolicy()

@@ -640,7 +640,7 @@ class CoreEnforcer
         $explainIndex = 0;
 
         $policyLen = \count($this->model['p'][$pType]->policy);
-        if (0 != $policyLen) {
+        if (0 != $policyLen && (strpos($expString, $pType . '_') !== false)) {
             foreach ($this->model['p'][$pType]->policy as $policyIndex => $pvals) {
                 $parameters = array_combine($pTokens, $pvals);
                 if (false == $parameters) {
