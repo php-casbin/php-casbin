@@ -568,6 +568,27 @@ class Enforcer extends ManagementEnforcer
     }
 
     /**
+     * DeleteRolesForUserInDomain deletes all roles for a user inside a domain.
+     * Returns false if the user does not have any roles (aka not affected).
+     *
+     * @param string $user
+     * @param string $domain
+     *
+     * @return bool
+     */
+    public function deleteRolesForUserInDomain(string $user, string $domain): bool
+    {
+        $roles = $this->model['g']['g']->rm->getRoles($user, $domain);
+
+        $rules = [];
+        foreach ($roles as $role) {
+            $rules[] = [$user, $role, $domain];
+        }
+
+        return $this->removeGroupingPolicies($rules);
+    }
+
+    /**
      * DeleteAllUsersByDomain would delete all users associated with the domain.
      *
      * @param string $domain
