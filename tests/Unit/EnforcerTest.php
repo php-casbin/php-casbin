@@ -117,6 +117,24 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->getRolesForUser('alice'), []);
     }
 
+    public function testDeleteRolesForUserInDomain()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+
+        $this->assertEquals($e->getRolesForUser('bob', 'domain2'), ['admin']);
+        $e->deleteRolesForUserInDomain('bob', 'domain2');
+        $this->assertEquals($e->getRolesForUser('bob', 'domain2'), []);
+
+        $this->assertEquals($e->getRolesForUser('alice', 'domain1'), ['admin']);
+        $e->deleteRolesForUserInDomain('alice', 'domain1');
+        $this->assertEquals($e->getRolesForUser('alice', 'domain1'), []);
+
+        $e->addRoleForUserInDomain('bob', 'admin', 'domain1');
+        $this->assertEquals($e->getRolesForUser('bob', 'domain1'), ['admin']);
+        $e->deleteRolesForUserInDomain('bob', 'domain1');
+        $this->assertEquals($e->getRolesForUser('bob', 'domain1'), []);
+    }
+
     public function testDeleteUser()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
