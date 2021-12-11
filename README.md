@@ -231,17 +231,17 @@ Requirements:
 
 Usage:
 
-Set a temporary alias
+Set a alias
 ```bash
 alias dcrr='docker-compose run --rm'
 ```
-Install dependencies
+Install PHP dependencies
 ```bash
 dcrr depi
 #or
 docker-compose run --rm depi
 ```
-Update dependencies
+Update PHP dependencies
 ```bash
 dcrr depu
 #or

@@ -6,10 +6,10 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./:/var/www
-  depi: &depi
+  depi:
     <<: *casbin
     entrypoint: composer install
-  depu: &depu
+  depu:
     <<: *casbin
     entrypoint: composer update
   test:
