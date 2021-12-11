@@ -1,0 +1,8 @@
+.github
+.dockerignore
+.gitignore
+.releaserc.yml
+/vendor
+LICENCE
+README_CN.md
+README.md

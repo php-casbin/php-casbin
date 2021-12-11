@@ -232,3 +232,33 @@ If you have any issues or feature requests, please contact us. PR is welcomed.
 - https://github.com/php-casbin/php-casbin/issues
 - techlee@qq.com
 - Tencent QQ group: [546057381](//shang.qq.com/wpa/qunwpa?idkey=8ac8b91fc97ace3d383d0035f7aa06f7d670fd8e8d4837347354a31c18fac885)
+
+## Development environment
+
+Requirements:
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+Usage:
+
+Set a temporary alias
+```bash
+alias dcrr='docker-compose run --rm'
+```
+Install dependencies
+```bash
+dcrr depi
+```
+Update dependencies
+```bash
+dcrr depu
+```
+Run tests
+```bash
+dcrr test
+```
+Run stan
+```bash
+dcrr stan
+```

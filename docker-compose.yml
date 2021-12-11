@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  casbin: &casbin
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/var/www
+  depi: &depi
+    <<: *casbin
+    entrypoint: composer install
+  depu: &depu
+    <<: *casbin
+    entrypoint: composer update
+  test:
+    <<: *casbin
+    entrypoint: php vendor/bin/phpunit
+  stan:
+    <<: *casbin
+    entrypoint: php vendor/bin/phpstan
