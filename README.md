@@ -222,17 +222,6 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/casbin/sponsor/8/website" target="_blank"><img src="https://opencollective.com/casbin/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/casbin/sponsor/9/website" target="_blank"><img src="https://opencollective.com/casbin/sponsor/9/avatar.svg"></a>
 
-## License
-
-This project is licensed under the [Apache 2.0 license](LICENSE).
-
-## Contact
-
-If you have any issues or feature requests, please contact us. PR is welcomed.
-- https://github.com/php-casbin/php-casbin/issues
-- techlee@qq.com
-- Tencent QQ group: [546057381](//shang.qq.com/wpa/qunwpa?idkey=8ac8b91fc97ace3d383d0035f7aa06f7d670fd8e8d4837347354a31c18fac885)
-
 ## Development environment
 
 Requirements:
@@ -249,16 +238,36 @@ alias dcrr='docker-compose run --rm'
 Install dependencies
 ```bash
 dcrr depi
+#or
+docker-compose run --rm depi
 ```
 Update dependencies
 ```bash
 dcrr depu
+#or
+docker-compose run --rm depu
 ```
 Run tests
 ```bash
 dcrr test
+#or
+docker-compose run --rm test
 ```
 Run stan
 ```bash
 dcrr stan
+#or
+docker-compose run --rm stan
 ```
+
+## License
+
+This project is licensed under the [Apache 2.0 license](LICENSE).
+
+## Contact
+
+If you have any issues or feature requests, please contact us. PR is welcomed.
+- https://github.com/php-casbin/php-casbin/issues
+- techlee@qq.com
+- Tencent QQ group: [546057381](//shang.qq.com/wpa/qunwpa?idkey=8ac8b91fc97ace3d383d0035f7aa06f7d670fd8e8d4837347354a31c18fac885)
+
