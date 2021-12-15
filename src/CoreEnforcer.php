@@ -632,7 +632,7 @@ class CoreEnforcer
         if (count($this->model['r']['r']->tokens) != count($rvals)) {
             throw new CasbinException(sprintf('invalid request size: expected %d, got %d', count($this->model['r']['r']->tokens), count($rvals)));
         }
-    
+
         $policyEffects = [];
         $matcherResults = [];
 
@@ -693,7 +693,7 @@ class CoreEnforcer
                     $policyEffects[$policyIndex] = Effector::ALLOW;
                 }
 
-                list($effect, $explainIndex) = $this->eft->mergeEffects($this->model['e'][$eType]->value, array_slice($policyEffects, 0, $policyIndex + 1), array_slice($matcherResults, 0, $policyIndex + 1), $policyIndex, $policyLen);
+                list($effect, $explainIndex) = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults, $policyIndex, $policyLen);
                 if ($effect != Effector::INDETERMINATE) {
                     break;
                 }
