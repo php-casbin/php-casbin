@@ -37,5 +37,10 @@
         "psr-4": {
             "Casbin\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit -v --testsuite test",
+        "benchmark": "./vendor/bin/phpunit -v --no-coverage --testsuite benchmark",
+        "analyse": "./vendor/bin/phpstan analyse"
     }
 }

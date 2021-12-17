@@ -9,9 +9,13 @@
          processIsolation="false"
          stopOnFailure="false">
   	<testsuites>
-    	<testsuite name="Application Test Suite">
+    	<testsuite name="test">
       		<directory>./tests/</directory>
+            <exclude>./tests/Benchmark</exclude>
     	</testsuite>
+        <testsuite name="benchmark">
+            <directory>./tests/Benchmark/</directory>
+        </testsuite>
   	</testsuites>
    	<filter>
         <whitelist processUncoveredFilesFromWhitelist="true">

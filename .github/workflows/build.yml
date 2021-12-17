@@ -11,7 +11,7 @@ jobs:
         php: [7.1, 7.2, 7.3, 7.4, 8.0, 8.1]
         stability: [ prefer-lowest, prefer-stable ]
 
-    name: PHP ${{ matrix.php }} - ${{ matrix.stability }}
+    name: Test PHP ${{ matrix.php }} - ${{ matrix.stability }}
 
     steps:
       - name: Checkout code
@@ -32,10 +32,10 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-suggest
 
       - name: Run phpstan analyse
-        run: ./vendor/bin/phpstan analyse
+        run: composer analyse
 
       - name: Run test suite
-        run: ./vendor/bin/phpunit -v
+        run: composer test
 
       - name: Run Coveralls
         env:
@@ -43,6 +43,36 @@ jobs:
           COVERALLS_PARALLEL: true
           COVERALLS_FLAG_NAME: ${{ runner.os }} - ${{ matrix.php }} - ${{ matrix.stability }}
         run: ./vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+
+  benchmark:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [7.1, 8.0]
+
+    name: Benchmark PHP ${{ matrix.php }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Run benchmark
+        run: composer benchmark
 
   upload-coverage:
     runs-on: ubuntu-latest
