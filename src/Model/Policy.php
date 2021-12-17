@@ -131,7 +131,7 @@ abstract class Policy implements ArrayAccess
         foreach ($this->items[$sec][$ptype]->policy as $rule) {
             $matched = true;
             foreach ($fieldValues as $i => $fieldValue) {
-                if ('' != $fieldValue && $rule[$fieldIndex + $i] != $fieldValue) {
+                if ('' != $fieldValue && $rule[$fieldIndex + intval($i)] != $fieldValue) {
                     $matched = false;
 
                     break;
@@ -200,10 +200,10 @@ abstract class Policy implements ArrayAccess
         if ($sec == 'p' && $assertion->priorityIndex !== false && $assertion->priorityIndex >= 0) {
             $idxInsert = $rule[$assertion->priorityIndex];
             for ($i = count($assertion->policy) - 1; $i > 0; $i--) {
-                $idx = $assertion->policy[$i-1][$assertion->priorityIndex];
+                $idx = $assertion->policy[$i - 1][$assertion->priorityIndex];
                 if ($idx > $idxInsert) {
-                    $assertion->policy[$i] = $assertion->policy[$i-1];
-                    $assertion->policyMap[implode(self::DEFAULT_SEP, $assertion->policy[$i-1])]++;
+                    $assertion->policy[$i] = $assertion->policy[$i - 1];
+                    $assertion->policyMap[implode(self::DEFAULT_SEP, $assertion->policy[$i - 1])]++;
                 } else {
                     break;
                 }
@@ -376,7 +376,7 @@ abstract class Policy implements ArrayAccess
         foreach ($this->items[$sec][$ptype]->policy as $index => $rule) {
             $matched = true;
             foreach ($fieldValues as $i => $fieldValue) {
-                if ('' != $fieldValue && $rule[$fieldIndex + $i] != $fieldValue) {
+                if ('' != $fieldValue && $rule[$fieldIndex + intval($i)] != $fieldValue) {
                     $matched = false;
                     break;
                 }
@@ -466,7 +466,7 @@ abstract class Policy implements ArrayAccess
      */
     public function offsetGet($offset): ?array
     {
-        return isset($this->items[$offset]) ? $this->items[$offset] : null;
+        return $this->items[$offset] ?? null;
     }
 
     /**
@@ -475,7 +475,7 @@ abstract class Policy implements ArrayAccess
      * @param mixed $offset
      * @param mixed $value
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->items[$offset] = $value;
     }
@@ -485,7 +485,7 @@ abstract class Policy implements ArrayAccess
      *
      * @param mixed $offset
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->items[$offset]);
     }
