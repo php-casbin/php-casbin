@@ -448,7 +448,7 @@ abstract class Policy implements ArrayAccess
     /**
      * Determine if the given Model option exists.
      *
-     * @param mixed $offset
+     * @param string $offset
      *
      * @return bool
      */
@@ -460,7 +460,7 @@ abstract class Policy implements ArrayAccess
     /**
      * Get a Model option.
      *
-     * @param mixed $offset
+     * @param string $offset
      *
      * @return array<string, Assertion>|null
      */
@@ -472,8 +472,8 @@ abstract class Policy implements ArrayAccess
     /**
      * Set a Model option.
      *
-     * @param mixed $offset
-     * @param mixed $value
+     * @param string $offset
+     * @param array<string, Assertion> $value
      */
     public function offsetSet($offset, $value): void
     {
@@ -483,7 +483,7 @@ abstract class Policy implements ArrayAccess
     /**
      * Unset a Model option.
      *
-     * @param mixed $offset
+     * @param string $offset
      */
     public function offsetUnset($offset): void
     {
