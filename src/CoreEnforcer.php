@@ -614,6 +614,9 @@ class CoreEnforcer
         $rTokens = array_values($this->model['r'][$rType]->tokens);
         $pTokens = array_values($this->model['p'][$pType]->tokens);
 
+        if (\count($rTokens) != \count($rvals)) {
+            throw new CasbinException(\sprintf('invalid request size: expected %d, got %d', \count($rTokens), \count($rvals)));
+        }
         $rParameters = array_combine($rTokens, $rvals);
 
         if (false == $rParameters) {
@@ -627,10 +630,6 @@ class CoreEnforcer
 
         if (!$hasEval) {
             $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
-        }
-
-        if (count($this->model['r']['r']->tokens) != count($rvals)) {
-            throw new CasbinException(sprintf('invalid request size: expected %d, got %d', count($this->model['r']['r']->tokens), count($rvals)));
         }
 
         $policyEffects = [];
