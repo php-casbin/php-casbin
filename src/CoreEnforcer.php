@@ -604,6 +604,14 @@ class CoreEnforcer
                 break;
         }
 
+        foreach ($rvals as $rinx => $rval) {
+            if (\is_string($rval) || \method_exists($rval, '__toString')){
+                continue;
+            }
+            \trigger_error(\sprintf('rvals %d must be of the type Stringable, %s given', $rinx, \gettype($rval)), \E_USER_WARNING);
+            $rvals[$rinx] = \strval($rval);
+        }
+
         $expString = '';
         if ('' === $matcher) {
             $expString = $this->model['m'][$mType]->value;
