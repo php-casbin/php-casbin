@@ -129,7 +129,10 @@ class Enforcer extends ManagementEnforcer
      */
     public function deleteUser(string $user): bool
     {
-        return $this->removeFilteredGroupingPolicy(0, $user);
+        $res1 = $this->removeFilteredGroupingPolicy(0, $user);
+        $res2 = $this->removeFilteredPolicy(0, $user);
+
+        return $res1 || $res2;
     }
 
     /**

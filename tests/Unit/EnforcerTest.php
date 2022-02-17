@@ -138,7 +138,11 @@ class EnforcerTest extends TestCase
     public function testDeleteUser()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        $this->assertTrue($e->hasPolicy('alice', 'data1', 'read'));
+        $this->assertEquals($e->getRolesForUser('alice'), ['data2_admin']);
+
         $e->deleteUser('alice');
+        $this->assertFalse($e->hasPolicy('alice', 'data1', 'read'));
         $this->assertEquals($e->getRolesForUser('alice'), []);
     }
 
