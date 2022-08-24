@@ -436,7 +436,7 @@ class BuiltinOperations
             foreach ($args as $arg) {
                 $key .= (string)$arg;
             }
-            
+            /** @phpstan-ignore-next-line */
             if(isset($memorized[$key])){
                 return $memorized[$key];
             }
