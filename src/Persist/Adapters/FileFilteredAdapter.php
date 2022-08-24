@@ -139,7 +139,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
     protected static function filterLine(string $line, Filter $filter): bool
     {
         $p = explode(',', $line);
-        if (0 == \count($p)) {
+        if (0 == strlen($p[0])) {
             return true;
         }
 

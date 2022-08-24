@@ -430,18 +430,31 @@ class BuiltinOperations
      */
     public static function generateGFunction(RoleManager $rm = null): Closure
     {
-        return function (...$args) use ($rm) {
+        $memorized = [];
+        return function (...$args) use ($rm, $memorized) {
+            $key = '';
+            foreach ($args as $arg) {
+                $key .= (string)$arg;
+            }
+            /** @phpstan-ignore-next-line */
+            if(isset($memorized[$key])){
+                return $memorized[$key];
+            }
+
             $name1 = $args[0];
             $name2 = $args[1];
 
             if (null === $rm) {
-                return $name1 == $name2;
+                $v = $name1 == $name2;
             } elseif (2 == \count($args)) {
-                return $rm->hasLink($name1, $name2);
+                $v = $rm->hasLink($name1, $name2);
             } else {
                 $domain = (string)$args[2];
-                return $rm->hasLink($name1, $name2, $domain);
+                $v = $rm->hasLink($name1, $name2, $domain);
             }
+
+            $memorized[$key] = $v;
+            return $v;
         };
     }
 }
