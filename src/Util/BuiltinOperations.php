@@ -431,12 +431,9 @@ class BuiltinOperations
     public static function generateGFunction(RoleManager $rm = null): Closure
     {
         $memorized = [];
-        return function (...$args) use ($rm, $memorized) {
-            $key = '';
-            foreach ($args as $arg) {
-                $key .= (string)$arg;
-            }
-            /** @phpstan-ignore-next-line */
+        return function (...$args) use ($rm, &$memorized) {
+            $key = implode(chr(0b0), $args);
+
             if(isset($memorized[$key])){
                 return $memorized[$key];
             }
