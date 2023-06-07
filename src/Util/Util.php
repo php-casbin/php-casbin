@@ -131,7 +131,7 @@ class Util
             $s = $s[0];
             preg_match(self::REGEXP, $s, $subs);
 
-            if ($subs === null) {
+            if (count($subs) == 0) {
                 return $s;
             }
             $key = $subs[1];

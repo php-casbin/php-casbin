@@ -31,7 +31,9 @@ trait AdapterHelper
             return;
         }
 
-        $tokens = array_map("trim", str_getcsv($line));
+        $tokens = array_map(function($item){
+            return trim(is_null($item) ? "" : $item);
+        }, str_getcsv($line));
 
         $this->loadPolicyArray($tokens, $model);
     }
@@ -39,7 +41,7 @@ trait AdapterHelper
     /**
      * Loads a policy rule to model.
      *
-     * @param array $rule
+     * @param array<string> $rule
      * @param Model $model
      */
     public function loadPolicyArray(array $rule, Model $model): void
