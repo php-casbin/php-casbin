@@ -251,14 +251,13 @@ class BuiltinOperations
             $pattern,
             function ($m) use (&$tokens) {
                 $tokens[] = $m[1];
-
                 return '([^\/]+)';
             },
             $key2
         );
 
         $matched = preg_match_all('~^' . $key2 . '$~', $key1, $matches);
-        if (!$matched) {
+        if (!boolval($matched)) {
             return false;
         }
 
@@ -302,7 +301,7 @@ class BuiltinOperations
     public static function keyMatch5(string $key1, string $key2): bool
     {
         $pos = strpos($key1, '?');
-        if ($pos == false) {
+        if ($pos === false) {
             return $key1 == $key2;
         }
 
