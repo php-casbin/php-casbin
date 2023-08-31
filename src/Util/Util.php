@@ -21,7 +21,6 @@ class Util
      * @param string $s
      *
      * @return string
-     * @throws CasbinException
      */
     public static function escapeAssertion(string $s): string
     {
@@ -32,15 +31,11 @@ class Util
             }
         }
 
-        $s = preg_replace_callback("~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)((r|p)[0-9]*)(\.)~", function ($m) {
+        $ss = preg_replace_callback("~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)((r|p)[0-9]*)(\.)~", function ($m) {
             return $m[1] . $m[2] . '_';
         }, $s);
 
-        if (null === $s) {
-            throw new CasbinException(sprintf('Unable to escape assertion "%s"', $s));
-        }
-
-        return $s;
+        return is_string($ss) ? $ss : $s;
     }
 
     /**

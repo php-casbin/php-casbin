@@ -360,7 +360,9 @@ class CoreEnforcer
         $newModel->clearPolicy();
 
         try {
-            $this->adapter->loadPolicy($newModel);
+            if (!is_null($this->adapter)){
+                $this->adapter->loadPolicy($newModel);
+            }
             $newModel->printPolicy();
             $newModel->sortPoliciesBySubjectHierarchy();
             $newModel->sortPoliciesByPriority();
@@ -463,7 +465,9 @@ class CoreEnforcer
             throw new CasbinException('cannot save a filtered policy');
         }
 
-        $this->adapter->savePolicy($this->model);
+        if (!is_null($this->adapter)){
+            $this->adapter->savePolicy($this->model);
+        }        
 
         if ($this->watcher !== null && $this->autoNotifyWatcher) {
             if ($this->watcher instanceof WatcherEx) {
