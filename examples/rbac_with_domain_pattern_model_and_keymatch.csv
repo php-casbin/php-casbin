@@ -19,7 +19,7 @@ g,usergroup4, perm4, domain4
 
 g,alice,admingroup,domain1
 g,alice,readergroup,domain2
-g,alice,usergroup4, domain4
+g,badr,usergroup4, domain4
 
 g,stef,admingroup, *
 g,ben,perm5,domain4

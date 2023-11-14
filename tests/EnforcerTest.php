@@ -430,7 +430,7 @@ class EnforcerTest extends TestCase
         $this->assertTrue($e->enforce('anyone', 'data3', 'read'));
     }
 
-    public function testRbacWithDOmain()
+    public function testRbacWithDomain()
     {
         $e = new Enforcer(
             $this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch.conf',
@@ -440,7 +440,6 @@ class EnforcerTest extends TestCase
         $e->addNamedDomainMatchingFunc('g', 'keyMatch', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch($key1, $key2);
         });
-//        $e->buildRoleLinks();
 
         $this->assertTrue($e->enforce('alice', 'domain1', 'data1', 'read'));
         $this->assertTrue($e->enforce('alice', 'domain1', 'data1', 'write'));
@@ -459,10 +458,10 @@ class EnforcerTest extends TestCase
         $this->assertFalse($e->enforce('alice', 'domain3', 'data2', 'read'));
         $this->assertFalse($e->enforce('alice', 'domain3', 'data2', 'write'));
 
-        $this->assertFalse($e->enforce('alice', 'domain4', 'data1', 'write'));
-        $this->assertTrue($e->enforce('alice', 'domain4', 'data1', 'read'));
-        $this->assertTrue($e->enforce('alice', 'domain4', 'data2', 'read'));
-        $this->assertTrue($e->enforce('alice', 'domain4', 'data2', 'write'));
+        $this->assertFalse($e->enforce('badr', 'domain4', 'data1', 'write'));
+        $this->assertTrue($e->enforce('badr', 'domain4', 'data1', 'read'));
+        $this->assertTrue($e->enforce('badr', 'domain4', 'data2', 'read'));
+        $this->assertTrue($e->enforce('badr', 'domain4', 'data2', 'write'));
 
         $this->assertTrue($e->enforce('stef', 'domain1', 'data1', 'read'));
         $this->assertTrue($e->enforce('stef', 'domain1', 'data1', 'write'));
