@@ -155,26 +155,6 @@ class RoleManager implements RoleManagerContract
         $role2 = &$allRoles->loadOrStore($name2, new Role($name2));
 
         $role1->addRole($role2);
-
-        if ($this->hasPattern) {
-            foreach ($allRoles->toArray() as $key => $value) {
-                $matchingFunc = $this->matchingFunc;
-                if ($matchingFunc($key . '', $name1) && $name1 != $key) {
-                    $valueRole = &$allRoles->loadOrStore($key . '', new Role($key . ''));
-                    $valueRole->addRole($role1);
-                }
-                if ($matchingFunc($key . '', $name2) && $name2 != $key) {
-                    $role2->addRole($value);
-                }
-                if ($matchingFunc($name1, $key . '') && $name1 != $key) {
-                    $valueRole = &$allRoles->loadOrStore($key . '', new Role($key . ''));
-                    $valueRole->addRole($role1);
-                }
-                if ($matchingFunc($name2, $key . '') && $name2 != $key) {
-                    $role2->addRole($value);
-                }
-            }
-        }
     }
 
     /**
@@ -235,20 +215,6 @@ class RoleManager implements RoleManagerContract
             return false;
         }
 
-        if ($this->hasPattern) {
-            $flag = false;
-            foreach ($allRoles->toArray() as $key => $value) {
-                $matchingFunc = $this->matchingFunc;
-                if ($matchingFunc($name1, $key . '') && $value->hasRoleWithMatchingFunc($name2, $this->maxHierarchyLevel, $matchingFunc)) {
-                    $flag = true;
-                    break;
-                }
-            }
-            if ($flag) {
-                return true;
-            }
-        }
-
         $role1 = &$allRoles->createRole($name1, $this->matchingFunc);
 
         return $role1->hasRole($name2, $this->maxHierarchyLevel);
@@ -303,6 +269,7 @@ class RoleManager implements RoleManagerContract
             // throw new CasbinException('error: name does not exist');
             return [];
         }
+
 
         $names = [];
         foreach ($allRoles->toArray() as $role) {

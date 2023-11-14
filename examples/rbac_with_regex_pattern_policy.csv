@@ -1,0 +1,9 @@
+p,root,data1,read
+p,r\d+,data2,read
+
+g,g\d+,root
+
+g,u1,g1
+g,u2,ga1
+g,u3,r\d+
+g,u4,r1

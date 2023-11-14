@@ -37,12 +37,24 @@ class Roles
 
     /**
      * @param string $name
+     * @param Closure|null $matchingFunc
      *
      * @return Role
      */
-    public function &createRole(string $name): Role
+    public function &createRole(string $name, ?Closure $matchingFunc): Role
     {
         $role = &$this->loadOrStore($name, new Role($name));
+
+        if ($matchingFunc instanceof Closure) {
+
+            foreach ($this->roles as $key => $value) {
+                if ($matchingFunc($name, $key) && $name != $key) {
+                    $role1 = &$this->loadOrStore($key, new Role($key));
+                    $role->addRole($role1);
+                }
+            }
+        }
+
         return $role;
     }
 
