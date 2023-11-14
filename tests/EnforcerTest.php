@@ -436,27 +436,41 @@ class EnforcerTest extends TestCase
             $this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch.conf',
             $this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch.csv'
         );
+
         $e->addNamedDomainMatchingFunc('g', 'keyMatch', function (string $key1, string $key2) {
             return BuiltinOperations::keyMatch($key1, $key2);
         });
-        $e->buildRoleLinks();
+//        $e->buildRoleLinks();
 
         $this->assertTrue($e->enforce('alice', 'domain1', 'data1', 'read'));
         $this->assertTrue($e->enforce('alice', 'domain1', 'data1', 'write'));
         $this->assertTrue($e->enforce('alice', 'domain1', 'data2', 'read'));
         $this->assertTrue($e->enforce('alice', 'domain1', 'data2', 'write'));
-        $this->assertTrue($e->enforce('alice', 'domain2', 'data1', 'read'));
-        $this->assertTrue($e->enforce('alice', 'domain2', 'data2', 'read'));
-        $this->assertTrue($e->enforce('alice', 'domain4', 'data2', 'read'));
+
+        $this->assertFalse($e->enforce('bob', 'domain1', 'data2', 'write'));
+
+        $this->assertTrue($e->enforce('alice',  'domain2', 'data1', 'read'));
         $this->assertFalse($e->enforce('alice', 'domain2', 'data1', 'write'));
+        $this->assertTrue($e->enforce('alice',  'domain2', 'data2', 'read'));
         $this->assertFalse($e->enforce('alice', 'domain2', 'data2', 'write'));
+
         $this->assertFalse($e->enforce('alice', 'domain3', 'data1', 'read'));
         $this->assertFalse($e->enforce('alice', 'domain3', 'data1', 'write'));
         $this->assertFalse($e->enforce('alice', 'domain3', 'data2', 'read'));
         $this->assertFalse($e->enforce('alice', 'domain3', 'data2', 'write'));
-        $this->assertFalse($e->enforce('alice', 'domain4', 'data1', 'read'));
+
         $this->assertFalse($e->enforce('alice', 'domain4', 'data1', 'write'));
-        $this->assertFalse($e->enforce('alice', 'domain4', 'data2', 'write'));
-        $this->assertFalse($e->enforce('bob', 'domain1', 'data2', 'write'));
+        $this->assertTrue($e->enforce('alice', 'domain4', 'data1', 'read'));
+        $this->assertTrue($e->enforce('alice', 'domain4', 'data2', 'read'));
+        $this->assertTrue($e->enforce('alice', 'domain4', 'data2', 'write'));
+
+        $this->assertTrue($e->enforce('stef', 'domain1', 'data1', 'read'));
+        $this->assertTrue($e->enforce('stef', 'domain1', 'data1', 'write'));
+        $this->assertTrue($e->enforce('stef', 'domain1', 'data2', 'read'));
+        $this->assertTrue($e->enforce('stef', 'domain1', 'data2', 'write'));
+
+        $this->assertFalse($e->enforce('stef', 'domain5', 'data3', 'read'));
+        $this->assertFalse($e->enforce('ben', 'domain5', 'data3', 'read'));
+        $this->assertTrue($e->enforce('leo', 'domain5', 'data3', 'read'));
     }
 }
