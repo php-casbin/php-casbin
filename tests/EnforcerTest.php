@@ -6,6 +6,7 @@ use Casbin\EnforceContext;
 use Casbin\Enforcer;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapters\FileAdapter;
+use Casbin\Util\BuiltinOperations;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -427,5 +428,58 @@ class EnforcerTest extends TestCase
         $this->assertFalse($e->enforce('anyone', 'data1', 'read'));
         $this->assertTrue($e->enforce('anyone', 'data2', 'read'));
         $this->assertTrue($e->enforce('anyone', 'data3', 'read'));
+    }
+
+    /**
+     * Data provider for testRbacWithDomain.
+     */
+    public function domainDataProvider(): \Generator
+    {
+        yield 'alice in domain1 data1 read' => ['alice', 'domain1', 'data1', 'read', true];
+        yield 'alice in domain1 data1 write' => ['alice', 'domain1', 'data1', 'write', true];
+        yield 'alice in domain1 data2 read' => ['alice', 'domain1', 'data2', 'read', true];
+        yield 'alice in domain1 data2 write' => ['alice', 'domain1', 'data2', 'write', true];
+        yield 'bob in domain1 data2 write' => ['bob', 'domain1', 'data2', 'write', false];
+        yield 'alice in domain2 data1 read' => ['alice', 'domain2', 'data1', 'read', true];
+        yield 'alice in domain2 data1 write' => ['alice', 'domain2', 'data1', 'write', false];
+        yield 'alice in domain2 data2 read' => ['alice', 'domain2', 'data2', 'read', true];
+        yield 'alice in domain2 data2 write' => ['alice', 'domain2', 'data2', 'write', false];
+        yield 'alice in domain3 data1 read' => ['alice', 'domain3', 'data1', 'read', false];
+        yield 'alice in domain3 data1 write' => ['alice', 'domain3', 'data1', 'write', false];
+        yield 'alice in domain3 data2 read' => ['alice', 'domain3', 'data2', 'read', false];
+        yield 'alice in domain3 data2 write' => ['alice', 'domain3', 'data2', 'write', false];
+        yield 'badr in domain4 data1 write' => ['badr', 'domain4', 'data1', 'write', false];
+        yield 'badr in domain4 data1 read' => ['badr', 'domain4', 'data1', 'read', true];
+        yield 'badr in domain4 data2 read' => ['badr', 'domain4', 'data2', 'read', true];
+        yield 'badr in domain4 data2 write' => ['badr', 'domain4', 'data2', 'write', true];
+        yield 'stef in domain1 data1 read' => ['stef', 'domain1', 'data1', 'read', true];
+        yield 'stef in domain1 data1 write' => ['stef', 'domain1', 'data1', 'write', true];
+        yield 'stef in domain1 data2 read' => ['stef', 'domain1', 'data2', 'read', true];
+        yield 'stef in domain1 data2 write' => ['stef', 'domain1', 'data2', 'write', true];
+        yield 'stef in domain5 data3 read' => ['stef', 'domain5', 'data3', 'read', false];
+        yield 'ben in domain5 data3 read' => ['ben', 'domain5', 'data3', 'read', false];
+        yield 'leo in domain5 data3 read' => ['leo', 'domain5', 'data3', 'read', true];
+        yield 'leo in domain1 data3 read' => ['leo', 'domain1', 'data3', 'read', false];
+    }
+
+    /**
+     * @dataProvider domainDataProvider
+     */
+    public function testRbacWithDomain($user, $domain, $resource, $action, $expected)
+    {
+        $enforcer = new Enforcer(
+            $this->modelAndPolicyPath.'/rbac_with_domain_pattern_model_and_keymatch_model.conf',
+            $this->modelAndPolicyPath.'/rbac_with_domain_pattern_model_and_keymatch_policy.csv'
+        );
+
+        $enforcer->addNamedDomainMatchingFunc(
+            'g',
+            'keyMatch',
+            function (string $keyOne, string $keyTwo) {
+                return BuiltinOperations::keyMatch($keyOne, $keyTwo);
+            }
+        );
+
+        $this->assertSame($expected, $enforcer->enforce($user, $domain, $resource, $action));
     }
 }
