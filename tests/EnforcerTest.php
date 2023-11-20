@@ -430,27 +430,6 @@ class EnforcerTest extends TestCase
         $this->assertTrue($e->enforce('anyone', 'data3', 'read'));
     }
 
-    public function testRbacWithRegexPatternMatching()
-    {
-        $e = new Enforcer(
-            $this->modelAndPolicyPath . '/rbac_with_regex_pattern_model.conf',
-            $this->modelAndPolicyPath . '/rbac_with_regex_pattern_policy.csv'
-        );
-
-        $e->addNamedMatchingFunc('g', 'regexMatch', function (string $key1, string $key2) {
-            return BuiltinOperations::regexMatch($key1, $key2);
-        });
-
-        $this->assertTrue($e->getRoleManager()->hasLink('u1', 'g1'));
-        $this->assertFalse($e->getRoleManager()->hasLink('u1', 'g2'));
-        $this->assertTrue($e->getRoleManager()->hasLink('u1', 'root'));
-
-        $this->assertTrue($e->enforce('u1', 'data1', 'read'));
-        $this->assertFalse($e->enforce('u2', 'data1', 'read'));
-        $this->assertFalse($e->enforce('u3', 'data2', 'read'));
-        $this->assertFalse($e->enforce('u4', 'data2', 'read'));
-    }
-
     public function testRbacWithDomain()
     {
         $e = new Enforcer(

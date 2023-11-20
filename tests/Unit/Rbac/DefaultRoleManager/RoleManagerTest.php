@@ -147,5 +147,17 @@ class RoleManagerTest extends TestCase
         $rm->addLink('g\\d+', 'root');
         $rm->addLink('u1', 'g1');
         $this->assertEquals($rm->hasLink('u1', 'root'), true);
+
+        $rm->clear();
+
+        $rm->AddLink('u1', 'g1');
+        $rm->AddLink('g\\d+', 'root');
+        $this->assertEquals($rm->hasLink('u1', 'root'), true);
+
+        $rm->clear();
+
+        $rm->AddLink('u1', 'g\\d+');
+        $this->assertEquals($rm->hasLink('u1', 'g1'), true);
+        $this->assertEquals($rm->hasLink('u1', 'g1'), true);
     }
 }
