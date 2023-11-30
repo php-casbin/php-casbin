@@ -87,6 +87,58 @@ class RoleManager implements RoleManagerContract
     }
 
     /**
+     * @param string $domain
+     *
+     * @return Roles
+     */
+    protected function &getAllRolesForDomain(string $domain): Roles
+    {
+        if ($this->hasDomainPattern || $this->hasPattern) {
+            $allRoles = &$this->generateTempRoles($domain);
+        } else {
+            $allRoles = &$this->loadOrStoreRoles($domain, new Roles());
+        }
+
+        return $allRoles;
+    }
+
+    /**
+     * @param string $domain
+     *
+     * @return Roles
+     */
+    protected function &generateTempRoles(string $domain): Roles
+    {
+        $this->loadOrStoreRoles($domain, new Roles());
+
+        $patternDomain = [$domain];
+
+        $domainMatchingFunc = $this->domainMatchingFunc;
+        if ($this->hasDomainPattern) {
+            foreach ($this->allDomains as $key => $roles) {
+                if ($domainMatchingFunc($domain, $key)) {
+                    $patternDomain[] = $key;
+                }
+            }
+        }
+
+        $allRoles = new Roles();
+
+        foreach ($patternDomain as $domain) {
+            $roles = $this->loadOrStoreRoles($domain, new Roles());
+            foreach ($roles->toArray() as $key => $role2) {
+                $role1 = &$allRoles->createRole($role2->name);
+                foreach ($role2->getRoles() as $name) {
+                    $role3 = &$allRoles->createRole($name);
+                    $role1->addRole($role3);
+                }
+            }
+        }
+
+        return $allRoles;
+    }
+
+    /**
      * Clears all stored data and resets the role manager to the initial state.
      */
     public function clear(): void
@@ -219,7 +271,7 @@ class RoleManager implements RoleManagerContract
         $patternDomain = $this->getPatternDomain($domain[0]);
 
         foreach ($patternDomain as $domain) {
-            $allRoles = &$this->loadOrStoreRoles($domain, new Roles());
+            $allRoles = &$this->getAllRolesForDomain($domain);
             if (!$allRoles->hasRole($name1, $this->matchingFunc) || !$allRoles->hasRole($name2, $this->matchingFunc)) {
                 continue;
             }

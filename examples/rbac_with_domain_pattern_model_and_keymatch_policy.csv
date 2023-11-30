@@ -1,0 +1,21 @@
+p,perm1,*,data1,read
+p,perm2,*,data1,write
+p,perm3,*,data2,read
+p,perm4,*,data2,write
+
+g,adminrole,perm1,*
+g,adminrole,perm2,*
+g,adminrole,perm3,*
+g,adminrole,perm4,*
+g,readerrole,perm1,*
+g,readerrole,perm3,*
+
+g,admingroup, adminrole, *
+g,readergroup, readerrole, *
+
+g,usergroup4, readergroup, domain4
+g,usergroup4, perm4, domain4
+
+g,alice,admingroup,domain1
+g,alice,readergroup,domain2
+g,alice,readergroup,domain4
