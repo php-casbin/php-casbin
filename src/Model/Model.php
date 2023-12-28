@@ -319,8 +319,8 @@ class Model extends Policy
                 $name1 = $this->getNameWithDomain($domain1, $i[$subIndex]);
                 $name2 = $this->getNameWithDomain($domain2, $j[$subIndex]);
 
-                $p1 = $subjectHierarchyMap[$name1];
-                $p2 = $subjectHierarchyMap[$name2];
+                $p1 = $subjectHierarchyMap[$name1] ?? 0;
+                $p2 = $subjectHierarchyMap[$name2] ?? 0;
 
                 if ($p1 == $p2) {
                     return 0;
