@@ -151,7 +151,7 @@ You can also use the online editor (http://casbin.org/editor/) to write your php
 
 ## Tutorials
 
-https://casbin.org/docs/en/tutorials
+https://casbin.org/docs/tutorials
 
 ## Policy management
 
