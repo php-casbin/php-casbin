@@ -7,7 +7,7 @@ PHP-Casbin
 [![Latest Stable Version](https://poser.pugx.org/casbin/casbin/v/stable)](https://packagist.org/packages/casbin/casbin)
 [![Total Downloads](https://poser.pugx.org/casbin/casbin/downloads)](https://packagist.org/packages/casbin/casbin)
 [![License](https://poser.pugx.org/casbin/casbin/license)](https://packagist.org/packages/casbin/casbin)
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/casbin/lobby)
+[![Discord](https://img.shields.io/discord/1022748306096537660?logo=discord&label=discord&color=5865F2)](https://discord.gg/S5UjpzGZjN)
 
 [Documentation](https://casbin.org/docs/overview) | [Tutorials](https://github.com/php-casbin/casbin-tutorials) | [Extensions](https://github.com/php-casbin)
 
