@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Casbin\Model;
 
 use ArrayAccess;
+use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Log\Log;
 use Casbin\Rbac\RoleManager;
@@ -197,10 +198,14 @@ abstract class Policy implements ArrayAccess
         $assertion->policy[] = $rule;
         $assertion->policyMap[implode(self::DEFAULT_SEP, $rule)] = count($this->items[$sec][$ptype]->policy) - 1;
 
-        if ($sec == 'p' && $assertion->priorityIndex !== false && $assertion->priorityIndex >= 0) {
-            $idxInsert = $rule[$assertion->priorityIndex];
-            for ($i = count($assertion->policy) - 1; $i > 0; $i--) {
-                $idx = $assertion->policy[$i - 1][$assertion->priorityIndex];
+        $hasPriority = false;
+        if (isset($assertion->fieldIndexMap[Constants::PRIORITY_INDEX])) {
+            $hasPriority = true;
+        }
+        if ($sec == 'p' && $hasPriority) {
+            $idxInsert = $rule[$assertion->fieldIndexMap[Constants::PRIORITY_INDEX]];
+            for($i = count($assertion->policy) - 1; $i > 0; $i--) {
+                $idx = $assertion->policy[$i - 1][$assertion->fieldIndexMap[Constants::PRIORITY_INDEX]];
                 if ($idx > $idxInsert) {
                     $assertion->policy[$i] = $assertion->policy[$i - 1];
                     $assertion->policyMap[implode(self::DEFAULT_SEP, $assertion->policy[$i - 1])]++;
@@ -443,6 +448,74 @@ abstract class Policy implements ArrayAccess
         Util::arrayRemoveDuplicates($values);
 
         return $values;
+    }
+
+    /**
+     * Gets all values for a field for all rules in a policy of all ptypes, duplicated values are removed.
+     *
+     * @param string $sec
+     * @param string $field
+     * 
+     * @return array<string>
+     * @throws CasbinException
+     */
+    public function getValuesForFieldInPolicyAllTypesByName(string $sec, string $field): array 
+    {
+        $values = [];
+
+        foreach ($this->items[$sec] as $ptype => $rules) {
+            $index = $this->getFieldIndex($ptype, $field);
+            $v = $this->getValuesForFieldInPolicy($sec, $ptype, $index);
+
+            $values = array_merge($values, $v);
+        }
+
+        Util::arrayRemoveDuplicates($values);
+
+        return $values;
+    }
+
+    /**
+     * Gets the index for a given ptype and field.
+     *
+     * @param string $ptype
+     * @param string $field
+     * 
+     * @return int $fieldIndex
+     * @throws CasbinException
+     */
+    public function getFieldIndex(string $ptype, string $field): int
+    {
+        $assertion = &$this->items['p'][$ptype];
+        if (isset($assertion->fieldIndexMap[$field])) {
+            return $assertion->fieldIndexMap[$field];
+        }
+        $pattern = $ptype . '_' . $field;
+        $index = -1;
+        foreach ($assertion->tokens as $i => $token) {
+            if ($token == $pattern) {
+                $index = $i;
+                break;
+            }
+        }
+        if ($index == -1) {
+            throw new CasbinException($field . ' index is not set, please use enforcer.SetFieldIndex() to set index');
+        }
+        $assertion->fieldIndexMap[$field] = $index;
+        return $index;
+    }
+
+    /**
+     * Sets the index for a given ptype and field.
+     *
+     * @param string $ptype
+     * @param string $field
+     * @param int $index
+     */
+    public function setFieldIndex(string $ptype, string $field, int $index): void
+    {
+        $assertion = &$this->items['p'][$ptype];
+        $assertion->fieldIndexMap[$field] = $index;
     }
 
     /**

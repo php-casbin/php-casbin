@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Casbin\Effector;
 
+use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
 
 /**
@@ -32,7 +33,7 @@ class DefaultEffector extends Effector
         $explainIndex = -1;
 
         switch ($expr) {
-            case "some(where (p_eft == allow))":
+            case Constants::ALLOW_OVERRIDE_EFFECT:
                 if ($matches[$policyIndex] == 0) {
                     break;
                 }
@@ -43,7 +44,7 @@ class DefaultEffector extends Effector
                     break;
                 }
                 break;
-            case "!some(where (p_eft == deny))":
+            case Constants::DENY_OVERRIDE_EFFECT:
                 // only check the current policyIndex
                 if ($matches[$policyIndex] != 0 && $effects[$policyIndex] === Effector::DENY) {
                     $result = Effector::DENY;
@@ -55,7 +56,7 @@ class DefaultEffector extends Effector
                     $result = Effector::ALLOW;
                 }
                 break;
-            case "some(where (p_eft == allow)) && !some(where (p_eft == deny))":
+            case Constants::ALLOW_AND_DENY_EFFECT:
                 // short-circuit if matched deny rule
                 if ($matches[$policyIndex] != 0 && $effects[$policyIndex] === Effector::DENY) {
                     $result = Effector::DENY;
@@ -83,8 +84,8 @@ class DefaultEffector extends Effector
                     }
                 }
                 break;
-            case "priority(p_eft) || deny":
-            case "subjectPriority(p_eft) || deny":
+            case Constants::PRIORITY_EFFECT:
+            case Constants::SUBJECT_PRIORITY_EFFECT:
                 // reverse merge, short-circuit may be earlier
                 for ($i = count($effects) - 1; $i >= 0; $i--) {
                     if ($matches[$i] == 0) {
