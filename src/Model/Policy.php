@@ -198,10 +198,7 @@ abstract class Policy implements ArrayAccess
         $assertion->policy[] = $rule;
         $assertion->policyMap[implode(self::DEFAULT_SEP, $rule)] = count($this->items[$sec][$ptype]->policy) - 1;
 
-        $hasPriority = false;
-        if (isset($assertion->fieldIndexMap[Constants::PRIORITY_INDEX])) {
-            $hasPriority = true;
-        }
+        $hasPriority = isset($assertion->fieldIndexMap[Constants::PRIORITY_INDEX]);
         if ($sec == 'p' && $hasPriority) {
             $idxInsert = $rule[$assertion->fieldIndexMap[Constants::PRIORITY_INDEX]];
             for($i = count($assertion->policy) - 1; $i > 0; $i--) {
