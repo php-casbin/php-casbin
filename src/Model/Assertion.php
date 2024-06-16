@@ -59,16 +59,11 @@ class Assertion
     public $rm;
 
     /**
-     * $priorityIndex.
-     *
-     * @var int|bool
+     * $fieldIndexMap
+     * 
+     * @var array<string, int>
      */
-    public $priorityIndex;
-
-    public function initPriorityIndex(): void
-    {
-        $this->priorityIndex = false;
-    }
+    public $fieldIndexMap = [];
 
     /**
      * @param RoleManager $rm

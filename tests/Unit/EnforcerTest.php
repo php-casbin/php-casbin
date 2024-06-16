@@ -2,11 +2,13 @@
 
 namespace Casbin\Tests\Unit;
 
+use Casbin\Constant\Constants;
 use Casbin\Rbac\DefaultRoleManager\RoleManager;
 use Casbin\Util\BuiltinOperations;
-use PHPUnit\Framework\TestCase;
 use Casbin\Enforcer;
+use Casbin\Exceptions\CasbinException;
 use Casbin\Persist\Adapters\FileAdapter;
+use PHPUnit\Framework\TestCase;
 
 /**
  * EnforcerTest.
@@ -211,6 +213,12 @@ class EnforcerTest extends TestCase
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/basic_without_resources_model.conf', $this->modelAndPolicyPath . '/basic_without_resources_policy.csv');
         $this->assertEquals($e->getPermissionsForUser('alice'), [['alice', 'read']]);
+        
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+        $this->assertEquals($e->getPermissionsForUser('alice', 'domain1'), []);
+        $this->assertEquals($e->getPermissionsForUser('bob', 'domain1'), []);
+        $this->assertEquals($e->getPermissionsForUser('admin', 'domain1'), [['admin', 'domain1', 'data1', 'read'], ['admin', 'domain1', 'data1', 'write']]);
+        $this->assertEquals($e->getPermissionsForUser('non_exist', 'domain1'), []);
     }
 
     public function testHasPermissionForUser()
@@ -486,5 +494,36 @@ class EnforcerTest extends TestCase
         $e->deleteDomains('domain1', 'domain2');
         $this->assertEquals([], $e->getPolicy());
         $this->assertEquals([], $e->getGroupingPolicy());
+    }
+
+    public function testCustomizedFieldIndex()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/priority_model_explicit_customized.conf', $this->modelAndPolicyPath . '/priority_policy_explicit_customized.csv');
+
+        $this->assertEquals(0, $e->getFieldIndex('p', 'customized_priority'));
+        $this->assertEquals(1, $e->getFieldIndex('p', Constants::OBJECT_INDEX));
+        $this->assertEquals(2, $e->getFieldIndex('p', Constants::ACTION_INDEX));
+        $this->assertEquals(3, $e->getFieldIndex('p', 'eft'));
+        $this->assertEquals(4, $e->getFieldIndex('p', 'subject'));
+        
+        $this->assertTrue($e->enforce('bob', 'data2', 'read'));
+        $e->setFieldIndex('p', Constants::PRIORITY_INDEX, 0);
+        $e->loadPolicy();
+        $this->assertFalse($e->enforce('bob', 'data2', 'read'));
+
+        $this->assertTrue($e->enforce('bob', 'data2', 'write'));
+        $e->addPolicy('1', 'data2', 'write', 'deny', 'bob');
+        $this->assertFalse($e->enforce('bob', 'data2', 'write'));
+
+        $this->expectException(CasbinException::class);
+        $e->deletePermissionsForUser('bob');
+
+        $e->setFieldIndex('p', Constants::SUBJECT_INDEX, 4);
+
+        $this->assertTrue($e->deletePermissionsForUser('bob'));
+        $this->assertTrue($e->enforce('bob', 'data2', 'write'));
+
+        $this->assertTrue($e->deleteRole('data2_allow_group'));
+        $this->assertFalse($e->enforce('bob', 'data2', 'write'));
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Casbin;
 
+use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Util\Util;
 
@@ -130,7 +131,9 @@ class Enforcer extends ManagementEnforcer
     public function deleteUser(string $user): bool
     {
         $res1 = $this->removeFilteredGroupingPolicy(0, $user);
-        $res2 = $this->removeFilteredPolicy(0, $user);
+
+        $subIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
+        $res2 = $this->removeFilteredPolicy($subIndex, $user);
 
         return $res1 || $res2;
     }
@@ -144,7 +147,9 @@ class Enforcer extends ManagementEnforcer
     public function deleteRole(string $role): bool
     {
         $res1 = $this->removeFilteredGroupingPolicy(1, $role);
-        $res2 = $this->removeFilteredPolicy(0, $role);
+
+        $subIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
+        $res2 = $this->removeFilteredPolicy($subIndex, $role);
 
         return $res1 || $res2;
     }
@@ -221,7 +226,8 @@ class Enforcer extends ManagementEnforcer
      */
     public function deletePermissionsForUser(string $user): bool
     {
-        return $this->removeFilteredPolicy(0, $user);
+        $subIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
+        return $this->removeFilteredPolicy($subIndex, $user);
     }
 
     /**
@@ -237,12 +243,11 @@ class Enforcer extends ManagementEnforcer
         $permission = [];
         foreach ($this->model['p'] as $ptype => $assertion) {
             $args = [];
-            $args[0] = $user;
-            foreach ($assertion->tokens as $i => $token) {
-                if ($token == sprintf('%s_dom', $ptype)) {
-                    $args[$i] = $domain[0];
-                    break;
-                }
+            $subIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
+            $args[$subIndex] = $user;
+            if (\count($domain) > 0) {
+                $domIndex = $this->model->getFieldIndex($ptype, Constants::DOMAIN_INDEX);
+                $args[$domIndex] = $domain[0];
             }
             $perm = $this->getFilteredPolicy(0, ...$args);
             $permission = array_merge($permission, $perm);
@@ -479,7 +484,7 @@ class Enforcer extends ManagementEnforcer
         $g = $this->model['g']['g'];
         $p = $this->model['p']['p'];
         $users = [];
-        $index = $this->getDomainIndex('p');
+        $index = $this->model->getFieldIndex('p', Constants::DOMAIN_INDEX);
 
         $getUser = function (int $index, array $policies, string $domain, array $m): array {
             if (count($policies) == 0 || count($policies[0]) <= $index) {
@@ -601,7 +606,7 @@ class Enforcer extends ManagementEnforcer
     {
         $g = $this->model['g']['g'];
         $p = $this->model['p']['p'];
-        $index = $this->getDomainIndex('p');
+        $index = $this->model->getFieldIndex('p', Constants::DOMAIN_INDEX);
 
         $getUser = function (int $index, array $policies, string $domain): array {
             if (count($policies) == 0 || count($policies[0]) <= $index) {

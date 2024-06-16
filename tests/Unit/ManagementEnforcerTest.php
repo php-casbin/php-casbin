@@ -57,6 +57,16 @@ class ManagementEnforcerTest extends TestCase
         $this->assertEquals($e->getAllRoles(), ['data2_admin']);
     }
 
+    public function testGetListWithDomains()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+
+        $this->assertEquals($e->getAllSubjects(), ['admin']);
+        $this->assertEquals($e->getAllObjects(), ['data1', 'data2']);
+        $this->assertEquals($e->getAllActions(), ['read', 'write']);
+        $this->assertEquals($e->getAllRoles(), ['admin']);
+    }
+
     public function testGetPolicyAPI()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');

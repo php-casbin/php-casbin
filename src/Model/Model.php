@@ -6,6 +6,7 @@ namespace Casbin\Model;
 
 use Casbin\Config\Config;
 use Casbin\Config\ConfigContract;
+use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Log\Log;
 use Casbin\Util\Util;
@@ -83,7 +84,6 @@ class Model extends Policy
         $ast = new Assertion();
         $ast->key = $key;
         $ast->value = $value;
-        $ast->initPriorityIndex();
 
         if ('r' == $sec || 'p' == $sec) {
             $ast->tokens = explode(',', $ast->value);
@@ -294,17 +294,16 @@ class Model extends Policy
 
     public function sortPoliciesBySubjectHierarchy(): void
     {
-        if ($this->items['e']['e']->value != 'subjectPriority(p_eft) || deny') {
+        if ($this->items['e']['e']->value != Constants::SUBJECT_PRIORITY_EFFECT) {
             return;
         }
         $subIndex = 0;
-        $domainIndex = -1;
+
         foreach ($this->items['p'] as $ptype => $assertion) {
-            foreach ($assertion->tokens as $index => $token) {
-                if ($token == sprintf('%s_dom', $ptype)) {
-                    $domainIndex = $index;
-                    break;
-                }
+            try {
+                $domainIndex = $this->getFieldIndex($ptype, Constants::DOMAIN_INDEX);
+            } catch (CasbinException $e) {
+                $domainIndex = -1;
             }
             $policies = &$assertion->policy;
             $subjectHierarchyMap = $this->getSubjectHierarchyMap($this->items['g']['g']->policy);
@@ -337,16 +336,15 @@ class Model extends Policy
     public function sortPoliciesByPriority(): void
     {
         foreach ($this->items['p'] as $ptype => $assertion) {
-            $index = array_search(sprintf("%s_priority", $ptype), $assertion->tokens);
-            if ($index !== false) {
-                $assertion->priorityIndex = intval($index);
-            } else {
+            try {
+                $priorityIndex = $this->getFieldIndex($ptype, Constants::PRIORITY_INDEX);
+            } catch (CasbinException $e) {
                 continue;
             }
             $policies = &$assertion->policy;
-            usort($policies, function ($i, $j) use ($assertion): int {
-                $p1 = $i[$assertion->priorityIndex];
-                $p2 = $j[$assertion->priorityIndex];
+            usort($policies, function ($i, $j) use ($priorityIndex): int {
+                $p1 = $i[$priorityIndex];
+                $p2 = $j[$priorityIndex];
                 if ($p1 == $p2) {
                     return 0;
                 }

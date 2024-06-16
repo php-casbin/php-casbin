@@ -342,23 +342,4 @@ class InternalEnforcer extends CoreEnforcer
     
         return $ruleChanged;
     }
-
-    /**
-     * Undocumented function
-     *
-     * @param string $ptype
-     * @return int
-     */
-    protected function getDomainIndex(string $ptype): int
-    {
-        $p = $this->model['p'][$ptype];
-        $pattern = sprintf("%s_dom", $ptype);
-        $index = count($p->tokens);
-
-        $tempIndex = array_search($pattern, $p->tokens);
-        if ($tempIndex !== false) {
-            $index = intval($tempIndex);
-        }
-        return $index;
-    }
 }

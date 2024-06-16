@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Casbin;
 
+use Casbin\Constant\Constants;
 use Closure;
 
 /**
@@ -20,7 +21,7 @@ class ManagementEnforcer extends InternalEnforcer
      */
     public function getAllSubjects(): array
     {
-        return $this->model->getValuesForFieldInPolicyAllTypes('p', 0);
+        return $this->model->getValuesForFieldInPolicyAllTypesByName('p', Constants::SUBJECT_INDEX);
     }
 
     /**
@@ -32,7 +33,8 @@ class ManagementEnforcer extends InternalEnforcer
      */
     public function getAllNamedSubjects(string $ptype): array
     {
-        return $this->model->getValuesForFieldInPolicy('p', $ptype, 0);
+        $fieldIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
+        return $this->model->getValuesForFieldInPolicy('p', $ptype, $fieldIndex);
     }
 
     /**
@@ -42,7 +44,7 @@ class ManagementEnforcer extends InternalEnforcer
      */
     public function getAllObjects(): array
     {
-        return $this->model->getValuesForFieldInPolicyAllTypes('p', 1);
+        return $this->model->getValuesForFieldInPolicyAllTypesByName('p', Constants::OBJECT_INDEX);
     }
 
     /**
@@ -54,7 +56,8 @@ class ManagementEnforcer extends InternalEnforcer
      */
     public function getAllNamedObjects(string $ptype): array
     {
-        return $this->model->getValuesForFieldInPolicy('p', $ptype, 1);
+        $fieldIndex = $this->model->getFieldIndex('p', Constants::OBJECT_INDEX);
+        return $this->model->getValuesForFieldInPolicy('p', $ptype, $fieldIndex);
     }
 
     /**
@@ -64,7 +67,7 @@ class ManagementEnforcer extends InternalEnforcer
      */
     public function getAllActions(): array
     {
-        return $this->model->getValuesForFieldInPolicyAllTypes('p', 2);
+        return $this->model->getValuesForFieldInPolicyAllTypesByName('p', Constants::ACTION_INDEX);
     }
 
     /**
@@ -76,7 +79,8 @@ class ManagementEnforcer extends InternalEnforcer
      */
     public function getAllNamedActions(string $ptype): array
     {
-        return $this->model->getValuesForFieldInPolicy('p', $ptype, 2);
+        $fieldIndex = $this->model->getFieldIndex('p', Constants::ACTION_INDEX);
+        return $this->model->getValuesForFieldInPolicy('p', $ptype, $fieldIndex);
     }
 
     /**
@@ -655,5 +659,31 @@ class ManagementEnforcer extends InternalEnforcer
     public function addFunction(string $name, Closure $func): void
     {
         $this->fm->addFunction($name, $func);
+    }
+
+    /**
+     * Gets the index for a given ptype and field.
+     *
+     * @param string $ptype
+     * @param string $field
+     * 
+     * @return int $fieldIndex
+     * @throws Exceptions\CasbinException
+     */
+    public function getFieldIndex(string $ptype, string $field): int
+    {
+        return $this->model->getFieldIndex($ptype, $field);
+    }
+
+    /**
+     * Sets the index for a given ptype and field.
+     *
+     * @param string $ptype
+     * @param string $field
+     * @param int $index
+     */
+    public function setFieldIndex(string $ptype, string $field, int $index): void
+    {
+        $this->model->setFieldIndex($ptype, $field, $index);
     }
 }
