@@ -80,6 +80,22 @@ interface RoleManager
     public function printRoles(): void;
 
     /**
+     * Gets the domains that a subject inherits.
+     *
+     * @param string $name
+     *
+     * @return string[]
+     */
+    public function getDomains(string $name): array;
+
+    /**
+     * Gets all the domains.
+     *
+     * @return string[]
+     */
+    public function getAllDomains(): array;
+
+    /**
      * Support use pattern in g.
      *
      * @param string $name

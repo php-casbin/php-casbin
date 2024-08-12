@@ -213,7 +213,7 @@ class EnforcerTest extends TestCase
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/basic_without_resources_model.conf', $this->modelAndPolicyPath . '/basic_without_resources_policy.csv');
         $this->assertEquals($e->getPermissionsForUser('alice'), [['alice', 'read']]);
-        
+
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
         $this->assertEquals($e->getPermissionsForUser('alice', 'domain1'), []);
         $this->assertEquals($e->getPermissionsForUser('bob', 'domain1'), []);
@@ -255,7 +255,7 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->getImplicitRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
         $this->assertEquals($e->getRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
     }
-    
+
     public function testGetImplicitResourcesForUser()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
@@ -449,7 +449,7 @@ class EnforcerTest extends TestCase
     public function testDeleteAllUsersByDomain()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
-    
+
         $e->deleteAllUsersByDomain('domain1');
         $this->assertEquals([
             ['admin', 'domain2', 'data2', 'read'],
@@ -505,7 +505,7 @@ class EnforcerTest extends TestCase
         $this->assertEquals(2, $e->getFieldIndex('p', Constants::ACTION_INDEX));
         $this->assertEquals(3, $e->getFieldIndex('p', 'eft'));
         $this->assertEquals(4, $e->getFieldIndex('p', 'subject'));
-        
+
         $this->assertTrue($e->enforce('bob', 'data2', 'read'));
         $e->setFieldIndex('p', Constants::PRIORITY_INDEX, 0);
         $e->loadPolicy();
@@ -525,5 +525,64 @@ class EnforcerTest extends TestCase
 
         $this->assertTrue($e->deleteRole('data2_allow_group'));
         $this->assertFalse($e->enforce('bob', 'data2', 'write'));
+    }
+
+    public function testGetAllowedObjectConditions()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/object_conditions_model.conf', $this->modelAndPolicyPath . '/object_conditions_policy.csv');
+        $this->assertEquals($e->getAllowedObjectConditions('alice', 'read', 'r.obj.'), ['price < 25', 'category_id = 2']);
+        $this->assertEquals($e->getAllowedObjectConditions('admin', 'read', 'r.obj.'), ['category_id = 2']);
+        $this->assertEquals($e->getAllowedObjectConditions('bob', 'write', 'r.obj.'), ['author = bob']);
+
+        // test err
+        try {
+            $e->getAllowedObjectConditions('alice', 'write', 'r.obj.');
+            $this->fail('Expected CasbinException to be thrown');
+        } catch (CasbinException $err) {
+            $this->assertEquals('GetAllowedObjectConditions have an empty condition', $err->getMessage());
+        }
+        
+        try {
+            $e->getAllowedObjectConditions('bob', 'read', 'r.obj.');
+            $this->fail('Expected CasbinException to be thrown');
+        } catch (CasbinException $err) {
+            $this->assertEquals('GetAllowedObjectConditions have an empty condition', $err->getMessage());
+        }
+
+        $e->addPolicy('alice', 'price > 50', 'read');
+        try {
+            $e->getAllowedObjectConditions('alice', 'read', 'r.obj.');
+            $this->fail('Expected CasbinException to be thrown');
+        } catch (CasbinException $err) {
+            $this->assertEquals('need to meet the prefix required by the object condition', $err->getMessage());
+        }
+
+        // test prefix
+        $e->clearPolicy();
+        $e->getRoleManager()->deleteLink('alice', 'admin');
+        $e->addPolicies([['alice', 'r.book.price < 25', 'read'], ['admin', 'r.book.category_id = 2', 'read'], ['bob', 'r.book.author = bob', 'write']]);
+        $this->assertEquals($e->getAllowedObjectConditions('alice', 'read', 'r.book.'), ['price < 25']);
+        $this->assertEquals($e->getAllowedObjectConditions('admin', 'read', 'r.book.'), ['category_id = 2']);
+        $this->assertEquals($e->getAllowedObjectConditions('bob', 'write', 'r.book.'), ['author = bob']);
+    }
+
+    public function testGetImplicitUsersForResource()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        $this->assertEquals($e->getImplicitUsersForResource('data1'), [['alice', 'data1', 'read']]);
+        $this->assertEquals($e->getImplicitUsersForResource('data2'), [['bob', 'data2', 'write'], ['alice', 'data2', 'read'], ['alice', 'data2', 'write']]);
+
+        // test duplicate permissions
+        $e->addGroupingPolicy('alice', 'data2_admin_2');
+        $e->addPolicies([['data2_admin_2', 'data2', 'read'], ['data2_admin_2', 'data2', 'write']]);
+        $this->assertEquals($e->getImplicitUsersForResource('data2'), [['bob', 'data2', 'write'], ['alice', 'data2', 'read'], ['alice', 'data2', 'write']]);
+    }
+
+    public function testGetImplicitUsersForResourceByDomain()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+        $this->assertEquals($e->getImplicitUsersForResourceByDomain('data1', 'domain1'), [['alice', 'domain1', 'data1', 'read'], ['alice', 'domain1', 'data1', 'write']]);
+        $this->assertEquals($e->getImplicitUsersForResourceByDomain('data2', 'domain1'), []);
+        $this->assertEquals($e->getImplicitUsersForResourceByDomain('data2', 'domain2'), [['bob', 'domain2', 'data2', 'read'], ['bob', 'domain2', 'data2', 'write']]);
     }
 }
