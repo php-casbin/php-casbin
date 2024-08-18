@@ -6,6 +6,8 @@ namespace Casbin;
 
 use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
+use Casbin\Exceptions\EmptyConditionException;
+use Casbin\Exceptions\ObjConditionException;
 use Casbin\Util\Util;
 
 /**
@@ -357,7 +359,7 @@ class Enforcer extends ManagementEnforcer
     public function getImplicitResourcesForUser(string $user, string ...$domain): array
     {
         $permissions = $this->getImplicitPermissionsForUser($user, ...$domain);
-        
+
         $res = [];
         foreach ($permissions as $permission) {
             if ($permission[0] == $user) {
@@ -469,6 +471,174 @@ class Enforcer extends ManagementEnforcer
             }
         }
 
+        return $res;
+    }
+
+    /**
+     * Convert permissions to string as a hash to deduplicate.
+     * 
+     * @param array $permissions
+     * 
+     * @return array
+     */
+    private function removeDumplicatePermissions(array $permissions): array
+    {
+        $permissionsSet = [];
+        $res = [];
+
+        foreach ($permissions as $permission) {
+            $permissionStr = Util::arrayToString($permission);
+
+            if (isset($permissionsSet[$permissionStr])) {
+                continue;
+            }
+
+            $permissionsSet[$permissionStr] = true;
+            $res[] = $permission;
+        }
+        return $res;
+    }
+
+    /**
+     * GetAllowedObjectConditions returns a string array of object conditions that the user can access.
+     * For example: conditions, err := e.GetAllowedObjectConditions("alice", "read", "r.obj.")  
+     * Note:  
+     * 
+     * 0. prefix: You can customize the prefix of the object conditions, and "r.obj." is commonly used as a prefix.
+     * After removing the prefix, the remaining part is the condition of the object.
+     * If there is an obj policy that does not meet the prefix requirement, an ObjConditionException will be thrown.  
+     * 
+     * 1. If the 'objectConditions' array is empty, an EmptyConditionException will be thrown.
+     * This error is thrown because some data adapters' ORM return full table data by default
+     * when they receive an empty condition, which tends to behave contrary to expectations.(e.g. DBALAdapter)
+     * If you are using an adapter that does not behave like this, you can choose to ignore this error.  
+     * 
+     * @param string $user
+     * @param string $action
+     * @param string $prefix
+     * 
+     * @return array
+     * @throws ObjConditionException
+     * @throws EmptyConditionException
+     */
+    public function getAllowedObjectConditions(string $user, string $action, string $prefix): array
+    {
+        $permission = $this->getImplicitPermissionsForUser($user);
+
+        $objectConditions = [];
+        foreach ($permission as $policy) {
+            if ($policy[2] == $action) {
+                if (strpos($policy[1], $prefix) !== 0) {
+                    throw new ObjConditionException('need to meet the prefix required by the object condition');
+                }
+
+                $objectConditions[] = substr($policy[1], strlen($prefix));
+            }
+        }
+
+        if (empty($objectConditions)) {
+            throw new EmptyConditionException('GetAllowedObjectConditions have an empty condition');
+        }
+
+        return $objectConditions;
+    }
+
+    /**
+     * GetImplicitUsersForResource return implicit user based on resource.
+     * For example:  
+     * p, alice, data1, read  
+     * p, bob, data2, write  
+     * p, data2_admin, data2, read  
+     * p, data2_admin, data2, write  
+     * g, alice, data2_admin  
+     * GetImplicitUsersForResource("data2") will return [[bob data2 write] [alice data2 read] [alice data2 write]]  
+     * GetImplicitUsersForResource("data1") will return [[alice data1 read]]  
+     * Note: only users will be returned, roles (2nd arg in "g") will be excluded.  
+     *
+     * @param string $resource
+     *
+     * @return array
+     */
+    public function getImplicitUsersForResource(string $resource): array
+    {
+        $permissions = [];
+        $subIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
+        $objIndex = $this->model->getFieldIndex('p', Constants::OBJECT_INDEX);
+        $rm = $this->getRoleManager();
+
+        $roles = $this->getAllRoles();
+        $isRole = array_flip($roles);
+
+        foreach ($this->model['p']['p']->policy as $rule) {
+            $obj = $rule[$objIndex];
+            if ($obj != $resource) {
+                continue;
+            }
+
+            $sub = $rule[$subIndex];
+
+            if (!isset($isRole[$sub])) {
+                $permissions[] = $rule;
+            } else {
+                $users = $rm->getUsers($sub);
+
+                foreach ($users as $user) {
+                    $implicitRule = array_merge([], $rule);
+                    $implicitRule[$subIndex] = $user;
+                    $permissions[] = $implicitRule;
+                }
+            }
+        }
+
+        $res = $this->removeDumplicatePermissions($permissions);
+        return $res;
+    }
+
+    /**
+     * GetImplicitUsersForResourceByDomain return implicit user based on resource and domain.
+     * Compared to GetImplicitUsersForResource, domain is supported.
+     * 
+     * @param string $resource
+     * @param string $domain
+     * 
+     * @return array
+     */
+    public function getImplicitUsersForResourceByDomain(string $resource, string $domain): array
+    {
+        $permissions = [];
+        $subIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
+        $objIndex = $this->model->getFieldIndex('p', Constants::OBJECT_INDEX);
+        $domIndex = $this->model->getFieldIndex('p', Constants::DOMAIN_INDEX);
+        $rm = $this->getRoleManager();
+
+        $roles = $this->getAllRolesByDomain($domain);
+        $isRole = array_flip($roles);
+
+        foreach ($this->model['p']['p']->policy as $rule) {
+            $obj = $rule[$objIndex];
+            if ($obj != $resource) {
+                continue;
+            }
+
+            $sub = $rule[$subIndex];
+
+            if (!isset($isRole[$sub])) {
+                $permissions[] = $rule;
+            } else {
+                if ($rule[$domIndex] != $domain) {
+                    continue;
+                }
+
+                $users = $rm->getUsers($sub, $domain);
+                foreach ($users as $user) {
+                    $implicitRule = array_merge([], $rule);
+                    $implicitRule[$subIndex] = $user;
+                    $permissions[] = $implicitRule;
+                }
+            }
+        }
+
+        $res = $this->removeDumplicatePermissions($permissions);
         return $res;
     }
 
@@ -645,5 +815,43 @@ class Enforcer extends ManagementEnforcer
             $this->deleteAllUsersByDomain($domain);
         }
         return true;
+    }
+
+    /**
+     * GetAllDomains would get all domains.
+     * 
+     * @return array
+     */
+    public function getAllDomains(): array
+    {
+        return $this->getRoleManager()->getAllDomains();
+    }
+
+    /**
+     * GetAllRolesByDomain would get all roles associated with the domain.
+     * Note: Not applicable to Domains with inheritance relationship  (implicit roles)
+     * 
+     * @param string $domain
+     * 
+     * @return array
+     */
+    public function getAllRolesByDomain(string $domain): array
+    {
+        $g = $this->model['g']['g'];
+        $policies = $g->policy;
+        $roles = [];
+        $existMap = [];
+
+        foreach ($policies as $policy) {
+            if ($policy[count($policy) - 1] == $domain) {
+                $role = $policy[count($policy) - 2];
+                if (!isset($existMap[$role])) {
+                    $roles[] = $role;
+                    $existMap[$role] = true;
+                }
+            }
+        }
+
+        return $roles;
     }
 }

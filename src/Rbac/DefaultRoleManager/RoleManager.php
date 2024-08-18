@@ -390,6 +390,28 @@ class RoleManager implements RoleManagerContract
     }
 
     /**
+     * Gets the domains that a subject inherits.
+     * 
+     * @param string $name
+     * 
+     * @return string[]
+     */
+    public function getDomains(string $name): array
+    {
+        return array_keys($this->allDomains);
+    }
+
+    /**
+     * Gets all the domains.
+     * 
+     * @return string[]
+     */
+    public function getAllDomains(): array
+    {
+        return array_keys($this->allDomains);
+    }
+
+    /**
      * @param string $domain
      * @param Roles $roles
      *
