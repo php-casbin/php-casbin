@@ -612,7 +612,7 @@ class Enforcer extends ManagementEnforcer
         $rm = $this->getRoleManager();
 
         $roles = $this->getAllRolesByDomain($domain);
-        $isRole =array_flip($roles);
+        $isRole = array_flip($roles);
 
         foreach ($this->model['p']['p']->policy as $rule) {
             $obj = $rule[$objIndex];
