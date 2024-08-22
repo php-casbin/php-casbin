@@ -201,7 +201,7 @@ abstract class Policy implements ArrayAccess
         $hasPriority = isset($assertion->fieldIndexMap[Constants::PRIORITY_INDEX]);
         if ($sec == 'p' && $hasPriority) {
             $idxInsert = $rule[$assertion->fieldIndexMap[Constants::PRIORITY_INDEX]];
-            for($i = count($assertion->policy) - 1; $i > 0; $i--) {
+            for ($i = count($assertion->policy) - 1; $i > 0; $i--) {
                 $idx = $assertion->policy[$i - 1][$assertion->fieldIndexMap[Constants::PRIORITY_INDEX]];
                 if ($idx > $idxInsert) {
                     $assertion->policy[$i] = $assertion->policy[$i - 1];
@@ -224,13 +224,33 @@ abstract class Policy implements ArrayAccess
      */
     public function addPolicies(string $sec, string $ptype, array $rules): void
     {
+        $this->addPoliciesWithAffected($sec, $ptype, $rules);
+    }
+
+    /**
+     * Adds policy rules to the model, and returns affected rules.
+     * 
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $rules
+     * 
+     * @return string[][]
+     */
+    public function addPoliciesWithAffected(string $sec, string $ptype, array $rules): array
+    {
+        $affected = [];
+
         foreach ($rules as $rule) {
             $hashKey = implode(self::DEFAULT_SEP, $rule);
             if (isset($this->items[$sec][$ptype]->policyMap[$hashKey])) {
                 continue;
             }
+
+            $affected[] = $rule;
             $this->addPolicy($sec, $ptype, $rule);
         }
+
+        return $affected;
     }
 
     /**
@@ -456,7 +476,7 @@ abstract class Policy implements ArrayAccess
      * @return array<string>
      * @throws CasbinException
      */
-    public function getValuesForFieldInPolicyAllTypesByName(string $sec, string $field): array 
+    public function getValuesForFieldInPolicyAllTypesByName(string $sec, string $field): array
     {
         $values = [];
 

@@ -262,6 +262,20 @@ class ManagementEnforcer extends InternalEnforcer
     }
 
     /**
+     * AddPoliciesEx adds authorization rules to the current policy.
+     * If the rule already exists, the rule will not be added.
+     * But unlike AddPolicies, other non-existent rules are added instead of returning false directly.
+     * 
+     * @param string[][] $rules
+     * 
+     * @return bool
+     */
+    public function addPoliciesEx(array $rules): bool
+    {
+        return $this->addNamedPoliciesEx('p', $rules);
+    }
+
+    /**
      * AddNamedPolicy adds an authorization rule to the current named policy.
      * If the rule already exists, the function returns false and the rule will not be added.
      * Otherwise the function returns true by adding the new rule.
@@ -293,7 +307,22 @@ class ManagementEnforcer extends InternalEnforcer
      */
     public function addNamedPolicies(string $ptype, array $rules): bool
     {
-        return $this->addPoliciesInternal('p', $ptype, $rules);
+        return $this->addPoliciesInternal('p', $ptype, $rules, false);
+    }
+
+    /**
+     * AddNamedPoliciesEx adds authorization rules to the current named policy.
+     * If the rule already exists, the rule will not be added.
+     * But unlike AddNamedPolicies, other non-existent rules are added instead of returning false directly.
+     * 
+     * @param string $ptype
+     * @param string[][] $rules
+     * 
+     * @return bool
+     */
+    public function addNamedPoliciesEx(string $ptype, array $rules): bool
+    {
+        return $this->addPoliciesInternal('p', $ptype, $rules, true);
     }
 
     /**
@@ -506,6 +535,20 @@ class ManagementEnforcer extends InternalEnforcer
     }
 
     /**
+     * AddGroupingPolicyEx adds a role inheritance rules to the current policy.
+     * If the rule already exists, the rule will not be added.
+     * But unlike AddGroupingPolicy, other non-existent rules are added instead of returning false directly.
+     * 
+     * @param array $rules
+     * 
+     * @return bool
+     */
+    public function addGroupingPoliciesEx(array $rules): bool
+    {
+        return $this->addNamedGroupingPoliciesEx('g', $rules);
+    }
+
+    /**
      * AddNamedGroupingPolicy adds a named role inheritance rule to the current policy.
      * If the rule already exists, the function returns false and the rule will not be added.
      * Otherwise the function returns true by adding the new rule.
@@ -523,10 +566,6 @@ class ManagementEnforcer extends InternalEnforcer
 
         $ruleAdded = $this->addPolicyInternal('g', $ptype, $params);
 
-        if ($this->autoBuildRoleLinks) {
-            $this->buildRoleLinks();
-        }
-
         return $ruleAdded;
     }
 
@@ -542,13 +581,12 @@ class ManagementEnforcer extends InternalEnforcer
      */
     public function addNamedGroupingPolicies(string $ptype, array $rules): bool
     {
-        $ruleAdded = $this->addPoliciesInternal('g', $ptype, $rules);
+        return $this->addPoliciesInternal('g', $ptype, $rules, false);
+    }
 
-        if ($this->autoBuildRoleLinks) {
-            $this->buildRoleLinks();
-        }
-
-        return $ruleAdded;
+    public function addNamedGroupingPoliciesEx(string $ptype, array $rules): bool
+    {
+        return $this->addPoliciesInternal('g', $ptype, $rules, true);
     }
 
     /**
@@ -659,6 +697,54 @@ class ManagementEnforcer extends InternalEnforcer
     public function addFunction(string $name, Closure $func): void
     {
         $this->fm->addFunction($name, $func);
+    }
+
+    /**
+     * Adds authorization rule to the current policy.
+     * If the rule already exists, the function returns false and the rule will not be added.
+     * Otherwise the function returns true by adding the new rule.
+     * 
+     * @param string $sec
+     * @param string $ptype
+     * @param string[] $params
+     * 
+     * @return void
+     */
+    public function selfAddPolicy(string $sec, string $ptype, array $params): void
+    {
+        $this->addPolicyWithoutNotifyInternal($sec, $ptype, $params);
+    }
+
+    /**
+     * Adds authorization rules to the current policy.
+     * If the rule already exists, the function returns false for the corresponding rule and the rule will not be added.
+     * Otherwise the function returns true for the corresponding rule by adding the new rule.
+     * 
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $params
+     * 
+     * @return bool
+     */
+    public function selfAddPolices(string $sec, string $ptype, array $params): bool
+    {
+        return $this->addPoliciesWithoutNotifyInternal($sec, $ptype, $params, false);
+    }
+
+    /**
+     * Adds authorization rules to the current named policy with autoNotifyWatcher disabled.
+     * If the rule already exists, the rule will not be added.
+     * But unlike SelfAddPolicies, other non-existent rules are added instead of returning false directly
+     * 
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $params
+     * 
+     * @return bool
+     */
+    public function selfAddPolicesEx(string $sec, string $ptype, array $params): bool
+    {
+        return $this->addPoliciesWithoutNotifyInternal($sec, $ptype, $params, true);
     }
 
     /**

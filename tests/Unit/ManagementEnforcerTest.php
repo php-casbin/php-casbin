@@ -165,6 +165,16 @@ class ManagementEnforcerTest extends TestCase
         $this->assertEquals($e->getPolicy(), [
             ['eve', 'data3', 'read'],
         ]);
+
+        $e->clearPolicy();
+        $e->addPoliciesEx([['user1', 'data1', 'read'], ['user1', 'data1', 'read']]);
+        $this->assertEquals($e->getPolicy(), [['user1', 'data1', 'read']]);
+        $e->addPoliciesEx([['user1', 'data1', 'read'], ['user2', 'data2', 'read']]);
+        $this->assertEquals($e->getPolicy(), [['user1', 'data1', 'read'], ['user2', 'data2', 'read']]);
+        $e->addNamedPoliciesEx('p', [['user1', 'data1', 'read'], ['user2', 'data2', 'read'], ['user3', 'data3', 'read']]);
+        $this->assertEquals($e->getPolicy(), [['user1', 'data1', 'read'], ['user2', 'data2', 'read'], ['user3', 'data3', 'read']]);
+        $e->selfAddPolicesEx('p', 'p', [['user1', 'data1', 'read'], ['user2', 'data2', 'read'], ['user3', 'data3', 'read'], ['user4', 'data4', 'read']]);
+        $this->assertEquals($e->getPolicy(), [['user1', 'data1', 'read'], ['user2', 'data2', 'read'], ['user3', 'data3', 'read'], ['user4', 'data4', 'read']]);
     }
 
     public function testModifyGroupingPolicyAPI()
@@ -223,6 +233,14 @@ class ManagementEnforcerTest extends TestCase
         $this->assertEquals($e->getUsersForRole('data1_admin'), []);
         $this->assertEquals($e->getUsersForRole('data2_admin'), []);
         $this->assertEquals($e->getUsersForRole('data3_admin'), ['eve']);
+
+        $e->clearPolicy();
+        $e->addGroupingPoliciesEx([['user1', 'member']]);
+        $this->assertEquals($e->getUsersForRole('member'), ['user1']);
+        $e->addGroupingPoliciesEx([['user1', 'member'], ['user2', 'member']]);
+        $this->assertEquals($e->getUsersForRole('member'), ['user1', 'user2']);
+        $e->addNamedGroupingPoliciesEx('g', [['user1', 'member'], ['user2', 'member'], ['user3', 'member']]);
+        $this->assertEquals($e->getUsersForRole('member'), ['user1', 'user2', 'user3']);
     }
 
     public function testUpdatePolicy()
