@@ -63,16 +63,16 @@ class UtilTest extends TestCase
 
     public function testReplaceEvalWithMap()
     {
-        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1)', ['rule1' => 'a == b']), 'a == b');
-        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) && c && d', ['rule1' => 'a == b']), 'a == b && c && d');
+        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1)', ['rule1' => 'a == b']), '(a == b)');
+        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) && c && d', ['rule1' => 'a == b']), '(a == b) && c && d');
         $this->assertEquals(Util::replaceEvalWithMap('eval(rule1)', []), 'eval(rule1)');
         $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) && c && d', []), 'eval(rule1) && c && d');
-        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2)', ['rule1' => 'a == b', 'rule2' => 'a == c']), 'a == b || a == c');
-        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2) && c && d', ['rule1' => 'a == b', 'rule2' => 'a == c']), 'a == b || a == c && c && d');
-        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2)', ['rule1' => 'a == b']), 'a == b || eval(rule2)');
-        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2) && c && d', ['rule1' => 'a == b']), 'a == b || eval(rule2) && c && d');
-        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2)', ['rule2' => 'a == b']), 'eval(rule1) || a == b');
-        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2) && c && d', ['rule2' => 'a == b']), 'eval(rule1) || a == b && c && d');
+        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2)', ['rule1' => 'a == b', 'rule2' => 'a == c']), '(a == b) || (a == c)');
+        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2) && c && d', ['rule1' => 'a == b', 'rule2' => 'a == c']), '(a == b) || (a == c) && c && d');
+        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2)', ['rule1' => 'a == b']), '(a == b) || eval(rule2)');
+        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2) && c && d', ['rule1' => 'a == b']), '(a == b) || eval(rule2) && c && d');
+        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2)', ['rule2' => 'a == b']), 'eval(rule1) || (a == b)');
+        $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2) && c && d', ['rule2' => 'a == b']), 'eval(rule1) || (a == b) && c && d');
         $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2)', []), 'eval(rule1) || eval(rule2)');
         $this->assertEquals(Util::replaceEvalWithMap('eval(rule1) || eval(rule2) && c && d', []), 'eval(rule1) || eval(rule2) && c && d');
     }
