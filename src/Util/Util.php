@@ -141,7 +141,7 @@ class Util
             if (!$found) {
                 return $s;
             }
-            return preg_replace(self::REGEXP, $s, $value);
+            return preg_replace(self::REGEXP, $s, '(' . $value . ')');
         }, $src);
     }
 }
