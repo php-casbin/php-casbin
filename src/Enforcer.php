@@ -528,7 +528,7 @@ class Enforcer extends ManagementEnforcer
         $objectConditions = [];
         foreach ($permission as $policy) {
             if ($policy[2] == $action) {
-                if (strpos($policy[1], $prefix) !== 0) {
+                if (!str_starts_with($policy[1], $prefix)) {
                     throw new ObjConditionException('need to meet the prefix required by the object condition');
                 }
 

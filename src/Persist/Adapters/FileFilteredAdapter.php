@@ -143,17 +143,11 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
             return true;
         }
 
-        $filterSlice = [];
-        switch (trim($p[0])) {
-            case 'p':
-                $filterSlice = $filter->p;
-
-                break;
-            case 'g':
-                $filterSlice = $filter->g;
-
-                break;
-        }
+        $filterSlice = match (trim($p[0])) {
+            'p' => $filter->p,
+            'g' => $filter->g,
+            default => []
+        };
 
         return self::filterWords($p, $filterSlice);
     }

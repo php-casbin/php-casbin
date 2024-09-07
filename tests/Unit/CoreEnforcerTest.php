@@ -60,7 +60,7 @@ class CoreEnforcerTest extends TestCase
 
     public function testInitEmpty()
     {
-        $e = new Enforcer(true);
+        $e = new Enforcer(enableLog: true);
 
         $m = Model::newModelFromString(
             <<<'EOT'

@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [7.1, 7.2, 7.3, 7.4, 8.0, 8.1]
+        php: [8.0, 8.1, 8.2]
         stability: [ prefer-lowest, prefer-stable ]
 
     name: Test PHP ${{ matrix.php }} - ${{ matrix.stability }}
@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [7.1, 8.0]
+        php: [8.0, 8.1]
 
     name: Benchmark PHP ${{ matrix.php }}
 

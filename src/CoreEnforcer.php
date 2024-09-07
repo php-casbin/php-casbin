@@ -22,7 +22,6 @@ use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use Casbin\Util\Util;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-use Symfony\Component\ExpressionLanguage\ParsedExpression;
 
 /**
  * Class CoreEnforcer
@@ -125,46 +124,33 @@ class CoreEnforcer
      *  ]);
      * $e = new Enforcer("path/to/basic_model.conf", $a).
      *
-     * @param mixed ...$params
+     * @param string|Model|null $model
+     * @param string|Adapter|null $adapter
+     * @param bool|null $enableLog
      *
      * @throws CasbinException
      */
-    public function __construct(...$params)
+    public function __construct(string|Model|null $model = null, string|Adapter|null $adapter = null, ?bool $enableLog = null)
     {
-        $parsedParamLen = 0;
-        $paramLen = \count($params);
-        if ($paramLen >= 1) {
-            if (\is_bool($enableLog = $params[$paramLen - 1])) {
-                $this->enableLog($enableLog);
-                ++$parsedParamLen;
-            }
+        if (!is_null($enableLog)) {
+            $this->enableLog($enableLog);
         }
 
-        if (2 == $paramLen - $parsedParamLen) {
-            $p0 = $params[0];
-            if (\is_string($p0)) {
-                $p1 = $params[1];
-                if (\is_string($p1)) {
-                    $this->initWithFile($p0, $p1);
-                } else {
-                    $this->initWithAdapter($p0, $p1);
-                }
-            } else {
-                if (\is_string($params[1])) {
-                    throw new CasbinException('Invalid parameters for enforcer.');
-                } else {
-                    $this->initWithModelAndAdapter($p0, $params[1]);
-                }
+        if (is_null($model) && is_null($adapter)) {
+            return;
+        }
+        if (is_string($model)) {
+            if (is_string($adapter) || is_null($adapter)) {
+                $this->initWithFile($model, $adapter ?? '');
+            } else if ($adapter instanceof Adapter) {
+                $this->initWithAdapter($model, $adapter);
             }
-        } elseif (1 == $paramLen - $parsedParamLen) {
-            $p0 = $params[0];
-            if (\is_string($p0)) {
-                $this->initWithFile($p0, '');
+        } else if ($model instanceof Model) {
+            if ($adapter instanceof Adapter || is_null($adapter)) {
+                $this->initWithModelAndAdapter($model, $adapter);
             } else {
-                $this->initWithModelAndAdapter($p0, null);
+                throw new CasbinException('Invalid parameters for enforcer.');
             }
-        } elseif (0 == $paramLen - $parsedParamLen) {
-            // pass
         } else {
             throw new CasbinException('Invalid parameters for enforcer.');
         }
@@ -206,7 +192,7 @@ class CoreEnforcer
      * @param Model $m
      * @param Adapter|null $adapter
      */
-    public function initWithModelAndAdapter(Model $m, Adapter $adapter = null): void
+    public function initWithModelAndAdapter(Model $m, ?Adapter $adapter): void
     {
         $this->adapter = $adapter;
         $this->model = $m;
@@ -360,9 +346,7 @@ class CoreEnforcer
         $newModel->clearPolicy();
 
         try {
-            if (!is_null($this->adapter)){
-                $this->adapter->loadPolicy($newModel);
-            }
+            $this->adapter?->loadPolicy($newModel);
             $newModel->printPolicy();
             $newModel->sortPoliciesBySubjectHierarchy();
             $newModel->sortPoliciesByPriority();
@@ -465,15 +449,13 @@ class CoreEnforcer
             throw new CasbinException('cannot save a filtered policy');
         }
 
-        if (!is_null($this->adapter)){
-            $this->adapter->savePolicy($this->model);
-        }        
+        $this->adapter?->savePolicy($this->model);
 
-        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+        if ($this->autoNotifyWatcher) {
             if ($this->watcher instanceof WatcherEx) {
                 $this->watcher->updateForSavePolicy($this->model);
             } else {
-                $this->watcher->update();
+                $this->watcher?->update();
             }
         }
     }
@@ -643,7 +625,7 @@ class CoreEnforcer
         $explainIndex = 0;
 
         $policyLen = \count($this->model['p'][$pType]->policy);
-        if (0 != $policyLen && (strpos($expString, $pType . '_') !== false)) {
+        if (0 != $policyLen && str_contains($expString, $pType . '_')) {
             foreach ($this->model['p'][$pType]->policy as $policyIndex => $pvals) {
                 $parameters = array_combine($pTokens, $pvals);
                 if (false == $parameters) {

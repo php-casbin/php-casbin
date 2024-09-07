@@ -6,7 +6,6 @@ namespace Casbin\Model;
 
 use Casbin\Exceptions\CasbinException;
 use Casbin\Rbac\RoleManager;
-use Casbin\Log\Log;
 
 /**
  * Class Assertion
@@ -74,26 +73,20 @@ class Assertion
     {
         $this->rm = $rm;
         $count = substr_count($this->value, '_');
+        if($count < 2) {
+            throw new CasbinException('the number of "_" in role definition should be at least 2');
+        }
 
         foreach ($this->policy as $rule) {
-            if ($count < 2) {
-                throw new CasbinException('the number of "_" in role definition should be at least 2');
-            }
             if (\count($rule) < $count) {
                 throw new CasbinException('grouping policy elements do not meet role definition');
             }
-
-            if (2 == $count) {
-                $this->rm->addLink($rule[0], $rule[1]);
-            } elseif (3 == $count) {
-                $this->rm->addLink($rule[0], $rule[1], $rule[2]);
-            } elseif (4 == $count) {
-                $this->rm->addLink($rule[0], $rule[1], $rule[2], $rule[3]);
+            if(\count($rule) > $count) {
+                $rule = \array_slice($rule, 0, $count);
             }
-        }
 
-        Log::logPrint('Role links for: ' . $this->key);
-        $this->rm->printRoles();
+            $this->rm->addLink($rule[0], $rule[1], ...\array_slice($rule, 2));
+        }
     }
 
     /**
@@ -117,14 +110,11 @@ class Assertion
             if (\count($rule) > $count) {
                 $rule = array_slice($rule, 0, $count);
             }
-            switch ($op) {
-                case Policy::POLICY_ADD:
-                    $rm->addLink($rule[0], $rule[1], ...array_slice($rule, 2));
-                    break;
-                case Policy::POLICY_REMOVE:
-                    $rm->deleteLink($rule[0], $rule[1], ...array_slice($rule, 2));
-                    break;
-            }
+            match ($op) {
+                Policy::POLICY_ADD => $this->rm->addLink($rule[0], $rule[1], ...array_slice($rule, 2)),
+                Policy::POLICY_REMOVE => $this->rm->deleteLink($rule[0], $rule[1], ...array_slice($rule, 2)),
+                default => throw new CasbinException('invalid policy operation')
+            };
         }
     }
 }

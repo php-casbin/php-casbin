@@ -23,7 +23,7 @@ production-ready | production-ready | production-ready | production-ready
 [![python](https://casbin.org/img/langs/python.png)](https://github.com/casbin/pycasbin) | [![dotnet](https://casbin.org/img/langs/dotnet.png)](https://github.com/casbin/Casbin.NET) | [![c++](https://casbin.org/img/langs/cpp.png)](https://github.com/casbin/casbin-cpp) | [![rust](https://casbin.org/img/langs/rust.png)](https://github.com/casbin/casbin-rs)
 ----|----|----|----
 [PyCasbin](https://github.com/casbin/pycasbin) | [Casbin.NET](https://github.com/casbin/Casbin.NET) | [Casbin-CPP](https://github.com/casbin/casbin-cpp) | [Casbin-RS](https://github.com/casbin/casbin-rs)
-production-ready | production-ready | beta-test | production-ready
+production-ready | production-ready | production-ready | production-ready
 
 ## 安装
 
@@ -142,7 +142,7 @@ Casbin 不做的事情:
 
 ## 文档
 
-https://casbin.org/docs/zh-CN/overview
+https://casbin.org/zh/docs/overview
 
 ## 在线编辑器
 
@@ -150,7 +150,7 @@ https://casbin.org/docs/zh-CN/overview
 
 ## 教程
 
-https://casbin.org/docs/zh-CN/tutorials
+https://casbin.org/zh/docs/tutorials
 
 ## Policy管理
 
@@ -173,10 +173,10 @@ Casbin 提供两组 API 来管理权限:
 
 Adapter | Type | Author | Description
 ----|------|----|----
-[File Adapter (内置)](https://casbin.org/docs/zh-CN/policy-storage#file-adapter-built-in) | File | php-casbin | 存储到[.CSV (Comma-Separated Values)](https://en.wikipedia.org/wiki/Comma-separated_values) 文件中
+[File Adapter (内置)](https://casbin.org/zh/policy-storage#file-adapter-built-in) | File | php-casbin | 存储到[.CSV (Comma-Separated Values)](https://en.wikipedia.org/wiki/Comma-separated_values) 文件中
 [Database Adapter](https://github.com/php-casbin/database-adapter) | Database | php-casbin | 支持存储到MySQL, PostgreSQL, SQLite, Microsoft SQL Server数据库的适配器
 
-更多适配器的内容，请参考文档: https://casbin.org/docs/zh-CN/policy-storage
+更多适配器的内容，请参考文档: https://casbin.org/zh/docs/policy-storage/
 
 ## Role管理
 
@@ -208,13 +208,13 @@ Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/blob/m
 
 ### Web框架
 
-- [Laravel](https://laravel.com/): 为WEB艺术家创造的PHP框架, 通过这个扩展: [laravel-casbin](https://github.com/php-casbin/laravel-casbin)
+- [Laravel](https://laravel.com/): 为WEB艺术家创造的PHP框架, 通过这个扩展: [Laravel-Authorization](https://github.com/php-casbin/laravel-authz)
 
-- [Yii PHP Framework](https://www.yiiframework.com/): 一个高性能的，适用于开发WEB2.0应用的PHP框架, 通过这个扩展: [yii-casbin](https://github.com/php-casbin/yii-casbin)
+- [Yii PHP Framework](https://www.yiiframework.com/): 一个高性能的，适用于开发WEB2.0应用的PHP框架, 通过这个扩展: [Yii-Permission](https://github.com/php-casbin/yii-permission)
 
-- [CakePHP](https://cakephp.org/): 快速、稳定的PHP框架, 通过这个扩展: [cake-casbin](https://github.com/php-casbin/cake-casbin)
+- [CakePHP](https://cakephp.org/): 快速、稳定的PHP框架, 通过这个扩展: [Cake-Permission](https://github.com/php-casbin/cake-permission)
 
-- [ThinkPHP](http://www.thinkphp.cn/): 一个免费开源的，快速、简单的面向对象的轻量级PHP开发框架, 通过这个扩展: [think-casbin](https://github.com/php-casbin/think-casbin)
+- [ThinkPHP](http://www.thinkphp.cn/): 一个免费开源的，快速、简单的面向对象的轻量级PHP开发框架, 通过这个扩展: [Think-Authorization](https://github.com/php-casbin/think-authz)
 
 ## 协议
 
