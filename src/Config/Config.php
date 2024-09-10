@@ -111,17 +111,19 @@ final class Config implements ConfigContract
         $canWrite = null;
 
         $buf = preg_replace('/[\r\n]+/', PHP_EOL, $buf);
-        $buf = explode(PHP_EOL, $buf == null ? "" : $buf);
+        $buf = explode(PHP_EOL, $buf ?? '');
 
-        for ($i = 0, $len = \count($buf); $i <= $len; ++$i) {
+        $len = \count($buf);
+
+        for ($i = 0; $i <= $len; ++$i) {
             if ($canWrite) {
                 $this->write($section, $lineNum, $buffer);
                 $canWrite = false;
             }
 
             ++$lineNum;
-            $line = isset($buf[$i]) ? $buf[$i] : '';
-            if ($i == \count($buf)) {
+            $line = $buf[$i] ?? '';
+            if ($i == $len) {
                 if (\strlen($buffer) > 0) {
                     $this->write($section, $lineNum, $buffer);
                 }
@@ -256,6 +258,6 @@ final class Config implements ConfigContract
             $option = $keys[0];
         }
 
-        return isset($this->data[$section][$option]) ? $this->data[$section][$option] : '';
+        return $this->data[$section][$option] ?? '';
     }
 }

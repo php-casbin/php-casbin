@@ -25,7 +25,7 @@ production-ready | production-ready | production-ready | production-ready
 [![python](https://casbin.org/img/langs/python.png)](https://github.com/casbin/pycasbin) | [![dotnet](https://casbin.org/img/langs/dotnet.png)](https://github.com/casbin/Casbin.NET) | [![c++](https://casbin.org/img/langs/cpp.png)](https://github.com/casbin/casbin-cpp) | [![rust](https://casbin.org/img/langs/rust.png)](https://github.com/casbin/casbin-rs)
 ----|----|----|----
 [PyCasbin](https://github.com/casbin/pycasbin) | [Casbin.NET](https://github.com/casbin/Casbin.NET) | [Casbin-CPP](https://github.com/casbin/casbin-cpp) | [Casbin-RS](https://github.com/casbin/casbin-rs)
-production-ready | production-ready | beta-test | production-ready
+production-ready | production-ready | production-ready | production-ready
 
 ## Installation
 
@@ -190,11 +190,11 @@ Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/blob/m
 
 ## Middlewares
 
-Authz middlewares for web frameworks: https://casbin.org/docs/en/middlewares
+Authz middlewares for web frameworks: https://casbin.org/docs/middlewares
 
 ## Our adopters
 
-https://casbin.org/docs/en/adopters
+https://casbin.org/docs/adopters
 
 ## Contributors
 

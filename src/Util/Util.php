@@ -24,7 +24,7 @@ class Util
      */
     public static function escapeAssertion(string $s): string
     {
-        if (0 === strpos($s, "r") || 0 === strpos($s, "p")) {
+        if (str_starts_with($s, 'r') || str_starts_with($s, 'p')) {
             $pos = strpos($s, '.');
             if ($pos !== false) {
                 $s[$pos] = '_';
@@ -130,18 +130,64 @@ class Util
                 return $s;
             }
             $key = $subs[1];
-            
+
             if (isset($sets[$key])) {
                 $found = true;
                 $value = $sets[$key];
             } else {
                 $found = false;
             }
-            
+
             if (!$found) {
                 return $s;
             }
             return preg_replace(self::REGEXP, $s, '(' . $value . ')');
         }, $src);
+    }
+
+    /**
+     * Determines whether IP address ip1 matches the pattern of IP address ip2, ip2 can be an IP address or a CIDR pattern.
+     *
+     * @param string $ipAddress
+     * @param string $cidrAddress
+     *
+     * @return bool
+     */
+    public static function ipInSubnet(string $ipAddress, string $cidrAddress): bool
+    {
+        if (!str_contains($cidrAddress, '/')) {
+            return $ipAddress === $cidrAddress;
+        }
+
+        list($subnet, $prefixLength) = explode('/', $cidrAddress);
+        $prefixLength = intval($prefixLength);
+        // IPv6
+        if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+
+            $ip = inet_pton($ipAddress);
+            $subnet = inet_pton($subnet);
+
+            if ($ip === false || $subnet === false) {
+                return false;
+            }
+
+            $mask = str_repeat("f", intdiv($prefixLength, 4));
+            $mask .= ['', '8', 'c', 'e'][$prefixLength % 4];
+            $mask = str_pad($mask, 32, '0');
+            $mask = pack("H*", $mask);
+
+            return ($ip & $mask) === ($subnet & $mask);
+        }
+        // IPv4
+        if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+
+            $ip = ip2long($ipAddress);
+            $subnet = ip2long($subnet);
+            $mask = 0xffffffff << (32 - $prefixLength);
+
+            return ($ip & $mask) === ($subnet & $mask);
+        }
+
+        return false;
     }
 }

@@ -198,7 +198,7 @@ class ModelBenchmarkTest extends TestCase
             $closure();
         }
         $x = microtime(true) - $x;
-        $fn = isset(debug_backtrace()[1]['function']) ? debug_backtrace()[1]['function'] : __FUNCTION__;
+        $fn = debug_backtrace()[1]['function'] ?? __FUNCTION__;
         printf(
             "%s %s %s ms/op". PHP_EOL,
             str_pad($fn, 45, " ", STR_PAD_RIGHT),

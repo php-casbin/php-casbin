@@ -28,7 +28,7 @@ class BuiltinOperations
      */
     public static function keyMatch(string $key1, string $key2): bool
     {
-        if (false === strpos($key2, '*')) {
+        if (!str_contains($key2, '*')) {
             return $key1 == $key2;
         }
 
@@ -364,11 +364,7 @@ class BuiltinOperations
      */
     public static function ipMatch(string $ip1, string $ip2): bool
     {
-        $objIP1 = IP::parse($ip1);
-
-        $objIP2 = Range::parse($ip2);
-
-        return $objIP2->contains($objIP1);
+        return Util::ipInSubnet($ip1, $ip2);
     }
 
     /**
@@ -433,7 +429,7 @@ class BuiltinOperations
         return function (...$args) use ($rm, &$memorized) {
             $key = implode(chr(0b0), $args);
 
-            if(isset($memorized[$key])){
+            if (isset($memorized[$key])) {
                 return $memorized[$key];
             }
 

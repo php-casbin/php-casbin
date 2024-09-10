@@ -302,7 +302,7 @@ class Model extends Policy
         foreach ($this->items['p'] as $ptype => $assertion) {
             try {
                 $domainIndex = $this->getFieldIndex($ptype, Constants::DOMAIN_INDEX);
-            } catch (CasbinException $e) {
+            } catch (CasbinException) {
                 $domainIndex = -1;
             }
             $policies = &$assertion->policy;
@@ -338,7 +338,7 @@ class Model extends Policy
         foreach ($this->items['p'] as $ptype => $assertion) {
             try {
                 $priorityIndex = $this->getFieldIndex($ptype, Constants::PRIORITY_INDEX);
-            } catch (CasbinException $e) {
+            } catch (CasbinException) {
                 continue;
             }
             $policies = &$assertion->policy;
