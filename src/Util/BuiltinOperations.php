@@ -7,8 +7,6 @@ namespace Casbin\Util;
 use Casbin\Rbac\RoleManager;
 use Closure;
 use Exception;
-use IPTools\IP;
-use IPTools\Range;
 
 /**
  * Class BuiltinOperations.
