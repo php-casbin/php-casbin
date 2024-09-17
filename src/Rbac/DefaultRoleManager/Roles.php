@@ -11,7 +11,7 @@ class Roles
     /**
      * @var array<string, Role>
      */
-    private $roles = [];
+    private array $roles = [];
 
     /**
      * @param string $name

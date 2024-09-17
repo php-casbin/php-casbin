@@ -24,7 +24,7 @@ final class Config implements ConfigContract
     /**
      * @var array<string, array<string, string>>
      */
-    public $data = [];
+    public array $data = [];
 
     /**
      * Create an empty configuration representation from file.

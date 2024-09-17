@@ -20,49 +20,49 @@ class Assertion
      *
      * @var string
      */
-    public $key = '';
+    public string $key = '';
 
     /**
      * $value.
      *
      * @var string
      */
-    public $value = '';
+    public string $value = '';
 
     /**
      * $tokens.
      *
      * @var string[]
      */
-    public $tokens = [];
+    public array $tokens = [];
 
     /**
      * $policy.
      *
      * @var string[][]
      */
-    public $policy = [];
+    public array $policy = [];
 
     /**
      * $policyMap
      *
      * @var array<string, int>
      */
-    public $policyMap = [];
+    public array $policyMap = [];
 
     /**
      * $rm.
      *
-     * @var RoleManager
+     * @var RoleManager|null
      */
-    public $rm;
+    public ?RoleManager $rm = null;
 
     /**
      * $fieldIndexMap
      * 
      * @var array<string, int>
      */
-    public $fieldIndexMap = [];
+    public array $fieldIndexMap = [];
 
     /**
      * @param RoleManager $rm

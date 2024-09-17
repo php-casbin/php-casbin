@@ -18,7 +18,7 @@ class Log
      *
      * @var Logger
      */
-    public static $logger;
+    public static Logger $logger;
 
     /**
      * Sets the current logger.

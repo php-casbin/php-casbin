@@ -17,25 +17,25 @@ class EnforceContext
      *
      * @var string
      */
-    public $rType;
+    public string $rType;
     /**
      * pType
      *
      * @var string
      */
-    public $pType;
+    public string $pType;
     /**
      * eType
      *
      * @var string
      */
-    public $eType;
+    public string $eType;
     /**
      * mType
      *
      * @var string
      */
-    public $mType;
+    public string $mType;
 
     /**
      * Create a default structure based on the suffix

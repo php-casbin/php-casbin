@@ -18,17 +18,17 @@ class DefaultLogger implements Logger
      *
      * @var bool
      */
-    public $enable = false;
+    public bool $enable = false;
 
     /**
      * @var string
      */
-    public $name = 'casbin.log';
+    public string $name = 'casbin.log';
 
     /**
      * @var string
      */
-    public $path = '/tmp';
+    public string $path = '/tmp';
 
     /**
      * DefaultLogger constructor.

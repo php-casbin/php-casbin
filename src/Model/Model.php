@@ -26,7 +26,7 @@ class Model extends Policy
     /**
      * @var array<string, string>
      */
-    protected $sectionNameMap = [
+    protected array $sectionNameMap = [
         'r' => 'request_definition',
         'p' => 'policy_definition',
         'g' => 'role_definition',

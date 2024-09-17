@@ -17,7 +17,7 @@ class FunctionMap
     /**
      * @var array<string, Closure>
      */
-    private $functions = [];
+    private array $functions = [];
 
     /**
      * @param string $name

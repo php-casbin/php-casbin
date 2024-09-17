@@ -24,7 +24,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
      *
      * @var bool
      */
-    protected $filtered;
+    protected bool $filtered;
 
     /**
      * FileAdapter constructor.

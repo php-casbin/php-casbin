@@ -16,12 +16,12 @@ class Role
     /**
      * @var string
      */
-    public $name = '';
+    public string $name = '';
 
     /**
      * @var Role[]
      */
-    private $roles = [];
+    private array $roles = [];
 
     /**
      * Role constructor.
