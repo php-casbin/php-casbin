@@ -17,14 +17,14 @@ class Filter
      *
      * @var string[]
      */
-    public $p = [];
+    public array $p = [];
 
     /**
      * $g variable.
      *
      * @var string[]
      */
-    public $g = [];
+    public array $g = [];
 
     /**
      * __construct function.

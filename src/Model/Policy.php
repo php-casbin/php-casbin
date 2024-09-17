@@ -31,7 +31,7 @@ abstract class Policy implements ArrayAccess
      *
      * @var array<string, array<string, Assertion>>
      */
-    protected $items = [];
+    protected array $items = [];
 
     /**
      * BuildIncrementalRoleLinks provides incremental build the role inheritance relations.

@@ -36,77 +36,77 @@ class CoreEnforcer
      *
      * @var string
      */
-    protected $modelPath;
+    protected string $modelPath;
 
     /**
      * Model.
      *
      * @var Model
      */
-    protected $model;
+    protected Model $model;
 
     /**
      * FunctionMap.
      *
      * @var FunctionMap
      */
-    protected $fm;
+    protected FunctionMap $fm;
 
     /**
      * Effector.
      *
      * @var Effector
      */
-    protected $eft;
+    protected Effector $eft;
 
     /**
      * Adapter.
      *
      * @var Adapter|null
      */
-    protected $adapter;
+    protected ?Adapter $adapter;
 
     /**
      * Watcher.
      *
      * @var Watcher|null
      */
-    protected $watcher;
+    protected ?Watcher $watcher;
 
     /**
      * RmMap.
      *
      * @var RoleManager[]
      */
-    protected $rmMap;
+    protected array $rmMap;
 
     /**
      * $enabled.
      *
      * @var bool
      */
-    protected $enabled;
+    protected bool $enabled;
 
     /**
      * $autoSave.
      *
      * @var bool
      */
-    protected $autoSave;
+    protected bool $autoSave;
 
     /**
      * $autoBuildRoleLinks.
      *
      * @var bool
      */
-    protected $autoBuildRoleLinks;
+    protected bool $autoBuildRoleLinks;
 
     /**
      * $autoNotifyWatcher.
      *
      * @var bool
      */
-    protected $autoNotifyWatcher;
+    protected bool $autoNotifyWatcher;
 
     /**
      * Enforcer constructor.
