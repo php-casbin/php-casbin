@@ -7,7 +7,7 @@ namespace Casbin\Model;
 use ArrayAccess;
 use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
-use Casbin\Log\Log;
+use Casbin\Log\Logger;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\Util;
 
@@ -32,6 +32,13 @@ abstract class Policy implements ArrayAccess
      * @var array<string, array<string, Assertion>>
      */
     protected array $items = [];
+
+    /**
+     * $logger.
+     *
+     * @var Logger|null
+     */
+    protected ?Logger $logger = null;
 
     /**
      * BuildIncrementalRoleLinks provides incremental build the role inheritance relations.
@@ -73,16 +80,25 @@ abstract class Policy implements ArrayAccess
      */
     public function printPolicy(): void
     {
-        Log::logPrint('Policy:');
+        if (!$this->getLogger()->isEnabled()) {
+            return;
+        }
 
+        $policy = [];
         foreach (['p', 'g'] as $sec) {
             if (!isset($this->items[$sec])) {
-                return;
+                continue;
             }
-            foreach ($this->items[$sec] as $key => $ast) {
-                Log::logPrint($key, ': ', $ast->value, ': ', $ast->policy);
+
+            foreach ($this->items[$sec] as $ptype => $ast) {
+                $policy[$ptype] = array_merge(
+                    $policy[$ptype] ?? [],
+                    $ast->policy
+                );
             }
         }
+
+        $this->getLogger()->logPolicy($policy);
     }
 
     /**
@@ -533,6 +549,34 @@ abstract class Policy implements ArrayAccess
     {
         $assertion = &$this->items['p'][$ptype];
         $assertion->fieldIndexMap[$field] = $index;
+    }
+
+    /**
+     * Sets the current logger.
+     *
+     * @param Logger $logger
+     *
+     * @return void
+     */
+    public function setLogger(Logger $logger): void
+    {
+        foreach ($this->items as $sec => $astMap) {
+            foreach ($astMap as $ast) {
+                $ast->setLogger($logger);
+            }
+        }
+
+        $this->logger = $logger;
+    }
+
+    /**
+     * Returns the current logger.
+     *
+     * @return Logger
+     */
+    public function getLogger(): Logger
+    {
+        return $this->logger;
     }
 
     /**

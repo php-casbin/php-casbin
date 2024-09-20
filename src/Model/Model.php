@@ -8,7 +8,7 @@ use Casbin\Config\Config;
 use Casbin\Config\ConfigContract;
 use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
-use Casbin\Log\Log;
+use Casbin\Log\Logger\DefaultLogger;
 use Casbin\Util\Util;
 
 /**
@@ -36,6 +36,7 @@ class Model extends Policy
 
     public function __construct()
     {
+        $this->setLogger(new DefaultLogger());
     }
 
     public function __clone()
@@ -121,7 +122,7 @@ class Model extends Policy
     private function loadSection(ConfigContract $cfg, string $sec): void
     {
         $i = 1;
-        for (; ;) {
+        for (;;) {
             if (!$this->loadAssertion($cfg, $sec, $sec . $this->getKeySuffix($i))) {
                 break;
             } else {
@@ -215,12 +216,18 @@ class Model extends Policy
      */
     public function printModel(): void
     {
-        Log::logPrint('Model:');
-        foreach ($this->items as $k => $v) {
-            foreach ($v as $i => $j) {
-                Log::logPrintf('%s.%s: %s', $k, $i, $j->value);
+        if (!$this->getLogger()->isEnabled()) {
+            return;
+        }
+
+        $modelInfo = [];
+        foreach ($this->items as $sec => $astMap) {
+            foreach ($astMap as $key => $ast) {
+                $modelInfo[] = [$sec, $key, $ast->value];
             }
         }
+
+        $this->getLogger()->logModel($modelInfo);
     }
 
     /**

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Casbin\Rbac\DefaultRoleManager;
 
 use Casbin\Exceptions\CasbinException;
-use Casbin\Log\Log;
+use Casbin\Log\Logger;
+use Casbin\Log\Logger\DefaultLogger;
 use Casbin\Rbac\RoleManager as RoleManagerContract;
 use Closure;
 
@@ -22,32 +23,37 @@ class RoleManager implements RoleManagerContract
     /**
      * @var array<string, Roles>
      */
-    protected $allDomains;
+    protected array $allDomains = [];
 
     /**
      * @var int
      */
-    protected $maxHierarchyLevel;
+    protected int $maxHierarchyLevel = 10;
 
     /**
      * @var bool
      */
-    protected $hasPattern;
+    protected bool $hasPattern = false;
 
     /**
-     * @var Closure
+     * @var Closure|null
      */
-    protected $matchingFunc;
+    protected ?Closure $matchingFunc = null;
 
     /**
      * @var bool
      */
-    protected $hasDomainPattern;
+    protected bool $hasDomainPattern = false;
 
     /**
-     * @var Closure
+     * @var Closure|null
      */
-    protected $domainMatchingFunc;
+    protected ?Closure $domainMatchingFunc = null;
+
+    /**
+     * @var Logger
+     */
+    protected Logger $logger;
 
     /**
      * RoleManager constructor.
@@ -58,8 +64,7 @@ class RoleManager implements RoleManagerContract
     {
         $this->allDomains[self::DEFAULT_DOMAIN] = new Roles();
         $this->maxHierarchyLevel = $maxHierarchyLevel;
-        $this->hasPattern = false;
-        $this->hasDomainPattern = false;
+        $this->setLogger(new DefaultLogger());
     }
 
     /**
@@ -136,6 +141,18 @@ class RoleManager implements RoleManagerContract
         }
 
         return $allRoles;
+    }
+
+    /**
+     * Sets the current logger.
+     *
+     * @param Logger $logger
+     *
+     * @return void
+     */
+    public function setLogger(Logger $logger): void
+    {
+        $this->logger = $logger;
     }
 
     /**
@@ -372,11 +389,13 @@ class RoleManager implements RoleManagerContract
     }
 
     /**
-     * Prints all the roles to log.
+     * Converts the roles to a string array.
+     *
+     * @return array
      */
-    public function printRoles(): void
+    protected function toString(): array
     {
-        $line = [];
+        $roles = [];
 
         array_map(function (Roles $roles) use (&$line) {
             array_map(function (Role $role) use (&$line) {
@@ -386,7 +405,19 @@ class RoleManager implements RoleManagerContract
             }, $roles->toArray());
         }, $this->allDomains);
 
-        Log::logPrint(implode(', ', $line));
+        return $roles;
+    }
+
+    /**
+     * Prints all the roles to log.
+     */
+    public function printRoles(): void
+    {
+        if (!$this->logger->isEnabled()) {
+            return;
+        }
+        $roles = $this->toString();
+        $this->logger->logRole($roles);
     }
 
     /**

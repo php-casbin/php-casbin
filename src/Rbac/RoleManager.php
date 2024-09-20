@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Casbin\Rbac;
 
+use Casbin\Log\Logger;
+
 /**
  * Interface RoleManager.
  * Provides interface to define the operations for managing roles.
@@ -94,6 +96,15 @@ interface RoleManager
      * @return string[]
      */
     public function getAllDomains(): array;
+
+    /**
+     * Sets the current logger.
+     *
+     * @param Logger $logger
+     *
+     * @return void
+     */
+    public function setLogger(Logger $logger): void;
 
     /**
      * Support use pattern in g.

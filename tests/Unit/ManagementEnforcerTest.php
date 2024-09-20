@@ -2,7 +2,6 @@
 
 namespace Casbin\Tests\Unit;
 
-use Casbin\Exceptions\BatchOperationException;
 use PHPUnit\Framework\TestCase;
 use Casbin\Enforcer;
 use Casbin\Persist\Adapters\FileAdapter;
@@ -306,7 +305,7 @@ class ManagementEnforcerTest extends TestCase
         $e->updatePolicies($newPolicies, $oldPolicies);
     }
 
-    public function testupdateFilteredPolicies()
+    public function testUpdateFilteredPolicies()
     {
         // p, alice, data1, read
         // p, bob, data2, write

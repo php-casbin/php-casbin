@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Casbin;
 
 use Casbin\Exceptions\NotImplementedException;
-use Casbin\Log\Log;
 use Casbin\Model\Policy;
 use Casbin\Persist\BatchAdapter;
 use Casbin\Persist\UpdatableAdapter;
@@ -381,7 +380,8 @@ class InternalEnforcer extends CoreEnforcer
                     $this->watcher->update();
                 }
             } catch (\Exception $e) {
-                Log::logPrint("An exception occurred:" . $e->getMessage());
+                $this->logger->logError($e);
+
                 return false;
             }
         }
@@ -413,7 +413,7 @@ class InternalEnforcer extends CoreEnforcer
                     $this->watcher->update();
                 }
             } catch (\Exception $e) {
-                Log::logPrint("An exception occurred:" . $e->getMessage());
+                $this->logger->logError($e);
                 return false;
             }
         }
@@ -512,7 +512,7 @@ class InternalEnforcer extends CoreEnforcer
     protected function updateFilteredPoliciesInternal(string $sec, string $ptype, array $newRules, int $fieldIndex, string ...$fieldValues): bool
     {
         $oldRules = $this->updateFilteredPoliciesWithoutNotifyInternal($sec, $ptype, $newRules, $fieldIndex, ...$fieldValues);
-        if(count($oldRules) === 0) {
+        if (count($oldRules) === 0) {
             return false;
         }
 

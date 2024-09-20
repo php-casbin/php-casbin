@@ -7,6 +7,7 @@ namespace Casbin;
 use Casbin\Contracts\CacheableParam;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Log\Log;
+use Casbin\Log\Logger;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Psr\Cache\CacheItemPoolInterface;
@@ -43,16 +44,17 @@ class CachedEnforcer extends Enforcer
      *
      * @param string|Model|null $model
      * @param string|Adapter|null $adapter
+     * @param Logger|null $logger
      * @param bool|null $enableLog
      * 
      * @throws CasbinException
      */
-    public function __construct(string|Model|null $model = null, string|Adapter|null $adapter = null, ?bool $enableLog = null)
+    public function __construct(string|Model|null $model = null, string|Adapter|null $adapter = null, ?Logger $logger = null, ?bool $enableLog = null)
     {
         $this->enableCache = true;
         $this->cache = new ArrayAdapter();
         $this->expireTime = null;
-        parent::__construct($model, $adapter, $enableLog);
+        parent::__construct($model, $adapter, $logger, $enableLog);
     }
 
     /**
@@ -184,7 +186,7 @@ class CachedEnforcer extends Enforcer
     {
         if ($this->enableCache) {
             if (!$this->cache->clear()) {
-                Log::logPrint('clear cache failed');
+                $this->logger->logError(new CasbinException('clear cache failed'));
             }
         }
 
