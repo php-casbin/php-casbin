@@ -9,7 +9,8 @@ use Casbin\Effector\Effector;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Exceptions\EvalFunctionException;
 use Casbin\Exceptions\InvalidFilePathException;
-use Casbin\Log\Log;
+use Casbin\Log\Logger;
+use Casbin\Log\Logger\DefaultLogger;
 use Casbin\Model\FunctionMap;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
@@ -109,6 +110,13 @@ class CoreEnforcer
     protected bool $autoNotifyWatcher;
 
     /**
+     * $logger.
+     *
+     * @var Logger
+     */
+    protected Logger $logger;
+
+    /**
      * Enforcer constructor.
      * Creates an enforcer via file or DB.
      * File:
@@ -126,12 +134,15 @@ class CoreEnforcer
      *
      * @param string|Model|null $model
      * @param string|Adapter|null $adapter
+     * @param Logger|null $logger
      * @param bool|null $enableLog
      *
      * @throws CasbinException
      */
-    public function __construct(string|Model|null $model = null, string|Adapter|null $adapter = null, ?bool $enableLog = null)
+    public function __construct(string|Model|null $model = null, string|Adapter|null $adapter = null, ?Logger $logger = null, ?bool $enableLog = null)
     {
+        $this->logger = $logger ?? new DefaultLogger();
+
         if (!is_null($enableLog)) {
             $this->enableLog($enableLog);
         }
@@ -196,6 +207,7 @@ class CoreEnforcer
     {
         $this->adapter = $adapter;
         $this->model = $m;
+        $this->model->setLogger($this->logger);
         $this->model->printModel();
 
         $this->fm = Model::loadFunctionMap();
@@ -207,6 +219,20 @@ class CoreEnforcer
 
         if (!\is_null($this->adapter) && !$ok) {
             $this->loadPolicy();
+        }
+    }
+
+    /**
+     * Sets the current logger.
+     *
+     * @param Logger $logger
+     */
+    public function setLogger(Logger $logger): void
+    {
+        $this->logger = $logger;
+        $this->model->setLogger($this->logger);
+        foreach ($this->rmMap as &$rm) {
+            $rm->setLogger($this->logger);
         }
     }
 
@@ -496,7 +522,7 @@ class CoreEnforcer
      */
     public function enableLog(bool $enabled = true): void
     {
-        Log::getLogger()->enableLog($enabled);
+        $this->logger->enableLog($enabled);
     }
 
     /**
@@ -714,24 +740,7 @@ class CoreEnforcer
 
         $result = $effect == Effector::ALLOW;
 
-        if (Log::getLogger()->isEnabled()) {
-            $reqStr = 'Request: ';
-            $reqStr .= implode(', ', array_values($rvals));
-
-            $reqStr .= sprintf(" ---> %s\n", var_export($result, true));
-
-            $reqStr = 'Hit Policy: ';
-            if (count($explains) == count($explains, COUNT_RECURSIVE)) {
-                // if $explains is not multidimensional
-                $reqStr .= sprintf("%s \n", '[' . implode(', ', $explains) . ']');
-            } else {
-                // if $explains is multidimensional
-                foreach ($explains as $i => $pval) {
-                    $reqStr .= sprintf("%s \n", '[' . implode(', ', $pval) . ']');
-                }
-            }
-            Log::logPrint($reqStr);
-        }
+        $this->logger->logEnforce($matcher, $rvals, $result, $explains);
 
         return $result;
     }

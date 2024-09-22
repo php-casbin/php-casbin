@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Casbin\Model;
 
 use Casbin\Exceptions\CasbinException;
+use Casbin\Log\Logger;
 use Casbin\Rbac\RoleManager;
 
 /**
@@ -65,6 +66,25 @@ class Assertion
     public array $fieldIndexMap = [];
 
     /**
+     * $logger.
+     *
+     * @var Logger|null
+     */
+    public ?Logger $logger = null;
+
+    /**
+     * Sets the current logger.
+     *
+     * @param Logger $logger
+     * 
+     * @return void
+     */
+    public function setLogger($logger): void
+    {
+        $this->logger = $logger;
+    }
+
+    /**
      * @param RoleManager $rm
      *
      * @throws CasbinException
@@ -73,7 +93,7 @@ class Assertion
     {
         $this->rm = $rm;
         $count = substr_count($this->value, '_');
-        if($count < 2) {
+        if ($count < 2) {
             throw new CasbinException('the number of "_" in role definition should be at least 2');
         }
 
@@ -81,7 +101,7 @@ class Assertion
             if (\count($rule) < $count) {
                 throw new CasbinException('grouping policy elements do not meet role definition');
             }
-            if(\count($rule) > $count) {
+            if (\count($rule) > $count) {
                 $rule = \array_slice($rule, 0, $count);
             }
 

@@ -4,11 +4,13 @@ namespace Casbin\Tests\Unit;
 
 use Casbin\Enforcer;
 use Casbin\Exceptions\CasbinException;
+use Casbin\Log\Logger;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\Adapters\FileFilteredAdapter;
 use Casbin\Persist\Adapters\Filter;
 use Casbin\Rbac\RoleManager;
+use Mockery;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -23,13 +25,37 @@ class CoreEnforcerTest extends TestCase
     public function testInitWithEnableLog()
     {
         // The log is not enabled by default
-        $e = new \Casbin\Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv', true);
+        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv', null, true);
 
         $this->assertTrue($e->enforce('alice', 'data1', 'read'));
 
         // The log can also be enabled or disabled at run-time.
         $e->enableLog(false);
         $this->assertTrue($e->enforce('alice', 'data1', 'read'));
+
+        // Test setting the logger at run-time.
+        $logger = Mockery::mock(Logger::class);
+        $logger->shouldReceive('enableLog')
+            ->with(true);
+        $logger->shouldReceive('isEnabled')
+            ->andReturn(true);
+        $logger->shouldReceive('logPolicy')
+            ->once()
+            ->withAnyArgs();
+        $logger->shouldReceive('logModel')
+            ->once()
+            ->withAnyArgs();
+        $logger->shouldReceive('logRole')
+            ->once()
+            ->withAnyArgs();
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_model.conf', $this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_policy.csv');
+        /** @var Logger $logger */
+        $e->setLogger($logger);
+        $e->enableLog(true);
+
+        $e->getModel()->printModel();
+        $e->getModel()->printPolicy();
+        $e->getRoleManager()->printRoles();
     }
 
     public function testEnableAutoSave()

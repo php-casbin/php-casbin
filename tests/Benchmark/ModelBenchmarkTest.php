@@ -34,7 +34,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testBaseModel(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . "/basic_policy.csv", false);
+        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . "/basic_policy.csv");
         $this->benchmark(function () use ($e) {
             $e->enforce("alice", "data1", "read");
         }, 10000);
@@ -42,7 +42,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testRBACModel(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . "/rbac_model.csv", false);
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . "/rbac_model.csv");
         $this->benchmark(function () use ($e) {
             $e->enforce("alice", "data2", "read");
         }, 10000);
@@ -50,7 +50,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testRBACModelSmall(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_model.conf", false);
+        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_model.conf");
 
         // 100 roles, 10 resources.
         for ($i = 0; $i < 100; $i++) {
@@ -68,7 +68,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testRBACModelMedium(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_model.conf", false);
+        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_model.conf");
 
         // 1000 roles, 100 resources.
         $pPolicies = [];
@@ -93,7 +93,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testRBACModelLarge(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_model.conf", false);
+        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_model.conf");
 
         // 10000 roles, 1000 resources.
         $pPolicies = [];
@@ -119,7 +119,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testRBACModelWithResourceRoles(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_with_resource_roles_model.conf", $this->modelAndPolicyPath . "/rbac_with_resource_roles_policy.csv", false);
+        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_with_resource_roles_model.conf", $this->modelAndPolicyPath . "/rbac_with_resource_roles_policy.csv");
 
 
         $this->benchmark(function () use ($e) {
@@ -129,7 +129,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testRBACModelWithDomains(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_with_domains_model.conf", $this->modelAndPolicyPath . "/rbac_with_domains_policy.csv", false);
+        $e = new Enforcer($this->modelAndPolicyPath . "/rbac_with_domains_model.conf", $this->modelAndPolicyPath . "/rbac_with_domains_policy.csv");
 
 
         $this->benchmark(function () use ($e) {
@@ -139,7 +139,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testABACModel(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . "/abac_model.conf", false);
+        $e = new Enforcer($this->modelAndPolicyPath . "/abac_model.conf");
         $data1 = new \stdClass();
         $data1->Name = "data1";
         $data1->Owner = "alice";
@@ -151,7 +151,7 @@ class ModelBenchmarkTest extends TestCase
 
     public function testKeyMatchModel(): void
     {
-        $e = new Enforcer($this->modelAndPolicyPath . "/keymatch_model.conf", $this->modelAndPolicyPath . "/keymatch_policy.csv", false);
+        $e = new Enforcer($this->modelAndPolicyPath . "/keymatch_model.conf", $this->modelAndPolicyPath . "/keymatch_policy.csv");
 
 
         $this->benchmark(function () use ($e) {
