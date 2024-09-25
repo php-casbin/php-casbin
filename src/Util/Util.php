@@ -122,27 +122,46 @@ class Util
      */
     public static function replaceEvalWithMap(string $src, array $sets): string
     {
-        return preg_replace_callback(self::REGEXP, function ($s) use ($sets): string {
-            $s = $s[0];
-            preg_match(self::REGEXP, $s, $subs);
-
-            if (count($subs) == 0) {
-                return $s;
-            }
-            $key = $subs[1];
-
+        return preg_replace_callback(self::REGEXP, function ($matches) use ($sets): string {
+            $key = $matches['rule'];
+    
             if (isset($sets[$key])) {
-                $found = true;
                 $value = $sets[$key];
-            } else {
-                $found = false;
+                return '(' . $value . ')';
             }
-
-            if (!$found) {
-                return $s;
-            }
-            return preg_replace(self::REGEXP, $s, '(' . $value . ')');
+    
+            return $matches[0];
         }, $src);
+    }
+
+    /**
+     * Remove duplicate elements from an array.
+     *
+     * @param array $s
+     * @return array
+     */
+    public static function removeDumplicateElement(array $s): array
+    {
+        return array_unique($s);
+    }
+
+    /**
+     * Check if two arrays are equal, order-insensitive.
+     *
+     * @param array $a
+     * @param array $b
+     *
+     * @return bool
+     */
+    public static function setEquals(array $a, array $b): bool
+    {
+        if (count($a) !== count($b)) {
+            return false;
+        }
+
+        sort($a);
+        sort($b);
+        return $a == $b;
     }
 
     /**

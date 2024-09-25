@@ -40,16 +40,26 @@ class CoreEnforcerTest extends TestCase
         $logger->shouldReceive('isEnabled')
             ->andReturn(true);
         $logger->shouldReceive('logPolicy')
-            ->once()
+            ->twice()
             ->withAnyArgs();
         $logger->shouldReceive('logModel')
-            ->once()
+            ->twice()
             ->withAnyArgs();
         $logger->shouldReceive('logRole')
-            ->once()
+            ->twice()
             ->withAnyArgs();
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_model.conf', $this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_policy.csv');
+        // Prints basic rbac model and policys
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
         /** @var Logger $logger */
+        $e->setLogger($logger);
+        $e->enableLog(true);
+
+        $e->getModel()->printModel();
+        $e->getModel()->printPolicy();
+        $e->getRoleManager()->printRoles();
+
+        // Prints rbac model with domain and policys with keymatch
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_model.conf', $this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_policy.csv');
         $e->setLogger($logger);
         $e->enableLog(true);
 

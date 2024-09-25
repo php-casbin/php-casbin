@@ -4,6 +4,7 @@ namespace Casbin\Tests\Unit;
 
 use Casbin\Enforcer;
 use Casbin\Util\BuiltinOperations;
+use Closure;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -191,7 +192,7 @@ class ModelBenchmarkTest extends TestCase
         }, 1000);
     }
 
-    protected function benchmark(\Closure $closure, int $n = 100): void
+    protected function benchmark(Closure $closure, int $n = 100): void
     {
         $x = microtime(true);
         for ($i = 0; $i < $n; $i++) {

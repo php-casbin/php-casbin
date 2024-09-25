@@ -385,6 +385,29 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->getPermissionsForUserInDomain('non_exist', 'domain2'), []);
     }
 
+    public function testGetDomainsForUser()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy2.csv');
+
+        $this->assertEquals($e->getDomainsForUser('alice'), ['domain1', 'domain2'], true);
+        $this->assertEquals($e->getDomainsForUser('bob'), ['domain2', 'domain3'], true);
+        $this->assertEquals($e->getDomainsForUser('user'), ['domain3'], true);
+    }
+
+    public function testGetAllRolesByDomain()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+
+        $this->assertEquals(['admin'], $e->getAllRolesByDomain('domain1'));
+        $this->assertEquals(['admin'], $e->getAllRolesByDomain('domain2'));
+
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy2.csv');
+
+        $this->assertEquals(['admin'], $e->getAllRolesByDomain('domain1'));
+        $this->assertEquals(['admin'], $e->getAllRolesByDomain('domain2'));
+        $this->assertEquals(['user'], $e->getAllRolesByDomain('domain3'));
+    }
+
     public function testGetAllUsersByDomain()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');

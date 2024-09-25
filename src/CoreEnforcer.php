@@ -19,9 +19,11 @@ use Casbin\Persist\FilteredAdapter;
 use Casbin\Persist\Watcher;
 use Casbin\Persist\WatcherEx;
 use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
+use Casbin\Rbac\DefaultRoleManager\DomainManager as DefaultDomainManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use Casbin\Util\Util;
+use Closure;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
@@ -77,7 +79,7 @@ class CoreEnforcer
     /**
      * RmMap.
      *
-     * @var RoleManager[]
+     * @var array<string, RoleManager>
      */
     protected array $rmMap;
 
@@ -217,7 +219,7 @@ class CoreEnforcer
         // Do not initialize the full policy when using a filtered adapter
         $ok = $this->adapter instanceof FilteredAdapter ? $this->adapter->isFiltered() : false;
 
-        if (!\is_null($this->adapter) && !$ok) {
+        if (!is_null($this->adapter) && !$ok) {
             $this->loadPolicy();
         }
     }
@@ -498,8 +500,19 @@ class CoreEnforcer
                 if (isset($this->rmMap[$ptype])) {
                     $rm = $this->rmMap[$ptype];
                     $rm->clear();
-                } else {
+                    continue;
+                }
+
+                if (count($value->tokens) <= 2) {
                     $this->rmMap[$ptype] = new DefaultRoleManager(10);
+                } else {
+                    $this->rmMap[$ptype] = new DefaultDomainManager(10);
+                }
+                $matchFunc = 'keyMatch(r_dom, p_dom)';
+                if (str_contains($this->model['m']['m']->value, $matchFunc)) {
+                    $this->addNamedDomainMatchingFunc('g', 'keyMatch', function (string $key1, string $key2) {
+                        return BuiltinOperations::keyMatch($key1, $key2);
+                    });
                 }
             }
         }
@@ -626,8 +639,8 @@ class CoreEnforcer
         $rTokens = array_values($this->model['r'][$rType]->tokens);
         $pTokens = array_values($this->model['p'][$pType]->tokens);
 
-        if (\count($rTokens) != \count($rvals)) {
-            throw new CasbinException(\sprintf('invalid request size: expected %d, got %d', \count($rTokens), \count($rvals)));
+        if (count($rTokens) != count($rvals)) {
+            throw new CasbinException(\sprintf('invalid request size: expected %d, got %d', count($rTokens), count($rvals)));
         }
         $rParameters = array_combine($rTokens, $rvals);
 
@@ -650,7 +663,7 @@ class CoreEnforcer
         $effect = 0;
         $explainIndex = 0;
 
-        $policyLen = \count($this->model['p'][$pType]->policy);
+        $policyLen = count($this->model['p'][$pType]->policy);
         if (0 != $policyLen && str_contains($expString, $pType . '_')) {
             foreach ($this->model['p'][$pType]->policy as $policyIndex => $pvals) {
                 $parameters = array_combine($pTokens, $pvals);
@@ -680,11 +693,11 @@ class CoreEnforcer
 
                 // set to no-match at first
                 $matcherResults[$policyIndex] = 0;
-                if (\is_bool($result)) {
+                if (is_bool($result)) {
                     if ($result) {
                         $matcherResults[$policyIndex] = 1;
                     }
-                } elseif (\is_float($result)) {
+                } elseif (is_float($result)) {
                     if ($result != 0) {
                         $matcherResults[$policyIndex] = 1;
                     }
@@ -870,13 +883,13 @@ class CoreEnforcer
      *
      * @param string $ptype
      * @param string $name
-     * @param \Closure $fn
+     * @param Closure $fn
      * @return boolean
      */
-    public function addNamedMatchingFunc(string $ptype, string $name, \Closure $fn): bool
+    public function addNamedMatchingFunc(string $ptype, string $name, Closure $fn): bool
     {
         if (isset($this->rmMap[$ptype])) {
-            $rm = $this->rmMap[$ptype];
+            $rm = &$this->rmMap[$ptype];
             $rm->addMatchingFunc($name, $fn);
             return true;
         }
@@ -888,13 +901,13 @@ class CoreEnforcer
      *
      * @param string $ptype
      * @param string $name
-     * @param \Closure $fn
+     * @param Closure $fn
      * @return boolean
      */
-    public function addNamedDomainMatchingFunc(string $ptype, string $name, \Closure $fn): bool
+    public function addNamedDomainMatchingFunc(string $ptype, string $name, Closure $fn): bool
     {
         if (isset($this->rmMap[$ptype])) {
-            $rm = $this->rmMap[$ptype];
+            $rm = &$this->rmMap[$ptype];
             $rm->addDomainMatchingFunc($name, $fn);
             return true;
         }

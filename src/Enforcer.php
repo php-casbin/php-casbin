@@ -247,7 +247,7 @@ class Enforcer extends ManagementEnforcer
             $args = [];
             $subIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
             $args[$subIndex] = $user;
-            if (\count($domain) > 0) {
+            if (count($domain) > 0) {
                 $domIndex = $this->model->getFieldIndex($ptype, Constants::DOMAIN_INDEX);
                 $args[$domIndex] = $domain[0];
             }
@@ -350,6 +350,24 @@ class Enforcer extends ManagementEnforcer
     }
 
     /**
+     * GetDomainsForUser gets all domains that a subject inherits.
+     *
+     * @param string $user
+     *
+     * @return string[]
+     */
+    public function getDomainsForUser(string $user): array
+    {
+        $domains = [];
+        foreach ($this->rmMap as $rm) {
+            $res = $rm->getDomains($user);
+            $domains = array_merge($domains, $res);
+        }
+
+        return $domains;
+    }
+
+    /**
      * GetImplicitResourcesForUser returns all policies that user obtaining in domain
      *
      * @param string $user
@@ -416,7 +434,7 @@ class Enforcer extends ManagementEnforcer
             $this->getImplicitRolesForUser($user, ...$domain)
         );
 
-        $len = \count($domain);
+        $len = count($domain);
         if ($len > 1) {
             throw new CasbinException('error: domain should be 1 parameter');
         }

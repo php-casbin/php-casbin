@@ -113,7 +113,7 @@ final class Config implements ConfigContract
         $buf = preg_replace('/[\r\n]+/', PHP_EOL, $buf);
         $buf = explode(PHP_EOL, $buf ?? '');
 
-        $len = \count($buf);
+        $len = count($buf);
 
         for ($i = 0; $i <= $len; ++$i) {
             if ($canWrite) {
@@ -172,7 +172,7 @@ final class Config implements ConfigContract
 
         $optionVal = explode('=', $b, 2);
 
-        if (2 != \count($optionVal)) {
+        if (2 != count($optionVal)) {
             throw new CasbinException(sprintf('parse the content error : line %d , %s = ?', $lineNum, current($optionVal)));
         }
 
@@ -231,7 +231,7 @@ final class Config implements ConfigContract
         $section = '';
 
         $keys = explode('::', strtolower($key));
-        if (\count($keys) >= 2) {
+        if (count($keys) >= 2) {
             $section = $keys[0];
             $option = $keys[1];
         } else {
@@ -250,7 +250,7 @@ final class Config implements ConfigContract
     public function get(string $key): string
     {
         $keys = explode('::', $key);
-        if (\count($keys) >= 2) {
+        if (count($keys) >= 2) {
             $section = $keys[0];
             $option = $keys[1];
         } else {

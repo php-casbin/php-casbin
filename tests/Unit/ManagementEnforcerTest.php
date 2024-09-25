@@ -54,6 +54,7 @@ class ManagementEnforcerTest extends TestCase
         $this->assertEquals($e->getAllObjects(), ['data1', 'data2']);
         $this->assertEquals($e->getAllActions(), ['read', 'write']);
         $this->assertEquals($e->getAllRoles(), ['data2_admin']);
+        $this->assertEquals($e->getAllDomains(), ['']);
     }
 
     public function testGetListWithDomains()
@@ -64,6 +65,7 @@ class ManagementEnforcerTest extends TestCase
         $this->assertEquals($e->getAllObjects(), ['data1', 'data2']);
         $this->assertEquals($e->getAllActions(), ['read', 'write']);
         $this->assertEquals($e->getAllRoles(), ['admin']);
+        $this->assertEquals($e->getAllDomains(), ['domain1', 'domain2']);
     }
 
     public function testGetPolicyAPI()
@@ -358,7 +360,7 @@ class ManagementEnforcerTest extends TestCase
         $this->assertTrue($e->hasPolicy('alice', 'data1', 'read'));
     }
 
-    public function testupdateFilteredPoliciesWithoutWatcher()
+    public function testUpdateFilteredPoliciesWithoutWatcher()
     {
         $testAdapter = Mockery::mock(FileAdapter::class);
         $model = Mockery::type("Casbin\Model\Model");

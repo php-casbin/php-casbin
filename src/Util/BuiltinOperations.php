@@ -436,7 +436,7 @@ class BuiltinOperations
 
             if (null === $rm) {
                 $v = $name1 == $name2;
-            } elseif (2 == \count($args)) {
+            } elseif (2 == count($args)) {
                 $v = $rm->hasLink($name1, $name2);
             } else {
                 $domain = (string)$args[2];

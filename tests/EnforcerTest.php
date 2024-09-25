@@ -437,10 +437,6 @@ class EnforcerTest extends TestCase
             $this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_policy.csv'
         );
 
-        $e->addNamedDomainMatchingFunc('g', 'keyMatch', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch($key1, $key2);
-        });
-
         $this->assertTrue($e->enforce('alice', 'domain1', 'data1', 'read'));
         $this->assertTrue($e->enforce('alice', 'domain1', 'data1', 'write'));
         $this->assertTrue($e->enforce('alice', 'domain1', 'data2', 'read'));
