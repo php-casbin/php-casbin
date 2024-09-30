@@ -91,6 +91,8 @@ class Model extends Policy
             foreach ($ast->tokens as $i => $token) {
                 $ast->tokens[$i] = $key . '_' . trim($token);
             }
+        } else if ('g' == $sec) {
+            $ast->tokens = explode(',', $ast->value);
         } else {
             $ast->value = Util::removeComments(Util::escapeAssertion($ast->value));
         }

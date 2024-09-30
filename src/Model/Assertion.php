@@ -98,14 +98,14 @@ class Assertion
         }
 
         foreach ($this->policy as $rule) {
-            if (\count($rule) < $count) {
+            if (count($rule) < $count) {
                 throw new CasbinException('grouping policy elements do not meet role definition');
             }
-            if (\count($rule) > $count) {
-                $rule = \array_slice($rule, 0, $count);
+            if (count($rule) > $count) {
+                $rule = array_slice($rule, 0, $count);
             }
 
-            $this->rm->addLink($rule[0], $rule[1], ...\array_slice($rule, 2));
+            $this->rm->addLink($rule[0], $rule[1], ...array_slice($rule, 2));
         }
     }
 
@@ -124,10 +124,10 @@ class Assertion
         }
 
         foreach ($rules as $rule) {
-            if (\count($rule) < $count) {
+            if (count($rule) < $count) {
                 throw new CasbinException('grouping policy elements do not meet role definition');
             }
-            if (\count($rule) > $count) {
+            if (count($rule) > $count) {
                 $rule = array_slice($rule, 0, $count);
             }
             match ($op) {

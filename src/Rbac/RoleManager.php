@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Casbin\Rbac;
 
 use Casbin\Log\Logger;
+use Closure;
 
 /**
  * Interface RoleManager.
@@ -110,17 +111,17 @@ interface RoleManager
      * Support use pattern in g.
      *
      * @param string $name
-     * @param \Closure $fn
+     * @param Closure $fn
      * @return void
      */
-    public function addMatchingFunc(string $name, \Closure $fn): void;
+    public function addMatchingFunc(string $name, Closure $fn): void;
 
     /**
      * Support use domain pattern in g.
      *
      * @param string $name
-     * @param \Closure $fn
+     * @param Closure $fn
      * @return void
      */
-    public function addDomainMatchingFunc(string $name, \Closure $fn): void;
+    public function addDomainMatchingFunc(string $name, Closure $fn): void;
 }

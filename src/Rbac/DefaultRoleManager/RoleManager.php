@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Casbin\Rbac\DefaultRoleManager;
 
-use Casbin\Exceptions\CasbinException;
 use Casbin\Log\Logger;
 use Casbin\Log\Logger\DefaultLogger;
 use Casbin\Rbac\RoleManager as RoleManagerContract;
@@ -15,15 +14,16 @@ use Closure;
  * Provides a default implementation for the RoleManager interface.
  *
  * @author techlee@qq.com
+ * @author 1692898084@qq.com
  */
 class RoleManager implements RoleManagerContract
 {
-    const DEFAULT_DOMAIN = 'casbin::default';
+    const DEFAULT_DOMAIN = '';
 
     /**
-     * @var array<string, Roles>
+     * @var array<string, Role>
      */
-    protected array $allDomains = [];
+    protected array $allRoles = [];
 
     /**
      * @var int
@@ -31,19 +31,9 @@ class RoleManager implements RoleManagerContract
     protected int $maxHierarchyLevel = 10;
 
     /**
-     * @var bool
-     */
-    protected bool $hasPattern = false;
-
-    /**
      * @var Closure|null
      */
     protected ?Closure $matchingFunc = null;
-
-    /**
-     * @var bool
-     */
-    protected bool $hasDomainPattern = false;
 
     /**
      * @var Closure|null
@@ -59,12 +49,127 @@ class RoleManager implements RoleManagerContract
      * RoleManager constructor.
      *
      * @param int $maxHierarchyLevel
+     * @param Closure|null $matchingFunc
      */
-    public function __construct(int $maxHierarchyLevel)
+    public function __construct(int $maxHierarchyLevel, ?Closure $matchingFunc = null)
     {
-        $this->allDomains[self::DEFAULT_DOMAIN] = new Roles();
+        $this->clear();
         $this->maxHierarchyLevel = $maxHierarchyLevel;
+        $this->matchingFunc = $matchingFunc;
         $this->setLogger(new DefaultLogger());
+    }
+
+    /**
+     * Clears the map of Roles.
+     *
+     * @return void
+     */
+    protected function rebuild(): void
+    {
+        $roles = $this->allRoles;
+        $this->clear();
+        $this->rangeLinks($roles, function (string $name1, string $name2, string $domain) {
+            $this->addLink($name1, $name2, $domain);
+        });
+    }
+
+    /**
+     * Determines whether a string matches a pattern.
+     *
+     * @param string $str
+     * @param string $pattern
+     *
+     * @return bool
+     */
+    public function match(string $str, string $pattern): bool
+    {
+        if ($str === $pattern) {
+            return true;
+        }
+
+        if (!is_null($this->matchingFunc)) {
+            return call_user_func($this->matchingFunc, $str, $pattern) === true;
+        }
+        return false;
+    }
+
+    /**
+     * Applies a callback to all roles that match the given name or pattern.
+     *
+     * @param string $name
+     * @param bool $isPattern
+     * @param Closure $fn
+     *
+     * @return void
+     */
+    protected function rangeMatchRoles(string $name, bool $isPattern, Closure $fn): void
+    {
+        foreach ($this->allRoles as $name2 => &$role) {
+            if ($isPattern && $name !== $name2 && $this->match($name2, $name)) {
+                $fn($role);
+            } else if (!$isPattern && $name !== $name2 && $this->match($name, $name2)) {
+                $fn($role);
+            }
+        }
+    }
+
+    /**
+     * Gets the role by given name.
+     *
+     * @param string $name
+     *
+     * @return array
+     */
+    public function &getRole(string $name): array
+    {
+        if (isset($this->allRoles[$name])) {
+            $res = [&$this->allRoles[$name], false];
+            return $res;
+        }
+
+        $role = new Role($name);
+        $this->allRoles[$name] = $role;
+
+        if (!is_null($this->matchingFunc)) {
+            $this->rangeMatchRoles($name, false, function (Role &$r) use (&$role) {
+                $r->addMatch($role);
+            });
+
+            $this->rangeMatchRoles($name, true, function (Role &$r) use (&$role) {
+                $role->addMatch($r);
+            });
+        }
+
+        $res = [&$this->allRoles[$name], true];
+        return $res;
+    }
+
+    /**
+     * @param array $map
+     * @param string $name
+     *
+     * @return mixed
+     */
+    protected function loadAndDelete(array &$map, string $name): mixed
+    {
+        if (isset($map[$name])) {
+            $value = $map[$name];
+            unset($map[$name]);
+        }
+        return $value ?? null;
+    }
+
+    /**
+     * Removes the role with the given name.
+     *
+     * @param string $name
+     */
+    protected function removeRole(string $name): void
+    {
+        $role = $this->loadAndDelete($this->allRoles, $name);
+        if (!is_null($role)) {
+            $role->removeMatches();
+        }
     }
 
     /**
@@ -75,8 +180,8 @@ class RoleManager implements RoleManagerContract
      */
     public function addMatchingFunc(string $name, Closure $fn): void
     {
-        $this->hasPattern = true;
         $this->matchingFunc = $fn;
+        $this->rebuild();
     }
 
     /**
@@ -87,60 +192,7 @@ class RoleManager implements RoleManagerContract
      */
     public function addDomainMatchingFunc(string $name, Closure $fn): void
     {
-        $this->hasDomainPattern = true;
         $this->domainMatchingFunc = $fn;
-    }
-
-    /**
-     * @param string $domain
-     *
-     * @return Roles
-     */
-    protected function &getAllRolesForDomain(string $domain): Roles
-    {
-        if ($this->hasDomainPattern || $this->hasPattern) {
-            $allRoles = &$this->generateTempRoles($domain);
-        } else {
-            $allRoles = &$this->loadOrStoreRoles($domain, new Roles());
-        }
-
-        return $allRoles;
-    }
-
-    /**
-     * @param string $domain
-     *
-     * @return Roles
-     */
-    protected function &generateTempRoles(string $domain): Roles
-    {
-        $this->loadOrStoreRoles($domain, new Roles());
-
-        $patternDomain = [$domain];
-
-        $domainMatchingFunc = $this->domainMatchingFunc;
-        if ($this->hasDomainPattern) {
-            foreach ($this->allDomains as $key => $roles) {
-                if ($domainMatchingFunc($domain, $key)) {
-                    $patternDomain[] = $key;
-                }
-            }
-        }
-
-        $allRoles = new Roles();
-
-        foreach ($patternDomain as $domain) {
-            $roles = $this->loadOrStoreRoles($domain, new Roles());
-            foreach ($roles->toArray() as $key => $role2) {
-                $role1 = &$allRoles->createRole($role2->name);
-                foreach ($role2->getRoles() as $name) {
-                    $role3 = &$allRoles->createRole($name);
-                    $role1->addRole($role3);
-                }
-            }
-        }
-
-        return $allRoles;
     }
 
     /**
@@ -160,8 +212,7 @@ class RoleManager implements RoleManagerContract
      */
     public function clear(): void
     {
-        $this->allDomains = [];
-        $this->loadOrStoreRoles(self::DEFAULT_DOMAIN, new Roles());
+        $this->allRoles = [];
     }
 
     /**
@@ -172,65 +223,12 @@ class RoleManager implements RoleManagerContract
      * @param string $name1
      * @param string $name2
      * @param string ...$domain
-     *
-     * @throws CasbinException
      */
     public function addLink(string $name1, string $name2, string ...$domain): void
     {
-        if (count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
-        }
-        $domain = count($domain) == 0 ? [self::DEFAULT_DOMAIN] : $domain;
-
-        $patternDomain = $this->getPatternDomain($domain[0]);
-
-        foreach ($patternDomain as $domain) {
-            $allRoles = &$this->loadOrStoreRoles($domain, new Roles());
-
-            $role1 = &$allRoles->loadOrStore($name1, new Role($name1));
-            $role2 = &$allRoles->loadOrStore($name2, new Role($name2));
-            $role1->addRole($role2);
-
-            if ($this->hasPattern) {
-                foreach ($allRoles->toArray() as $key => $value) {
-                    $matchingFunc = $this->matchingFunc;
-                    if ($matchingFunc($key . '', $name1) && $name1 != $key) {
-                        $valueRole = &$allRoles->loadOrStore($key . '', new Role($key . ''));
-                        $valueRole->addRole($role1);
-                    }
-                    if ($matchingFunc($key . '', $name2) && $name2 != $key) {
-                        $role2->addRole($value);
-                    }
-                    if ($matchingFunc($name1, $key . '') && $name1 != $key) {
-                        $valueRole = &$allRoles->loadOrStore($key . '', new Role($key . ''));
-                        $valueRole->addRole($role1);
-                    }
-                    if ($matchingFunc($name2, $key . '') && $name2 != $key) {
-                        $role2->addRole($value);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Undocumented function
-     *
-     * @param string $domain
-     * @return string[]
-     */
-    public function getPatternDomain(string $domain): array
-    {
-        $patternDomain = [$domain];
-        if ($this->hasDomainPattern) {
-            foreach ($this->allDomains as $key => $value) {
-                $domainMatchingFunc = $this->domainMatchingFunc;
-                if ($domain != $key . '' && $domainMatchingFunc($domain, $key . '')) {
-                    $patternDomain[] = $key . '';
-                }
-            }
-        }
-        return $patternDomain;
+        $userGet = &$this->getRole($name1);
+        $roleGet = &$this->getRole($name2);
+        $userGet[0]->addRole($roleGet[0]);
     }
 
     /**
@@ -241,26 +239,12 @@ class RoleManager implements RoleManagerContract
      * @param string $name1
      * @param string $name2
      * @param string ...$domain
-     *
-     * @throws CasbinException
      */
     public function deleteLink(string $name1, string $name2, string ...$domain): void
     {
-        if (count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
-        }
-        $domain = count($domain) == 0 ? [self::DEFAULT_DOMAIN] : $domain;
-
-        $allRoles = &$this->loadOrStoreRoles($domain[0], new Roles());
-
-        if (is_null($allRoles->load($name1)) || is_null($allRoles->load($name2))) {
-            throw new CasbinException('error: name1 or name2 does not exist');
-        }
-
-        $role1 = &$allRoles->loadOrStore($name1, new Role($name1));
-        $role2 = &$allRoles->loadOrStore($name2, new Role($name2));
-
-        $role1->deleteRole($role2);
+        $userGet = &$this->getRole($name1);
+        $roleGet = &$this->getRole($name2);
+        $userGet[0]->removeRole($roleGet[0]);
     }
 
     /**
@@ -272,50 +256,57 @@ class RoleManager implements RoleManagerContract
      * @param string ...$domain
      *
      * @return bool
-     * @throws CasbinException
      */
     public function hasLink(string $name1, string $name2, string ...$domain): bool
     {
-        if (count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
-        }
-        $domain = count($domain) == 0 ? [self::DEFAULT_DOMAIN] : $domain;
-
-        if ($name1 == $name2) {
+        if ($name1 == $name2 || (!is_null($this->matchingFunc) && $this->match($name1, $name2))) {
             return true;
         }
 
-        $patternDomain = $this->getPatternDomain($domain[0]);
+        $userGet = &$this->getRole($name1);
+        $roleGet = &$this->getRole($name2);
+        $user = &$userGet[0];
+        $role = &$roleGet[0];
+        $userCreated = $userGet[1];
+        $roleCreated = $roleGet[1];
 
-        foreach ($patternDomain as $domain) {
-            $allRoles = &$this->getAllRolesForDomain($domain);
-            if (!$allRoles->hasRole($name1, $this->matchingFunc) || !$allRoles->hasRole($name2, $this->matchingFunc)) {
-                continue;
+        try {
+            return $this->hasLinkHelper($role->name, [$user->name => $user], $this->maxHierarchyLevel);
+        } finally {
+            if ($userCreated) {
+                $this->removeRole($user->name);
             }
 
-            if ($this->hasPattern) {
-                $flag = false;
-                foreach ($allRoles->toArray() as $key => $value) {
-                    $matchingFunc = $this->matchingFunc;
-                    if ($matchingFunc($name1, $key . '') && $value->hasRoleWithMatchingFunc($name2, $this->maxHierarchyLevel, $matchingFunc)) {
-                        $flag = true;
-                        break;
-                    }
-                }
-                if ($flag) {
-                    return true;
-                }
-                continue;
+            if ($roleCreated) {
+                $this->removeRole($role->name);
             }
-            $role1 = &$allRoles->createRole($name1);
-            $result = $role1->hasRole($name2, $this->maxHierarchyLevel);
-            if ($result) {
-                return true;
-            }
-            continue;
+        }
+    }
+
+    /**
+     * @param string $targetName
+     * @param array $roles
+     * @param int $level
+     * @return bool
+     */
+    protected function hasLinkHelper(string $targetName, array $roles, int $level): bool
+    {
+        if ($level < 0 || count($roles) == 0) {
+            return false;
         }
 
-        return false;
+        $nextRoles = [];
+        foreach ($roles as $name => $role) {
+            if ($targetName === $role->name || (!is_null($this->matchingFunc) && $this->match($role->name, $targetName))) {
+                return true;
+            }
+
+            $role->rangeRoles(function ($name, &$role) use (&$nextRoles) {
+                $nextRoles[$name] = $role;
+            });
+        }
+
+        return $this->hasLinkHelper($targetName, $nextRoles, $level - 1);
     }
 
     /**
@@ -326,30 +317,19 @@ class RoleManager implements RoleManagerContract
      * @param string ...$domain
      *
      * @return string[]
-     * @throws CasbinException
      */
     public function getRoles(string $name, string ...$domain): array
     {
-        if (count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
-        }
-        $domain = count($domain) == 0 ? [self::DEFAULT_DOMAIN] : $domain;
-
-        $patternDomain = $this->getPatternDomain($domain[0]);
-
-        $gottenRoles = [];
-
-        foreach ($patternDomain as $domain) {
-            $allRoles = &$this->loadOrStoreRoles($domain, new Roles());
-            if (!$allRoles->hasRole($name, $this->matchingFunc)) {
-                continue;
+        $userGet = &$this->getRole($name);
+        $user = &$userGet[0];
+        $userCreated = $userGet[1];
+        try {
+            return $user->getRoles();
+        } finally {
+            if ($userCreated) {
+                $this->removeRole($user->name);
             }
-
-            $gottenRoles = array_merge($gottenRoles, $allRoles->createRole($name)->getRoles());
         }
-
-        $gottenRoles = array_unique($gottenRoles);
-        return $gottenRoles;
     }
 
     /**
@@ -360,32 +340,19 @@ class RoleManager implements RoleManagerContract
      * @param string ...$domain
      *
      * @return string[]
-     * @throws CasbinException
      */
     public function getUsers(string $name, string ...$domain): array
     {
-        if (count($domain) > 1) {
-            throw new CasbinException('error: domain should be 1 parameter');
-        }
-        $domain = count($domain) == 0 ? [self::DEFAULT_DOMAIN] : $domain;
-
-        $patternDomain = $this->getPatternDomain($domain[0]);
-
-        $names = [];
-        foreach ($patternDomain as $domain) {
-            $allRoles = &$this->loadOrStoreRoles($domain, new Roles());
-            if (!$allRoles->hasRole($name, $this->matchingFunc)) {
-                return [];
-            }
-
-            foreach ($allRoles->toArray() as $role) {
-                if ($role->hasDirectRole($name)) {
-                    $names[] = $role->name;
-                }
+        $roleGet = &$this->getRole($name);
+        $role = &$roleGet[0];
+        $roleCreated = $roleGet[1];
+        try {
+            return $role->getUsers();
+        } finally {
+            if ($roleCreated) {
+                $this->removeRole($role->name);
             }
         }
-
-        return $names;
     }
 
     /**
@@ -393,17 +360,13 @@ class RoleManager implements RoleManagerContract
      *
      * @return array
      */
-    protected function toString(): array
+    public function toString(): array
     {
         $roles = [];
 
-        array_map(function (Roles $roles) use (&$line) {
-            array_map(function (Role $role) use (&$line) {
-                if ($text = $role->toString()) {
-                    $line[] = $text;
-                }
-            }, $roles->toArray());
-        }, $this->allDomains);
+        $roles = array_map(function (&$role) {
+            return $role->toString();
+        }, $this->allRoles);
 
         return $roles;
     }
@@ -429,7 +392,7 @@ class RoleManager implements RoleManagerContract
      */
     public function getDomains(string $name): array
     {
-        return array_keys($this->allDomains);
+        return [self::DEFAULT_DOMAIN];
     }
 
     /**
@@ -439,21 +402,38 @@ class RoleManager implements RoleManagerContract
      */
     public function getAllDomains(): array
     {
-        return array_keys($this->allDomains);
+        return [self::DEFAULT_DOMAIN];
+    }
+
+    public function copyFrom(RoleManager &$roleManager): void
+    {
+        $this->rangeLinks($roleManager->allRoles, function ($name1, $name2, $domain) {
+            $this->addLink($name1, $name2, $domain);
+        });
     }
 
     /**
-     * @param string $domain
-     * @param Roles $roles
+     * Applies a callback to all the links between users and roles.
      *
-     * @return Roles
+     * @param array &$users
+     * @param Closure $fn
      */
-    protected function &loadOrStoreRoles(string $domain, Roles $roles): Roles
+    public function rangeLinks(array &$users, Closure $fn): void
     {
-        if (!isset($this->allDomains[$domain])) {
-            $this->allDomains[$domain] = $roles;
+        foreach ($users as &$user) {
+            foreach ($user->roles as $roleName => $_) {
+                $fn($user->name, $roleName, self::DEFAULT_DOMAIN);
+            }
         }
+    }
 
-        return $this->allDomains[$domain];
+    /**
+     * Applies a callback to all the links between users and roles in itself.
+     *
+     * @param Closure $fn
+     */
+    public function rangeSelfLinks(Closure $fn): void
+    {
+        $this->rangeLinks($this->allRoles, $fn);
     }
 }

@@ -124,7 +124,7 @@ class DefaultLogger implements Logger
         $reqStr .= sprintf(" ---> %s" . PHP_EOL, var_export($result, true));
 
         $hpStr = implode(', ', array_values($explains));
-        if (\count($explains) > 0) {
+        if (count($explains) > 0) {
             $hpStr .= PHP_EOL;
         }
 

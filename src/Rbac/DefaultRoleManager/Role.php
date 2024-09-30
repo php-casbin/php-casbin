@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 namespace Casbin\Rbac\DefaultRoleManager;
+
+use Casbin\Util\Util;
 use Closure;
 
 /**
@@ -10,6 +12,7 @@ use Closure;
  * Represents the data structure for a role in RBAC.
  *
  * @author techlee@qq.com
+ * @author 1692898084@qq.com
  */
 class Role
 {
@@ -19,9 +22,24 @@ class Role
     public string $name = '';
 
     /**
-     * @var Role[]
+     * @var array<string, Role>
      */
-    private array $roles = [];
+    public array $roles = [];
+
+    /**
+     * @var array<string, Role>
+     */
+    private array $users = [];
+
+    /**
+     * @var array<string, Role>
+     */
+    private array $matched = [];
+
+    /**
+     * @var array<string, Role>
+     */
+    private array $matchedBy = [];
 
     /**
      * Role constructor.
@@ -38,117 +56,124 @@ class Role
      */
     public function addRole(self $role): void
     {
-        // determine whether this role has been added
-        foreach ($this->roles as $rr) {
-            if ($rr->name == $role->name) {
-                return;
-            }
-        }
-        $this->roles[] = $role;
+        $this->roles[$role->name] = $role;
+        $role->addUser($this);
     }
 
     /**
      * @param self $role
      */
-    public function deleteRole(self $role): void
+    public function removeRole(self $role): void
     {
-        foreach ($this->roles as $key => $rr) {
-            if ($rr->name == $role->name) {
-                unset($this->roles[$key]);
-
-                return;
-            }
-        }
+        unset($this->roles[$role->name]);
+        $role->removeUser($this);
     }
 
     /**
-     * @param string $name
-     * @param int $hierarchyLevel
-     *
-     * @return bool
+     * @param self $user
      */
-    public function hasRole(string $name, int $hierarchyLevel): bool
+    public function addUser(self $user): void
     {
-        if ($this->hasDirectRole($name)) {
-            return true;
-        }
-        if ($hierarchyLevel <= 0) {
-            return false;
-        }
-
-        foreach ($this->roles as $role) {
-            if ($role->hasRole($name, $hierarchyLevel - 1)) {
-                return true;
-            }
-        }
-
-        return false;
+        $this->users[$user->name] = $user;
     }
 
     /**
-     * @param string   $name
-     * @param int      $hierarchyLevel
-     * @param Closure  $matchingFunc
-     *
-     * @return bool
+     * @param self $user
      */
-    public function hasRoleWithMatchingFunc(string $name, int $hierarchyLevel, Closure $matchingFunc): bool
+    public function removeUser(self $user): void
     {
-        if ($this->hasDirectRoleWithMatchingFunc($name, $matchingFunc)) {
-            return true;
-        }
-
-        if ($hierarchyLevel <= 0) {
-            return false;
-        }
-
-        foreach ($this->roles as $role) {
-            if ($role->hasRoleWithMatchingFunc($name, $hierarchyLevel - 1, $matchingFunc)) {
-                return true;
-            }
-        }
-        return false;
+        unset($this->users[$user->name]);
     }
 
+
     /**
-     * @param string $name
-     *
-     * @return bool
+     * @param self $role
      */
-    public function hasDirectRole(string $name): bool
+    public function addMatch(self $role): void
     {
-        foreach ($this->roles as $role) {
-            if ($role->name == $name) {
-                return true;
-            }
-        }
-
-        return false;
+        $this->matched[$role->name] = $role;
+        $role->matchedBy[$this->name] = $this;
     }
 
     /**
-     * @param string   $name
-     * @param Closure  $matchingFunc
-     *
-     * @return bool
+     * @param self $role
      */
-    public function hasDirectRoleWithMatchingFunc(string $name, Closure $matchingFunc): bool
+    public function removeMatch(self $role): void
     {
-        foreach ($this->roles as $role) {
-            if ($role->name == $name || $matchingFunc($name, $role->name)) {
-                return true;
-            }
-        }
-
-        return false;
+        unset($this->matched[$role->name]);
+        unset($role->matchedBy[$this->name]);
     }
 
     /**
+     * RemoveMatches removes all matches of this role.
+     */
+    public function removeMatches(): void
+    {
+        foreach ($this->matched as &$role) {
+            $this->removeMatch($role);
+        }
+        foreach ($this->matchedBy as &$role) {
+            $role->removeMatch($this);
+        }
+    }
+
+
+    /**
+     * Applies a callback to all roles that this role matches.
+     *
+     * @param Closure $fn
+     */
+    public function rangeRoles(Closure $fn): void
+    {
+        array_walk($this->roles, function (&$role, $name) use ($fn) {
+            $fn($name, $role);
+        });
+
+        array_walk($this->roles, function ($role) use ($fn) {
+            array_walk($role->matched, function (&$value, $key) use ($fn) {
+                $fn($key, $value);
+            });
+        });
+
+        array_walk($this->matchedBy, function ($role) use ($fn) {
+            array_walk($role->roles, function (&$value, $key) use ($fn) {
+                $fn($key, $value);
+            });
+        });
+    }
+
+    /**
+     * Applies a callback to all users that this role matches.
+     *
+     * @param Closure $fn
+     */
+    public function rangeUsers(Closure $fn): void
+    {
+        array_walk($this->users, function (&$user, $name) use ($fn) {
+            $fn($name, $user);
+        });
+
+        array_walk($this->users, function ($user) use ($fn) {
+            array_walk($user->matched, function (&$value, $key) use ($fn) {
+                $fn($key, $value);
+            });
+        });
+
+        array_walk($this->matchedBy, function ($user) use ($fn) {
+            array_walk($user->users, function (&$value, $key) use ($fn) {
+                $fn($key, $value);
+            });
+        });
+    }
+
+    /**
+     * Converts the role to a string.
+     *
      * @return string
      */
     public function toString(): string
     {
-        $len = \count($this->roles);
+        $len = count($this->roles);
 
         if (0 == $len) {
             return '';
@@ -168,8 +193,22 @@ class Role
      */
     public function getRoles(): array
     {
-        return array_map(function (Role $role) {
-            return $role->name;
-        }, $this->roles);
+        $names = [];
+        $this->rangeRoles(function ($name, $role) use (&$names) {
+            $names[] = $name;
+        });
+        return Util::removeDumplicateElement($names);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getUsers(): array
+    {
+        $names = [];
+        $this->rangeUsers(function ($name, $user) use (&$names) {
+            $names[] = $name;
+        });
+        return $names;
     }
 }
