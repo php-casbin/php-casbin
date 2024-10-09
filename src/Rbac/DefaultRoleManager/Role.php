@@ -42,6 +42,16 @@ class Role
     private array $matchedBy = [];
 
     /**
+     * @var array<string, Closure>
+     */
+    private array $linkConditionFuncMap = [];
+
+    /**
+     * @var array<string, array>
+     */
+    private array $linkConditionFuncParamsMap = [];
+
+    /**
      * Role constructor.
      *
      * @param string $name
@@ -210,5 +220,62 @@ class Role
             $names[] = $name;
         });
         return $names;
+    }
+
+
+    /**
+     * @param Role $role
+     * @param string $domain
+     * @param Closure $fn
+     */
+    public function addLinkConditionFunc(Role $role, string $domain, Closure $fn): void
+    {
+        $this->linkConditionFuncMap[$this->getLinkConditionFuncKey($role, $domain)] = $fn;
+    }
+
+    /**
+     * @param Role $role
+     * @param string $domain
+     * 
+     * @return Closure|null
+     */
+    public function getLinkConditionFunc(Role $role, string $domain): ?Closure
+    {
+        $key = $this->getLinkConditionFuncKey($role, $domain);
+        return $this->linkConditionFuncMap[$key] ?? null;
+    }
+
+    /**
+     * @param Role $role
+     * @param string $domain
+     * @param array $params
+     */
+
+    public function setLinkConditionFuncParams(Role $role, string $domain, ...$params): void
+    {
+        $this->linkConditionFuncParamsMap[$this->getLinkConditionFuncKey($role, $domain)] = $params;
+    }
+
+    /**
+     * @param Role $role
+     * @param string $domain
+     * 
+     * @return array|null
+     */
+    public function getLinkConditionFuncParams(Role $role, string $domain): ?array
+    {
+        $key = $this->getLinkConditionFuncKey($role, $domain);
+        return $this->linkConditionFuncParamsMap[$key] ?? null;
+    }
+
+    /**
+     * @param Role $role
+     * @param string $domain
+     * 
+     * @return string
+     */
+    private function getLinkConditionFuncKey(Role $role, string $domain): string
+    {
+        return $role->name . '_' . $domain;
     }
 }
