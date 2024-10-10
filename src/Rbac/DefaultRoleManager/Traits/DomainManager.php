@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Casbin\Rbac\DefaultRoleManager\Traits;
 
-use Casbin\Log\Logger;
-use Casbin\Rbac\DefaultRoleManager\RoleManager;
+use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
+use Casbin\Rbac\RoleManager as RoleManagerContract;
 use Closure;
 
 /**
@@ -16,40 +16,7 @@ use Closure;
  */
 trait DomainManager
 {
-    /**
-     * @var array<string, RoleManager>
-     */
-    protected array $rmMap = [];
-
-    /**
-     * @var int
-     */
-    protected int $maxHierarchyLevel = 10;
-
-    /**
-     * @var Closure|null $matchingFunc
-     */
-    protected ?Closure $matchingFunc = null;
-
-    /**
-     * @var Closure|null $domainMatchingFunc
-     */
-    protected ?Closure $domainMatchingFunc = null;
-
-    /**
-     * @var Logger
-     */
-    protected Logger $logger;
-
-    /**
-     * Sets the current logger.
-     *
-     * @param Logger $logger
-     */
-    public function setLogger(Logger $logger): void
-    {
-        $this->logger = $logger;
-    }
+    use BaseManager;
 
     /**
      * Support use pattern in g.
@@ -111,7 +78,7 @@ trait DomainManager
     public function getDomain(?string $domain = null): string
     {
         if (is_null($domain)) {
-            return RoleManager::DEFAULT_DOMAIN;
+            return RoleManagerContract::DEFAULT_DOMAIN;
         }
         return $domain;
     }
@@ -159,15 +126,15 @@ trait DomainManager
      *
      * @param string $domain
      * @param bool $store
-     * @return RoleManager
+     * @return DefaultRoleManager
      */
-    public function &getRoleManager(string $domain, bool $store): RoleManager
+    public function &getRoleManager(string $domain, bool $store): DefaultRoleManager
     {
         if (isset($this->rmMap[$domain])) {
             return $this->rmMap[$domain];
         }
 
-        $rm = new RoleManager($this->maxHierarchyLevel, $this->matchingFunc);
+        $rm = new DefaultRoleManager($this->maxHierarchyLevel, $this->matchingFunc);
         if ($store) {
             $this->rmMap[$domain] = $rm;
         }
@@ -196,6 +163,7 @@ trait DomainManager
         $domain = $this->getDomain(...$domains);
         $rm = &$this->getRoleManager($domain, true);
         $rm->addLink($name1, $name2);
+        
         $this->rangeAffectedRoleManagers($domain, function (&$rm) use ($name1, $name2) {
             $rm->addLink($name1, $name2);
         });

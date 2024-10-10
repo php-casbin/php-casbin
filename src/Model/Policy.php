@@ -8,6 +8,7 @@ use ArrayAccess;
 use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Log\Logger;
+use Casbin\Rbac\ConditionalRoleManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\Util;
 
@@ -52,7 +53,7 @@ abstract class Policy implements ArrayAccess
      */
     public function buildIncrementalRoleLinks(array $rmMap, int $op, string $sec, string $ptype, array $rules): void
     {
-        if ($sec == "g") {
+        if ($sec == "g" && isset($rmMap[$ptype]) && isset($this->items[$sec][$ptype])) {
             $this->items[$sec][$ptype]->buildIncrementalRoleLinks($rmMap[$ptype], $op, $rules);
         }
     }
@@ -65,13 +66,54 @@ abstract class Policy implements ArrayAccess
      */
     public function buildRoleLinks(array $rmMap): void
     {
+        $this->printPolicy();
         if (!isset($this->items['g'])) {
             return;
         }
 
         foreach ($this->items['g'] as $ptype => $ast) {
-            $rm = $rmMap[$ptype];
-            $ast->buildRoleLinks($rm);
+            if (isset($rmMap[$ptype])) {
+                $rm = $rmMap[$ptype];
+                $ast->buildRoleLinks($rm);
+            }
+        }
+    }
+
+    /**
+     * BuildIncrementalConditionalRoleLinks provides incremental build the role inheritance relations.
+     *
+     * @param ConditionalRoleManager[] $condRmMap
+     * @param integer $op
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $rules
+     * @return void
+     */
+    public function buildIncrementalConditionalRoleLinks(array $condRmMap, int $op, string $sec, string $ptype, array $rules): void
+    {
+        if ($sec == "g" && isset($condRmMap[$ptype]) && isset($this->items[$sec][$ptype])) {
+            $this->items[$sec][$ptype]->buildIncrementalConditionalRoleLinks($condRmMap[$ptype], $op, $rules);
+        }
+    }
+
+    /**
+     * Initializes the roles in RBAC with conditions.
+     *
+     * @param ConditionalRoleManager[] $condRmMap
+     * @throws CasbinException
+     */
+    public function buildConditionalRoleLinks(array $condRmMap): void
+    {
+        $this->printPolicy();
+        if (!isset($this->items['g'])) {
+            return;
+        }
+
+        foreach ($this->items['g'] as $ptype => $ast) {
+            if (isset($condRmMap[$ptype])) {
+                $rm = $condRmMap[$ptype];
+                $ast->buildConditionalRoleLinks($rm);
+            }
         }
     }
 

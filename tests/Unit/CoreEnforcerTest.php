@@ -6,6 +6,7 @@ use Casbin\Enforcer;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Log\Logger;
 use Casbin\Model\Model;
+use Casbin\Persist\Adapter;
 use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\Adapters\FileFilteredAdapter;
 use Casbin\Persist\Adapters\Filter;
@@ -328,5 +329,21 @@ EOT
         $this->assertFalse($e->enforce('data1_deny_group', 'data1', 'write'));
         $this->assertTrue($e->enforce('data2_allow_group', 'data2', 'read'));
         $this->assertTrue($e->enforce('data2_allow_group', 'data2', 'write'));
+    }
+
+    public function testLoadPolicyError()
+    {
+        $this->expectException(CasbinException::class);
+        $this->expectExceptionMessage('loadPolicy error');
+        $adapter = Mockery::mock(Adapter::class);
+        $adapter->shouldReceive('loadPolicy')
+            ->once()
+            ->withAnyArgs()
+            ->andThrow(new CasbinException('loadPolicy error'));
+
+        /** @var Adapter $adapter */
+        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $adapter);
+
+        $e->loadPolicy();
     }
 }

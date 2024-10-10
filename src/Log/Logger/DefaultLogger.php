@@ -153,7 +153,7 @@ class DefaultLogger implements Logger
             $str .= PHP_EOL;
         }
         if ($str !== '') {
-            $str = rtrim($str) . ']' . PHP_EOL;
+            $str = rtrim($str) . ']';
         }
 
         $this->psrLogger->info('Policy: {policy}', ['policy' => $str]);

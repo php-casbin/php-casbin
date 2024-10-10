@@ -18,8 +18,11 @@ use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\FilteredAdapter;
 use Casbin\Persist\Watcher;
 use Casbin\Persist\WatcherEx;
+use Casbin\Rbac\DefaultRoleManager\ConditionalDomainManager as DefaultConditionalDomainManager;
+use Casbin\Rbac\DefaultRoleManager\ConditionalRoleManager as DefaultConditionalRoleManager;
 use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
 use Casbin\Rbac\DefaultRoleManager\DomainManager as DefaultDomainManager;
+use Casbin\Rbac\ConditionalRoleManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use Casbin\Util\Util;
@@ -82,6 +85,13 @@ class CoreEnforcer
      * @var array<string, RoleManager>
      */
     protected array $rmMap;
+
+    /**
+     * CondRmMap.
+     * 
+     * @var array<string, ConditionalRoleManager>
+     */
+    protected array $condRmMap;
 
     /**
      * $enabled.
@@ -233,7 +243,10 @@ class CoreEnforcer
     {
         $this->logger = $logger;
         $this->model->setLogger($this->logger);
-        foreach ($this->rmMap as &$rm) {
+        foreach ($this->rmMap as $rm) {
+            $rm->setLogger($this->logger);
+        }
+        foreach ($this->condRmMap as $rm) {
             $rm->setLogger($this->logger);
         }
     }
@@ -244,6 +257,7 @@ class CoreEnforcer
     protected function initialize(): void
     {
         $this->rmMap = [];
+        $this->condRmMap = [];
         $this->eft = new DefaultEffector();
         $this->watcher = null;
 
@@ -368,27 +382,55 @@ class CoreEnforcer
      */
     public function loadPolicy(): void
     {
-        $flag = false;
-        $needToRebuild = false;
-        $newModel = clone $this->model;
+        $newModel = $this->loadPolicyFromAdapter($this->model);
+        if (!is_null($newModel)) {
+            $this->applyModifiedModel($newModel);
+        }
+    }
+
+    /**
+     * Loads policy from the current adapter.
+     *
+     * @param Model $baseModel
+     *
+     * @return Model|null
+     */
+    public function loadPolicyFromAdapter(Model $baseModel): ?Model
+    {
+        $newModel = clone $baseModel;
         $newModel->clearPolicy();
 
         try {
             $this->adapter?->loadPolicy($newModel);
-            $newModel->printPolicy();
             $newModel->sortPoliciesBySubjectHierarchy();
             $newModel->sortPoliciesByPriority();
+        } catch (InvalidFilePathException) {
+            return null;
+        } catch (\Throwable $e) {
+            throw $e;
+        }
 
+        return $newModel;
+    }
+
+    /**
+     * Applies a modified model to the current enforcer.
+     *
+     * @param Model $newModel
+     */
+    public function applyModifiedModel(Model $newModel): void
+    {
+        $flag = false;
+        $needToRebuild = false;
+
+        try {
             if ($this->autoBuildRoleLinks) {
                 $needToRebuild = true;
-                foreach ($this->rmMap as $rm) {
-                    $rm->clear();
-                }
-                $newModel->buildRoleLinks($this->rmMap);
+
+                $this->rebuildRoleLinks($newModel);
+                $this->rebuildConditionalRoleLinks($newModel);
             }
             $this->model = $newModel;
-        } catch (InvalidFilePathException $e) {
-            // Ignore throw $e;
         } catch (\Throwable $e) {
             $flag = true;
             throw $e;
@@ -398,6 +440,38 @@ class CoreEnforcer
                     $this->buildRoleLinks();
                 }
             }
+        }
+    }
+
+    /**
+     * Rebuilds the role inheritance relations based on the new model.
+     *
+     * @param Model $newModel
+     */
+    public function rebuildRoleLinks(Model $newModel): void
+    {
+        if (count($this->rmMap) !== 0) {
+            foreach ($this->rmMap as $rm) {
+                $rm->clear();
+            }
+
+            $newModel->buildRoleLinks($this->rmMap);
+        }
+    }
+
+    /**
+     * Rebuilds the conditional role inheritance relations based on the new model.
+     *
+     * @param Model $newModel
+     */
+    public function rebuildConditionalRoleLinks(Model $newModel): void
+    {
+        if (!empty($this->condRmMap)) {
+            foreach ($this->condRmMap as $rm) {
+                $rm->clear();
+            }
+
+            $newModel->buildConditionalRoleLinks($this->condRmMap);
         }
     }
 
@@ -417,6 +491,7 @@ class CoreEnforcer
             throw new CasbinException('filtered policies are not supported by this adapter');
         }
 
+        $this->model->sortPoliciesBySubjectHierarchy();
         $this->model->sortPoliciesByPriority();
         $this->initRmMap();
         $this->model->printPolicy();
@@ -503,16 +578,29 @@ class CoreEnforcer
                     continue;
                 }
 
-                if (count($value->tokens) <= 2) {
-                    $this->rmMap[$ptype] = new DefaultRoleManager(10);
-                } else {
-                    $this->rmMap[$ptype] = new DefaultDomainManager(10);
+                $tokensCount = count($value->tokens);
+                $paramsTokensCount = count($value->paramsTokens);
+                if ($tokensCount <= 2) {
+                    if ($paramsTokensCount === 0) {
+                        $value->rm = new DefaultRoleManager(10);
+                        $this->rmMap[$ptype] = $value->rm;
+                    } else {
+                        $value->condRm = new DefaultConditionalRoleManager(10);
+                        $this->condRmMap[$ptype] = $value->condRm;
+                    }
                 }
-                $matchFunc = 'keyMatch(r_dom, p_dom)';
-                if (str_contains($this->model['m']['m']->value, $matchFunc)) {
-                    $this->addNamedDomainMatchingFunc('g', 'keyMatch', function (string $key1, string $key2) {
-                        return BuiltinOperations::keyMatch($key1, $key2);
-                    });
+                if ($tokensCount > 2) {
+                    if ($paramsTokensCount === 0) {
+                        $value->rm = new DefaultDomainManager(10);
+                        $this->rmMap[$ptype] = $value->rm;
+                    } else {
+                        $value->condRm = new DefaultConditionalDomainManager(10);
+                        $this->condRmMap[$ptype] = $value->condRm;
+                    }
+                    $matchFunc = 'keyMatch(r_dom, p_dom)';
+                    if (str_contains($this->model['m']['m']->value, $matchFunc)) {
+                        $this->addNamedDomainMatchingFunc('g', 'keyMatch', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
+                    }
                 }
             }
         }
@@ -602,8 +690,12 @@ class CoreEnforcer
 
         if (isset($this->model['g'])) {
             foreach ($this->model['g'] as $key => $ast) {
-                $rm = $ast->rm;
-                $functions[$key] = BuiltinOperations::generateGFunction($rm);
+                if (!is_null($ast->rm)) {
+                    $functions[$key] = BuiltinOperations::generateGFunction($ast->rm);
+                }
+                if (!is_null($ast->condRm)) {
+                    $functions[$key] = BuiltinOperations::generateConditionalGFunction($ast->condRm);
+                }
             }
         }
 
@@ -852,6 +944,19 @@ class CoreEnforcer
     }
 
     /**
+     * BuildIncrementalConditionalRoleLinks provides incremental build the conditional role inheritance relations.
+     *
+     * @param integer $op policy operations.
+     * @param string $ptype policy type.
+     * @param string[][] $rules the rules.
+     * @return void
+     */
+    public function buildIncrementalConditionalRoleLinks(int $op, string $ptype, array $rules): void
+    {
+        $this->model->buildIncrementalConditionalRoleLinks($this->condRmMap, $op, "g", $ptype, $rules);
+    }
+
+    /**
      * BatchEnforce enforce in batches
      *
      * @param string[][] $requests
@@ -909,6 +1014,91 @@ class CoreEnforcer
         if (isset($this->rmMap[$ptype])) {
             $rm = &$this->rmMap[$ptype];
             $rm->addDomainMatchingFunc($name, $fn);
+            return true;
+        }
+        return false;
+    }
+
+    /** 
+     * AddNamedLinkConditionFunc Add condition function fn for Link userName->roleName,
+     * when fn returns true, Link is valid, otherwise invalid.
+     * 
+     * @param string $ptype
+     * @param string $user
+     * @param string $role
+     * @param Closure $fn
+
+     * @return boolean
+     */
+    public function addNamedLinkConditionFunc(string $ptype, string $user, string $role, Closure $fn): bool
+    {
+        if (isset($this->condRmMap[$ptype])) {
+            $rm = &$this->condRmMap[$ptype];
+            $rm->addLinkConditionFunc($user, $role, $fn);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * AddNamedDomainLinkConditionFunc Add condition function fn for Link userName-> {roleName, domain},
+     * when fn returns true, Link is valid, otherwise invalid.
+     * 
+     * @param string $ptype
+     * @param string $user
+     * @param string $role
+     * @param string $domain
+     * @param Closure $fn
+     * 
+     * @return boolean
+     */
+    public function addNamedDomainLinkConditionFunc(string $ptype, string $user, string $role, string $domain, Closure $fn): bool
+    {
+        if (isset($this->condRmMap[$ptype])) {
+            $rm = &$this->condRmMap[$ptype];
+            $rm->addDomainLinkConditionFunc($user, $role, $domain, $fn);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * SetNamedLinkConditionFuncParams Sets the parameters of the condition function fn for Link userName->roleName.
+     * 
+     * @param string $ptype
+     * @param string $user
+     * @param string $role
+     * @param string ...$params
+     * 
+     * @return boolean
+     */
+    public function setNamedLinkConditionFuncParams(string $ptype, string $user, string $role, string ...$params): bool
+    {
+        if (isset($this->condRmMap[$ptype])) {
+            $rm = &$this->condRmMap[$ptype];
+            $rm->setLinkConditionFuncParams($user, $role, ...$params);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * SetNamedDomainLinkConditionFuncParams Sets the parameters of the condition function fn 
+     * for Link userName->{roleName, domain}.
+     * 
+     * @param string $ptype
+     * @param string $user
+     * @param string $role
+     * @param string $domain
+     * @param string ...$params
+     * 
+     * @return boolean
+     */
+    public function setNamedDomainLinkConditionFuncParams(string $ptype, string $user, string $role, string $domain, string ...$params): bool
+    {
+        if (isset($this->condRmMap[$ptype])) {
+            $rm = &$this->condRmMap[$ptype];
+            $rm->setDomainLinkConditionFuncParams($user, $role, $domain, ...$params);
             return true;
         }
         return false;

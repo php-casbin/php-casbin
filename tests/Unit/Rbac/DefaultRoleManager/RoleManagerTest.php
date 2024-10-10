@@ -2,6 +2,9 @@
 
 namespace Casbin\Tests\Unit\Rbac\DefaultRoleManager;
 
+use Casbin\Exceptions\CasbinException;
+use Casbin\Rbac\DefaultRoleManager\ConditionalDomainManager;
+use Casbin\Rbac\DefaultRoleManager\ConditionalRoleManager;
 use Casbin\Rbac\DefaultRoleManager\DomainManager;
 use Casbin\Rbac\DefaultRoleManager\RoleManager;
 use Casbin\Util\BuiltinOperations;
@@ -30,18 +33,14 @@ class RoleManagerTest extends TestCase
         $rm = new RoleManager(3);
         $this->assertEquals($rm->match('u1', 'u1'), true);
         $this->assertEquals($rm->match('u1', 'u2'), false);
-        $rm->addMatchingFunc('keyMatch', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch($key1, $key2);
-        });
+        $rm->addMatchingFunc('keyMatch', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
         $this->assertEquals($rm->match('u1', '*'), true);
         $this->assertEquals($rm->match('u1', 'u2'), false);
 
         $dm = new DomainManager(3);
         $this->assertEquals($dm->match('domain1', 'domain1'), true);
         $this->assertEquals($dm->match('domain1', 'domain2'), false);
-        $dm->addDomainMatchingFunc('keyMatch', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch($key1, $key2);
-        });
+        $dm->addDomainMatchingFunc('keyMatch', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
         $this->assertEquals($dm->match('domain1', '*'), true);
         $this->assertEquals($dm->match('domain1', 'domain2'), false);
     }
@@ -116,9 +115,7 @@ class RoleManagerTest extends TestCase
         $this->testPrintRoles($rm, 'g3', []);
 
         $rm = new RoleManager(3);
-        $rm->addMatchingFunc('keyMatch', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch($key1, $key2);
-        });
+        $rm->addMatchingFunc('keyMatch', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
         $rm->addLink('u1', 'g1');
         $rm->addLink('u1', '*');
         $rm->addLink('u2', 'g2');
@@ -208,9 +205,7 @@ class RoleManagerTest extends TestCase
     public function testDomainPatternRole()
     {
         $rm = new DomainManager(3);
-        $rm->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch2($key1, $key2);
-        });
+        $rm->addDomainMatchingFunc('keyMatch2', fn(string $key1, string $key2) => BuiltinOperations::keyMatch2($key1, $key2));
 
         $rm->addLink('u1', 'g1', 'domain1');
         $rm->addLink('u2', 'g1', 'domain2');
@@ -279,12 +274,8 @@ class RoleManagerTest extends TestCase
     public function testAllMatchingFunc()
     {
         $rm = new RoleManager(10);
-        $rm->addMatchingFunc('keyMatch2', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch2($key1, $key2);
-        });
-        $rm->addDomainMatchingFunc('keyMatch2', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch2($key1, $key2);
-        });
+        $rm->addMatchingFunc('keyMatch2', fn(string $key1, string $key2) => BuiltinOperations::keyMatch2($key1, $key2));
+        $rm->addDomainMatchingFunc('keyMatch2', fn(string $key1, string $key2) => BuiltinOperations::keyMatch2($key1, $key2));
 
         $rm->addLink('/book/:id', 'book_group', '*');
         // Current role inheritance tree after deleting the links:
@@ -298,9 +289,7 @@ class RoleManagerTest extends TestCase
     public function testMatchingFuncOrder()
     {
         $rm = new RoleManager(10);
-        $rm->addMatchingFunc('regexMatch', function (string $key1, string $key2) {
-            return BuiltinOperations::regexMatch($key1, $key2);
-        });
+        $rm->addMatchingFunc('regexMatch', fn(string $key1, string $key2) => BuiltinOperations::regexMatch($key1, $key2));
 
         $rm->addLink('g\\d+', 'root');
         $rm->addLink('u1', 'g1');
@@ -322,9 +311,7 @@ class RoleManagerTest extends TestCase
     public function testDomainMatchingFuncWithDifferentDomain()
     {
         $rm = new DomainManager(10);
-        $rm->addDomainMatchingFunc('keyMatch', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch($key1, $key2);
-        });
+        $rm->addDomainMatchingFunc('keyMatch', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
 
         $rm->addLink('alice', 'editor', '*');
         $rm->addLink('editor', 'admin', 'domain1');
@@ -336,9 +323,7 @@ class RoleManagerTest extends TestCase
     public function testTemporaryRole()
     {
         $rm = new RoleManager(10);
-        $rm->addMatchingFunc('regexMatch', function (string $key1, string $key2) {
-            return BuiltinOperations::regexMatch($key1, $key2);
-        });
+        $rm->addMatchingFunc('regexMatch', fn(string $key1, string $key2) => BuiltinOperations::regexMatch($key1, $key2));
 
         $rm->addLink('u\d+', 'user');
 
@@ -384,5 +369,54 @@ class RoleManagerTest extends TestCase
         $this->assertFalse($rm->hasLink("level0", "level3"));
         $this->assertTrue($rm->hasLink("level1", "level2"));
         $this->assertTrue($rm->hasLink("level1", "level3"));
+    }
+
+    public function testConditionalRoleManager()
+    {
+        $rm = new ConditionalRoleManager(10);
+        $rm->addLink('u1', 'g1');
+        $rm->addLink('u2', 'g1');
+        $rm->addLink('u3', 'g2');
+        $rm->addLinkConditionFunc('u1', 'g1', fn() => true);
+        $rm->addLinkConditionFunc('u2', 'g1', fn() => false);
+        $rm->addLinkConditionFunc('u3', 'g2', function () {
+            throw new CasbinException('error func');
+        });
+        $rm->setLinkConditionFuncParams('u1', 'g1');
+        $rm->setLinkConditionFuncParams('u2', 'g1');
+        $rm->setLinkConditionFuncParams('u3', 'g2');
+
+        $this->assertEquals($rm->hasLink('u1', 'g1'), true);
+        $this->assertEquals($rm->hasLink('u2', 'g1'), false);
+        $this->assertEquals($rm->hasLink('u3', 'g2'), false);
+
+        $rm->deleteLink('u1', 'g1');
+        $this->assertEquals($rm->hasLink('u1', 'g1'), false);
+    }
+
+    public function testConditionalDomainManager()
+    {
+        $rm = new ConditionalDomainManager(10);
+        $rm->addDomainMatchingFunc('keyMatch', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
+        $rm->addLink('u1', 'g1', '*');
+        $rm->addLink('u2', 'g1', 'domain1');
+        $rm->addLink('u3', 'g2', 'domain2');
+        $rm->addLink('g1', 'root', 'domain1');
+        $rm->addDomainLinkConditionFunc('u1', 'g1', '*', fn() => true);
+        $rm->addDomainLinkConditionFunc('u2', 'g1', 'domain1', fn() => false);
+        $rm->addDomainLinkConditionFunc('u3', 'g2', 'domain2', function () {
+            throw new CasbinException('error func');
+        });
+        $rm->setDomainLinkConditionFuncParams('u1', 'g1', '*');
+        $rm->setDomainLinkConditionFuncParams('u2', 'g1', 'domain1');
+        $rm->setDomainLinkConditionFuncParams('u3', 'g2', 'domain2');
+
+        $this->assertEquals($rm->hasLink('u1', 'root', 'domain1'), true);
+        $this->assertEquals($rm->hasLink('u1', 'root', 'domain2'), false);
+        $this->assertEquals($rm->hasLink('u2', 'g1', 'domain1'), false);
+        $this->assertEquals($rm->hasLink('u3', 'g2', 'domain2'), false);
+
+        $rm->deleteLink('u1', 'g1', '*');
+        $this->assertEquals($rm->hasLink('u1', 'root', 'domain1'), false);
     }
 }

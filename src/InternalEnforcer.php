@@ -96,6 +96,7 @@ class InternalEnforcer extends CoreEnforcer
 
         if ($sec == "g") {
             $this->buildIncrementalRoleLinks(Policy::POLICY_ADD, $ptype, $rules);
+            $this->buildIncrementalConditionalRoleLinks(Policy::POLICY_ADD, $ptype, $rules);
         }
 
         return true;

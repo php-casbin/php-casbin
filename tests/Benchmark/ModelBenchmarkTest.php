@@ -182,9 +182,7 @@ class ModelBenchmarkTest extends TestCase
     public function testRBACModelWithDomainPatternLarge(): void
     {
         $e = new Enforcer($this->modelAndPolicyPath . "/performance/rbac_with_pattern_large_scale_model.conf", $this->modelAndPolicyPath . "/performance/rbac_with_pattern_large_scale_policy.csv");
-        $e->addNamedDomainMatchingFunc("g", "keyMatch4", function (...$args) {
-            return BuiltinOperations::keyMatch4Func(...$args);
-        });
+        $e->addNamedDomainMatchingFunc("g", "keyMatch4", fn(...$args) => BuiltinOperations::keyMatch4Func(...$args));
         $e->buildRoleLinks();
 
         $this->benchmark(function () use ($e) {

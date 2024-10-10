@@ -15,6 +15,11 @@ use Casbin\Rbac\DefaultRoleManager\Traits\DomainManager as DomainManagerTrait;
 class DomainManager extends RoleManager
 {
     use DomainManagerTrait;
+    
+    /**
+     * @var array<string, RoleManager>
+     */
+    protected array $rmMap = [];
 
     /**
      * DomainManager constructor.

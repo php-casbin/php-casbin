@@ -28,13 +28,13 @@ class DefaultLoggerTest extends TestCase
 
         $logger->logModel([]);
         $logger->logEnforce('my_matcher', ['bob'], true, []);
-        $logger->logPolicy([]);
+        $logger->logPolicy(['p'=>[['alice', 'data1', 'read']]]);
         $logger->logRole([]);
         $logger->logError(new \Exception('test'));
         $pattern = '/^.*? INFO: Model:\s*' . PHP_EOL .
             '^.*? INFO: Request: bob ---> true' . PHP_EOL .
             'Hit Policy:\s*' . PHP_EOL .
-            '^.*? INFO: Policy:\s*' . PHP_EOL .
+            '^.*? INFO: Policy: p : \[\[alice data1 read\]\]\s*' . PHP_EOL .
             '^.*? INFO: Roles:\s*' . PHP_EOL .
             '^.*? ERROR: test' . PHP_EOL . '$/m';
 

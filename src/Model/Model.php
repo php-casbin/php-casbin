@@ -34,6 +34,11 @@ class Model extends Policy
         'm' => 'matchers',
     ];
 
+    /**
+     * @var string
+     */
+    protected string $paramsRegex = '/\((.*?)\)/';
+
     public function __construct()
     {
         $this->setLogger(new DefaultLogger());
@@ -67,6 +72,22 @@ class Model extends Policy
     }
 
     /**
+     * Get ParamsToken from Assertion.Value
+     *
+     * @param string $value
+     *
+     * @return array
+     */
+    private function getParamsToken(string $value): array
+    {
+        if (!preg_match($this->paramsRegex, $value, $paramsString)) {
+            return [];
+        };
+        $paramsString = trim(substr($paramsString[0], 1, -1));
+        return explode(',', $paramsString);
+    }
+
+    /**
      * Adds an assertion to the model.
      *
      * @param string $sec
@@ -92,7 +113,9 @@ class Model extends Policy
                 $ast->tokens[$i] = $key . '_' . trim($token);
             }
         } else if ('g' == $sec) {
+            $ast->paramsTokens = $this->getParamsToken($ast->value);
             $ast->tokens = explode(',', $ast->value);
+            $ast->tokens = array_slice($ast->tokens, 0, count($ast->tokens) - count($ast->paramsTokens));
         } else {
             $ast->value = Util::removeComments(Util::escapeAssertion($ast->value));
         }
