@@ -15,6 +15,8 @@ use Closure;
  */
 interface RoleManager
 {
+    const DEFAULT_DOMAIN = '';
+    
     /**
      * Clears all stored data and resets the role manager to the initial state.
      */
