@@ -24,7 +24,7 @@ class Util
      */
     public static function escapeAssertion(string $s): string
     {
-        if (0 === strpos($s, "r") || 0 === strpos($s, "p")) {
+        if (str_starts_with($s, 'r') || str_starts_with($s, 'p')) {
             $pos = strpos($s, '.');
             if ($pos !== false) {
                 $s[$pos] = '_';
@@ -122,26 +122,91 @@ class Util
      */
     public static function replaceEvalWithMap(string $src, array $sets): string
     {
-        return preg_replace_callback(self::REGEXP, function ($s) use ($sets): string {
-            $s = $s[0];
-            preg_match(self::REGEXP, $s, $subs);
-
-            if (count($subs) == 0) {
-                return $s;
-            }
-            $key = $subs[1];
-            
+        return preg_replace_callback(self::REGEXP, function ($matches) use ($sets): string {
+            $key = $matches['rule'];
+    
             if (isset($sets[$key])) {
-                $found = true;
                 $value = $sets[$key];
-            } else {
-                $found = false;
+                return '(' . $value . ')';
             }
-            
-            if (!$found) {
-                return $s;
-            }
-            return preg_replace(self::REGEXP, $s, '(' . $value . ')');
+    
+            return $matches[0];
         }, $src);
+    }
+
+    /**
+     * Remove duplicate elements from an array.
+     *
+     * @param array $s
+     * @return array
+     */
+    public static function removeDumplicateElement(array $s): array
+    {
+        return array_unique($s);
+    }
+
+    /**
+     * Check if two arrays are equal, order-insensitive.
+     *
+     * @param array $a
+     * @param array $b
+     *
+     * @return bool
+     */
+    public static function setEquals(array $a, array $b): bool
+    {
+        if (count($a) !== count($b)) {
+            return false;
+        }
+
+        sort($a);
+        sort($b);
+        return $a == $b;
+    }
+
+    /**
+     * Determines whether IP address ip1 matches the pattern of IP address ip2, ip2 can be an IP address or a CIDR pattern.
+     *
+     * @param string $ipAddress
+     * @param string $cidrAddress
+     *
+     * @return bool
+     */
+    public static function ipInSubnet(string $ipAddress, string $cidrAddress): bool
+    {
+        if (!str_contains($cidrAddress, '/')) {
+            return $ipAddress === $cidrAddress;
+        }
+
+        list($subnet, $prefixLength) = explode('/', $cidrAddress);
+        $prefixLength = intval($prefixLength);
+        // IPv6
+        if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+
+            $ip = inet_pton($ipAddress);
+            $subnet = inet_pton($subnet);
+
+            if ($ip === false || $subnet === false) {
+                return false;
+            }
+
+            $mask = str_repeat("f", intdiv($prefixLength, 4));
+            $mask .= ['', '8', 'c', 'e'][$prefixLength % 4];
+            $mask = str_pad($mask, 32, '0');
+            $mask = pack("H*", $mask);
+
+            return ($ip & $mask) === ($subnet & $mask);
+        }
+        // IPv4
+        if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+
+            $ip = ip2long($ipAddress);
+            $subnet = ip2long($subnet);
+            $mask = 0xffffffff << (32 - $prefixLength);
+
+            return ($ip & $mask) === ($subnet & $mask);
+        }
+
+        return false;
     }
 }

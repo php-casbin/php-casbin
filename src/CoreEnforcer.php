@@ -9,7 +9,8 @@ use Casbin\Effector\Effector;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Exceptions\EvalFunctionException;
 use Casbin\Exceptions\InvalidFilePathException;
-use Casbin\Log\Log;
+use Casbin\Log\Logger;
+use Casbin\Log\Logger\DefaultLogger;
 use Casbin\Model\FunctionMap;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
@@ -17,12 +18,16 @@ use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\FilteredAdapter;
 use Casbin\Persist\Watcher;
 use Casbin\Persist\WatcherEx;
+use Casbin\Rbac\DefaultRoleManager\ConditionalDomainManager as DefaultConditionalDomainManager;
+use Casbin\Rbac\DefaultRoleManager\ConditionalRoleManager as DefaultConditionalRoleManager;
 use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
+use Casbin\Rbac\DefaultRoleManager\DomainManager as DefaultDomainManager;
+use Casbin\Rbac\ConditionalRoleManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\BuiltinOperations;
 use Casbin\Util\Util;
+use Closure;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-use Symfony\Component\ExpressionLanguage\ParsedExpression;
 
 /**
  * Class CoreEnforcer
@@ -37,77 +42,91 @@ class CoreEnforcer
      *
      * @var string
      */
-    protected $modelPath;
+    protected string $modelPath;
 
     /**
      * Model.
      *
      * @var Model
      */
-    protected $model;
+    protected Model $model;
 
     /**
      * FunctionMap.
      *
      * @var FunctionMap
      */
-    protected $fm;
+    protected FunctionMap $fm;
 
     /**
      * Effector.
      *
      * @var Effector
      */
-    protected $eft;
+    protected Effector $eft;
 
     /**
      * Adapter.
      *
      * @var Adapter|null
      */
-    protected $adapter;
+    protected ?Adapter $adapter;
 
     /**
      * Watcher.
      *
      * @var Watcher|null
      */
-    protected $watcher;
+    protected ?Watcher $watcher;
 
     /**
      * RmMap.
      *
-     * @var RoleManager[]
+     * @var array<string, RoleManager>
      */
-    protected $rmMap;
+    protected array $rmMap;
+
+    /**
+     * CondRmMap.
+     * 
+     * @var array<string, ConditionalRoleManager>
+     */
+    protected array $condRmMap;
 
     /**
      * $enabled.
      *
      * @var bool
      */
-    protected $enabled;
+    protected bool $enabled;
 
     /**
      * $autoSave.
      *
      * @var bool
      */
-    protected $autoSave;
+    protected bool $autoSave;
 
     /**
      * $autoBuildRoleLinks.
      *
      * @var bool
      */
-    protected $autoBuildRoleLinks;
+    protected bool $autoBuildRoleLinks;
 
     /**
      * $autoNotifyWatcher.
      *
      * @var bool
      */
-    protected $autoNotifyWatcher;
+    protected bool $autoNotifyWatcher;
+
+    /**
+     * $logger.
+     *
+     * @var Logger
+     */
+    protected Logger $logger;
 
     /**
      * Enforcer constructor.
@@ -125,46 +144,36 @@ class CoreEnforcer
      *  ]);
      * $e = new Enforcer("path/to/basic_model.conf", $a).
      *
-     * @param mixed ...$params
+     * @param string|Model|null $model
+     * @param string|Adapter|null $adapter
+     * @param Logger|null $logger
+     * @param bool|null $enableLog
      *
      * @throws CasbinException
      */
-    public function __construct(...$params)
+    public function __construct(string|Model|null $model = null, string|Adapter|null $adapter = null, ?Logger $logger = null, ?bool $enableLog = null)
     {
-        $parsedParamLen = 0;
-        $paramLen = \count($params);
-        if ($paramLen >= 1) {
-            if (\is_bool($enableLog = $params[$paramLen - 1])) {
-                $this->enableLog($enableLog);
-                ++$parsedParamLen;
-            }
+        $this->logger = $logger ?? new DefaultLogger();
+
+        if (!is_null($enableLog)) {
+            $this->enableLog($enableLog);
         }
 
-        if (2 == $paramLen - $parsedParamLen) {
-            $p0 = $params[0];
-            if (\is_string($p0)) {
-                $p1 = $params[1];
-                if (\is_string($p1)) {
-                    $this->initWithFile($p0, $p1);
-                } else {
-                    $this->initWithAdapter($p0, $p1);
-                }
-            } else {
-                if (\is_string($params[1])) {
-                    throw new CasbinException('Invalid parameters for enforcer.');
-                } else {
-                    $this->initWithModelAndAdapter($p0, $params[1]);
-                }
+        if (is_null($model) && is_null($adapter)) {
+            return;
+        }
+        if (is_string($model)) {
+            if (is_string($adapter) || is_null($adapter)) {
+                $this->initWithFile($model, $adapter ?? '');
+            } else if ($adapter instanceof Adapter) {
+                $this->initWithAdapter($model, $adapter);
             }
-        } elseif (1 == $paramLen - $parsedParamLen) {
-            $p0 = $params[0];
-            if (\is_string($p0)) {
-                $this->initWithFile($p0, '');
+        } else if ($model instanceof Model) {
+            if ($adapter instanceof Adapter || is_null($adapter)) {
+                $this->initWithModelAndAdapter($model, $adapter);
             } else {
-                $this->initWithModelAndAdapter($p0, null);
+                throw new CasbinException('Invalid parameters for enforcer.');
             }
-        } elseif (0 == $paramLen - $parsedParamLen) {
-            // pass
         } else {
             throw new CasbinException('Invalid parameters for enforcer.');
         }
@@ -206,10 +215,11 @@ class CoreEnforcer
      * @param Model $m
      * @param Adapter|null $adapter
      */
-    public function initWithModelAndAdapter(Model $m, Adapter $adapter = null): void
+    public function initWithModelAndAdapter(Model $m, ?Adapter $adapter): void
     {
         $this->adapter = $adapter;
         $this->model = $m;
+        $this->model->setLogger($this->logger);
         $this->model->printModel();
 
         $this->fm = Model::loadFunctionMap();
@@ -219,8 +229,25 @@ class CoreEnforcer
         // Do not initialize the full policy when using a filtered adapter
         $ok = $this->adapter instanceof FilteredAdapter ? $this->adapter->isFiltered() : false;
 
-        if (!\is_null($this->adapter) && !$ok) {
+        if (!is_null($this->adapter) && !$ok) {
             $this->loadPolicy();
+        }
+    }
+
+    /**
+     * Sets the current logger.
+     *
+     * @param Logger $logger
+     */
+    public function setLogger(Logger $logger): void
+    {
+        $this->logger = $logger;
+        $this->model->setLogger($this->logger);
+        foreach ($this->rmMap as $rm) {
+            $rm->setLogger($this->logger);
+        }
+        foreach ($this->condRmMap as $rm) {
+            $rm->setLogger($this->logger);
         }
     }
 
@@ -230,6 +257,7 @@ class CoreEnforcer
     protected function initialize(): void
     {
         $this->rmMap = [];
+        $this->condRmMap = [];
         $this->eft = new DefaultEffector();
         $this->watcher = null;
 
@@ -354,29 +382,55 @@ class CoreEnforcer
      */
     public function loadPolicy(): void
     {
-        $flag = false;
-        $needToRebuild = false;
-        $newModel = clone $this->model;
+        $newModel = $this->loadPolicyFromAdapter($this->model);
+        if (!is_null($newModel)) {
+            $this->applyModifiedModel($newModel);
+        }
+    }
+
+    /**
+     * Loads policy from the current adapter.
+     *
+     * @param Model $baseModel
+     *
+     * @return Model|null
+     */
+    public function loadPolicyFromAdapter(Model $baseModel): ?Model
+    {
+        $newModel = clone $baseModel;
         $newModel->clearPolicy();
 
         try {
-            if (!is_null($this->adapter)){
-                $this->adapter->loadPolicy($newModel);
-            }
-            $newModel->printPolicy();
+            $this->adapter?->loadPolicy($newModel);
             $newModel->sortPoliciesBySubjectHierarchy();
             $newModel->sortPoliciesByPriority();
+        } catch (InvalidFilePathException) {
+            return null;
+        } catch (\Throwable $e) {
+            throw $e;
+        }
 
+        return $newModel;
+    }
+
+    /**
+     * Applies a modified model to the current enforcer.
+     *
+     * @param Model $newModel
+     */
+    public function applyModifiedModel(Model $newModel): void
+    {
+        $flag = false;
+        $needToRebuild = false;
+
+        try {
             if ($this->autoBuildRoleLinks) {
                 $needToRebuild = true;
-                foreach ($this->rmMap as $rm) {
-                    $rm->clear();
-                }
-                $newModel->buildRoleLinks($this->rmMap);
+
+                $this->rebuildRoleLinks($newModel);
+                $this->rebuildConditionalRoleLinks($newModel);
             }
             $this->model = $newModel;
-        } catch (InvalidFilePathException $e) {
-            // Ignore throw $e;
         } catch (\Throwable $e) {
             $flag = true;
             throw $e;
@@ -386,6 +440,38 @@ class CoreEnforcer
                     $this->buildRoleLinks();
                 }
             }
+        }
+    }
+
+    /**
+     * Rebuilds the role inheritance relations based on the new model.
+     *
+     * @param Model $newModel
+     */
+    public function rebuildRoleLinks(Model $newModel): void
+    {
+        if (count($this->rmMap) !== 0) {
+            foreach ($this->rmMap as $rm) {
+                $rm->clear();
+            }
+
+            $newModel->buildRoleLinks($this->rmMap);
+        }
+    }
+
+    /**
+     * Rebuilds the conditional role inheritance relations based on the new model.
+     *
+     * @param Model $newModel
+     */
+    public function rebuildConditionalRoleLinks(Model $newModel): void
+    {
+        if (!empty($this->condRmMap)) {
+            foreach ($this->condRmMap as $rm) {
+                $rm->clear();
+            }
+
+            $newModel->buildConditionalRoleLinks($this->condRmMap);
         }
     }
 
@@ -405,6 +491,7 @@ class CoreEnforcer
             throw new CasbinException('filtered policies are not supported by this adapter');
         }
 
+        $this->model->sortPoliciesBySubjectHierarchy();
         $this->model->sortPoliciesByPriority();
         $this->initRmMap();
         $this->model->printPolicy();
@@ -465,15 +552,13 @@ class CoreEnforcer
             throw new CasbinException('cannot save a filtered policy');
         }
 
-        if (!is_null($this->adapter)){
-            $this->adapter->savePolicy($this->model);
-        }        
+        $this->adapter?->savePolicy($this->model);
 
-        if ($this->watcher !== null && $this->autoNotifyWatcher) {
+        if ($this->autoNotifyWatcher) {
             if ($this->watcher instanceof WatcherEx) {
                 $this->watcher->updateForSavePolicy($this->model);
             } else {
-                $this->watcher->update();
+                $this->watcher?->update();
             }
         }
     }
@@ -490,8 +575,32 @@ class CoreEnforcer
                 if (isset($this->rmMap[$ptype])) {
                     $rm = $this->rmMap[$ptype];
                     $rm->clear();
-                } else {
-                    $this->rmMap[$ptype] = new DefaultRoleManager(10);
+                    continue;
+                }
+
+                $tokensCount = count($value->tokens);
+                $paramsTokensCount = count($value->paramsTokens);
+                if ($tokensCount <= 2) {
+                    if ($paramsTokensCount === 0) {
+                        $value->rm = new DefaultRoleManager(10);
+                        $this->rmMap[$ptype] = $value->rm;
+                    } else {
+                        $value->condRm = new DefaultConditionalRoleManager(10);
+                        $this->condRmMap[$ptype] = $value->condRm;
+                    }
+                }
+                if ($tokensCount > 2) {
+                    if ($paramsTokensCount === 0) {
+                        $value->rm = new DefaultDomainManager(10);
+                        $this->rmMap[$ptype] = $value->rm;
+                    } else {
+                        $value->condRm = new DefaultConditionalDomainManager(10);
+                        $this->condRmMap[$ptype] = $value->condRm;
+                    }
+                    $matchFunc = 'keyMatch(r_dom, p_dom)';
+                    if (str_contains($this->model['m']['m']->value, $matchFunc)) {
+                        $this->addNamedDomainMatchingFunc('g', 'keyMatch', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
+                    }
                 }
             }
         }
@@ -514,7 +623,7 @@ class CoreEnforcer
      */
     public function enableLog(bool $enabled = true): void
     {
-        Log::getLogger()->enableLog($enabled);
+        $this->logger->enableLog($enabled);
     }
 
     /**
@@ -581,8 +690,12 @@ class CoreEnforcer
 
         if (isset($this->model['g'])) {
             foreach ($this->model['g'] as $key => $ast) {
-                $rm = $ast->rm;
-                $functions[$key] = BuiltinOperations::generateGFunction($rm);
+                if (!is_null($ast->rm)) {
+                    $functions[$key] = BuiltinOperations::generateGFunction($ast->rm);
+                }
+                if (!is_null($ast->condRm)) {
+                    $functions[$key] = BuiltinOperations::generateConditionalGFunction($ast->condRm);
+                }
             }
         }
 
@@ -618,8 +731,8 @@ class CoreEnforcer
         $rTokens = array_values($this->model['r'][$rType]->tokens);
         $pTokens = array_values($this->model['p'][$pType]->tokens);
 
-        if (\count($rTokens) != \count($rvals)) {
-            throw new CasbinException(\sprintf('invalid request size: expected %d, got %d', \count($rTokens), \count($rvals)));
+        if (count($rTokens) != count($rvals)) {
+            throw new CasbinException(\sprintf('invalid request size: expected %d, got %d', count($rTokens), count($rvals)));
         }
         $rParameters = array_combine($rTokens, $rvals);
 
@@ -642,8 +755,8 @@ class CoreEnforcer
         $effect = 0;
         $explainIndex = 0;
 
-        $policyLen = \count($this->model['p'][$pType]->policy);
-        if (0 != $policyLen && (strpos($expString, $pType . '_') !== false)) {
+        $policyLen = count($this->model['p'][$pType]->policy);
+        if (0 != $policyLen && str_contains($expString, $pType . '_')) {
             foreach ($this->model['p'][$pType]->policy as $policyIndex => $pvals) {
                 $parameters = array_combine($pTokens, $pvals);
                 if (false == $parameters) {
@@ -672,11 +785,11 @@ class CoreEnforcer
 
                 // set to no-match at first
                 $matcherResults[$policyIndex] = 0;
-                if (\is_bool($result)) {
+                if (is_bool($result)) {
                     if ($result) {
                         $matcherResults[$policyIndex] = 1;
                     }
-                } elseif (\is_float($result)) {
+                } elseif (is_float($result)) {
                     if ($result != 0) {
                         $matcherResults[$policyIndex] = 1;
                     }
@@ -732,24 +845,7 @@ class CoreEnforcer
 
         $result = $effect == Effector::ALLOW;
 
-        if (Log::getLogger()->isEnabled()) {
-            $reqStr = 'Request: ';
-            $reqStr .= implode(', ', array_values($rvals));
-
-            $reqStr .= sprintf(" ---> %s\n", var_export($result, true));
-
-            $reqStr = 'Hit Policy: ';
-            if (count($explains) == count($explains, COUNT_RECURSIVE)) {
-                // if $explains is not multidimensional
-                $reqStr .= sprintf("%s \n", '[' . implode(', ', $explains) . ']');
-            } else {
-                // if $explains is multidimensional
-                foreach ($explains as $i => $pval) {
-                    $reqStr .= sprintf("%s \n", '[' . implode(', ', $pval) . ']');
-                }
-            }
-            Log::logPrint($reqStr);
-        }
+        $this->logger->logEnforce($matcher, $rvals, $result, $explains);
 
         return $result;
     }
@@ -848,6 +944,19 @@ class CoreEnforcer
     }
 
     /**
+     * BuildIncrementalConditionalRoleLinks provides incremental build the conditional role inheritance relations.
+     *
+     * @param integer $op policy operations.
+     * @param string $ptype policy type.
+     * @param string[][] $rules the rules.
+     * @return void
+     */
+    public function buildIncrementalConditionalRoleLinks(int $op, string $ptype, array $rules): void
+    {
+        $this->model->buildIncrementalConditionalRoleLinks($this->condRmMap, $op, "g", $ptype, $rules);
+    }
+
+    /**
      * BatchEnforce enforce in batches
      *
      * @param string[][] $requests
@@ -879,13 +988,13 @@ class CoreEnforcer
      *
      * @param string $ptype
      * @param string $name
-     * @param \Closure $fn
+     * @param Closure $fn
      * @return boolean
      */
-    public function addNamedMatchingFunc(string $ptype, string $name, \Closure $fn): bool
+    public function addNamedMatchingFunc(string $ptype, string $name, Closure $fn): bool
     {
         if (isset($this->rmMap[$ptype])) {
-            $rm = $this->rmMap[$ptype];
+            $rm = &$this->rmMap[$ptype];
             $rm->addMatchingFunc($name, $fn);
             return true;
         }
@@ -897,14 +1006,99 @@ class CoreEnforcer
      *
      * @param string $ptype
      * @param string $name
-     * @param \Closure $fn
+     * @param Closure $fn
      * @return boolean
      */
-    public function addNamedDomainMatchingFunc(string $ptype, string $name, \Closure $fn): bool
+    public function addNamedDomainMatchingFunc(string $ptype, string $name, Closure $fn): bool
     {
         if (isset($this->rmMap[$ptype])) {
-            $rm = $this->rmMap[$ptype];
+            $rm = &$this->rmMap[$ptype];
             $rm->addDomainMatchingFunc($name, $fn);
+            return true;
+        }
+        return false;
+    }
+
+    /** 
+     * AddNamedLinkConditionFunc Add condition function fn for Link userName->roleName,
+     * when fn returns true, Link is valid, otherwise invalid.
+     * 
+     * @param string $ptype
+     * @param string $user
+     * @param string $role
+     * @param Closure $fn
+
+     * @return boolean
+     */
+    public function addNamedLinkConditionFunc(string $ptype, string $user, string $role, Closure $fn): bool
+    {
+        if (isset($this->condRmMap[$ptype])) {
+            $rm = &$this->condRmMap[$ptype];
+            $rm->addLinkConditionFunc($user, $role, $fn);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * AddNamedDomainLinkConditionFunc Add condition function fn for Link userName-> {roleName, domain},
+     * when fn returns true, Link is valid, otherwise invalid.
+     * 
+     * @param string $ptype
+     * @param string $user
+     * @param string $role
+     * @param string $domain
+     * @param Closure $fn
+     * 
+     * @return boolean
+     */
+    public function addNamedDomainLinkConditionFunc(string $ptype, string $user, string $role, string $domain, Closure $fn): bool
+    {
+        if (isset($this->condRmMap[$ptype])) {
+            $rm = &$this->condRmMap[$ptype];
+            $rm->addDomainLinkConditionFunc($user, $role, $domain, $fn);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * SetNamedLinkConditionFuncParams Sets the parameters of the condition function fn for Link userName->roleName.
+     * 
+     * @param string $ptype
+     * @param string $user
+     * @param string $role
+     * @param string ...$params
+     * 
+     * @return boolean
+     */
+    public function setNamedLinkConditionFuncParams(string $ptype, string $user, string $role, string ...$params): bool
+    {
+        if (isset($this->condRmMap[$ptype])) {
+            $rm = &$this->condRmMap[$ptype];
+            $rm->setLinkConditionFuncParams($user, $role, ...$params);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * SetNamedDomainLinkConditionFuncParams Sets the parameters of the condition function fn 
+     * for Link userName->{roleName, domain}.
+     * 
+     * @param string $ptype
+     * @param string $user
+     * @param string $role
+     * @param string $domain
+     * @param string ...$params
+     * 
+     * @return boolean
+     */
+    public function setNamedDomainLinkConditionFuncParams(string $ptype, string $user, string $role, string $domain, string ...$params): bool
+    {
+        if (isset($this->condRmMap[$ptype])) {
+            $rm = &$this->condRmMap[$ptype];
+            $rm->setDomainLinkConditionFuncParams($user, $role, $domain, ...$params);
             return true;
         }
         return false;

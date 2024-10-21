@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Casbin\Util;
 
+use Casbin\Rbac\ConditionalRoleManager;
 use Casbin\Rbac\RoleManager;
 use Closure;
+use DateTime;
 use Exception;
-use IPTools\IP;
-use IPTools\Range;
 
 /**
  * Class BuiltinOperations.
@@ -28,7 +28,7 @@ class BuiltinOperations
      */
     public static function keyMatch(string $key1, string $key2): bool
     {
-        if (false === strpos($key2, '*')) {
+        if (!str_contains($key2, '*')) {
             return $key1 == $key2;
         }
 
@@ -364,11 +364,7 @@ class BuiltinOperations
      */
     public static function ipMatch(string $ip1, string $ip2): bool
     {
-        $objIP1 = IP::parse($ip1);
-
-        $objIP2 = Range::parse($ip2);
-
-        return $objIP2->contains($objIP1);
+        return Util::ipInSubnet($ip1, $ip2);
     }
 
     /**
@@ -433,7 +429,7 @@ class BuiltinOperations
         return function (...$args) use ($rm, &$memorized) {
             $key = implode(chr(0b0), $args);
 
-            if(isset($memorized[$key])){
+            if (isset($memorized[$key])) {
                 return $memorized[$key];
             }
 
@@ -442,7 +438,7 @@ class BuiltinOperations
 
             if (null === $rm) {
                 $v = $name1 == $name2;
-            } elseif (2 == \count($args)) {
+            } elseif (2 == count($args)) {
                 $v = $rm->hasLink($name1, $name2);
             } else {
                 $domain = (string)$args[2];
@@ -452,5 +448,80 @@ class BuiltinOperations
             $memorized[$key] = $v;
             return $v;
         };
+    }
+
+    /**
+     * The factory method of the g(_, _[, _]) function with conditions.
+     *
+     * @param ConditionalRoleManager|null $crm
+     *
+     * @return Closure
+     */
+    public static function generateConditionalGFunction(ConditionalRoleManager $crm = null): Closure
+    {
+        return function (...$args) use ($crm) {
+            $name1 = $args[0];
+            $name2 = $args[1];
+
+            if (is_null($crm)) {
+                $v = $name1 == $name2;
+            } elseif (2 == count($args)) {
+                $v = $crm->hasLink($name1, $name2);
+            } else {
+                $domain = (string)$args[2];
+                $v = $crm->hasLink($name1, $name2, $domain);
+            }
+
+            return $v;
+        };
+    }
+
+    /**
+     * The wrapper for timeMatch.
+     *
+     * @param mixed ...$args
+     *
+     * @return bool
+     */
+    public static function timeMatchFunc(...$args): bool
+    {
+        $startTime = $args[0];
+        $endTime = $args[1];
+
+        return self::timeMatch($startTime, $endTime);
+    }
+
+    /**
+     * Determines whether the current time is between startTime and endTime.
+     * You can use "_" to indicate that the parameter is ignored.
+     * 
+     * @param string $startTime
+     * @param string $endTime
+     * 
+     * @return bool
+     */
+    public static function timeMatch(string $startTime, string $endTime): bool
+    {
+        $now = new DateTime();
+        if ($startTime !== '_') {
+            if (false === strtotime($startTime)) {
+                return false;
+            }
+            $start = new DateTime($startTime);
+            if ($now < $start) {
+                return false;
+            }
+        }
+        if ($endTime !== '_') {
+            if (false === strtotime($endTime)) {
+                return false;
+            }
+            $end = new DateTime($endTime);
+            if ($now > $end) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

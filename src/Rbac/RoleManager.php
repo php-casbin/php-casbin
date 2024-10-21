@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Casbin\Rbac;
 
+use Casbin\Log\Logger;
+use Closure;
+
 /**
  * Interface RoleManager.
  * Provides interface to define the operations for managing roles.
@@ -12,6 +15,8 @@ namespace Casbin\Rbac;
  */
 interface RoleManager
 {
+    const DEFAULT_DOMAIN = '';
+    
     /**
      * Clears all stored data and resets the role manager to the initial state.
      */
@@ -96,20 +101,29 @@ interface RoleManager
     public function getAllDomains(): array;
 
     /**
+     * Sets the current logger.
+     *
+     * @param Logger $logger
+     *
+     * @return void
+     */
+    public function setLogger(Logger $logger): void;
+
+    /**
      * Support use pattern in g.
      *
      * @param string $name
-     * @param \Closure $fn
+     * @param Closure $fn
      * @return void
      */
-    public function addMatchingFunc(string $name, \Closure $fn): void;
+    public function addMatchingFunc(string $name, Closure $fn): void;
 
     /**
      * Support use domain pattern in g.
      *
      * @param string $name
-     * @param \Closure $fn
+     * @param Closure $fn
      * @return void
      */
-    public function addDomainMatchingFunc(string $name, \Closure $fn): void;
+    public function addDomainMatchingFunc(string $name, Closure $fn): void;
 }

@@ -247,9 +247,7 @@ class EnforcerTest extends TestCase
 
         $roleManager = $e->getRoleManager();
         if ($roleManager instanceof RoleManager) {
-            $roleManager->addMatchingFunc('matcher', function (string $key1, string $key2) {
-                return BuiltinOperations::keyMatch($key1, $key2);
-            });
+            $roleManager->addMatchingFunc('matcher', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
         }
 
         $this->assertEquals($e->getImplicitRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
@@ -385,6 +383,29 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->getPermissionsForUserInDomain('non_exist', 'domain2'), []);
     }
 
+    public function testGetDomainsForUser()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy2.csv');
+
+        $this->assertEquals($e->getDomainsForUser('alice'), ['domain1', 'domain2'], true);
+        $this->assertEquals($e->getDomainsForUser('bob'), ['domain2', 'domain3'], true);
+        $this->assertEquals($e->getDomainsForUser('user'), ['domain3'], true);
+    }
+
+    public function testGetAllRolesByDomain()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
+
+        $this->assertEquals(['admin'], $e->getAllRolesByDomain('domain1'));
+        $this->assertEquals(['admin'], $e->getAllRolesByDomain('domain2'));
+
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy2.csv');
+
+        $this->assertEquals(['admin'], $e->getAllRolesByDomain('domain1'));
+        $this->assertEquals(['admin'], $e->getAllRolesByDomain('domain2'));
+        $this->assertEquals(['user'], $e->getAllRolesByDomain('domain3'));
+    }
+
     public function testGetAllUsersByDomain()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_policy.csv');
@@ -396,9 +417,7 @@ class EnforcerTest extends TestCase
     public function testFailedToLoadPolicy()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
-        $e->addNamedMatchingFunc('g2', 'matchingFunc', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch2($key1, $key2);
-        });
+        $e->addNamedMatchingFunc('g2', 'matchingFunc', fn(string $key1, string $key2) => BuiltinOperations::keyMatch2($key1, $key2));
         $this->assertTrue($e->enforce('alice', '/pen/1', 'GET'));
         $this->assertTrue($e->enforce('alice', '/pen2/1', 'GET'));
         $e->setAdapter(new FileAdapter('not found'));
@@ -410,9 +429,7 @@ class EnforcerTest extends TestCase
     public function testReloadPolicyWithFunc()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
-        $e->addNamedMatchingFunc('g2', 'matchingFunc', function (string $key1, string $key2) {
-            return BuiltinOperations::keyMatch2($key1, $key2);
-        });
+        $e->addNamedMatchingFunc('g2', 'matchingFunc', fn(string $key1, string $key2) => BuiltinOperations::keyMatch2($key1, $key2));
         $this->assertTrue($e->enforce('alice', '/pen/1', 'GET'));
         $this->assertTrue($e->enforce('alice', '/pen2/1', 'GET'));
         $e->loadPolicy();
@@ -584,5 +601,108 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->getImplicitUsersForResourceByDomain('data1', 'domain1'), [['alice', 'domain1', 'data1', 'read'], ['alice', 'domain1', 'data1', 'write']]);
         $this->assertEquals($e->getImplicitUsersForResourceByDomain('data2', 'domain1'), []);
         $this->assertEquals($e->getImplicitUsersForResourceByDomain('data2', 'domain2'), [['bob', 'domain2', 'data2', 'read'], ['bob', 'domain2', 'data2', 'write']]);
+    }
+
+    public function testLinkConditionFunc()
+    {
+        $trueFunc = function (...$args) {
+            if (count($args) !== 0) {
+                return $args[0] === "_" || $args[0] === "true";
+            }
+            return false;
+        };
+    
+        $falseFunc = function (...$args) {
+            if (count($args) !== 0) {
+                return $args[0] === "_" || $args[0] === "false";
+            }
+            return false;
+        };
+    
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_temporal_roles_model.conf');
+    
+        $e->addPolicies([
+            ['alice', 'data1', 'read'],
+            ['alice', 'data1', 'write'],
+            ['data2_admin', 'data2', 'read'],
+            ['data2_admin', 'data2', 'write'],
+            ['data3_admin', 'data3', 'read'],
+            ['data3_admin', 'data3', 'write'],
+            ['data4_admin', 'data4', 'read'],
+            ['data4_admin', 'data4', 'write'],
+            ['data5_admin', 'data5', 'read'],
+            ['data5_admin', 'data5', 'write'],
+        ]);
+    
+        $e->addGroupingPolicies([
+            ['alice', 'data2_admin', '_', '_'],
+            ['alice', 'data3_admin', '_', '_'],
+            ['alice', 'data4_admin', '_', '_'],
+            ['alice', 'data5_admin', '_', '_'],
+        ]);
+    
+        $e->addNamedLinkConditionFunc('g', 'alice', 'data2_admin', $trueFunc);
+        $e->addNamedLinkConditionFunc('g', 'alice', 'data3_admin', $trueFunc);
+        $e->addNamedLinkConditionFunc('g', 'alice', 'data4_admin', $falseFunc);
+        $e->addNamedLinkConditionFunc('g', 'alice', 'data5_admin', $falseFunc);
+    
+        $e->setNamedLinkConditionFuncParams('g', 'alice', 'data2_admin', 'true');
+        $e->setNamedLinkConditionFuncParams('g', 'alice', 'data3_admin', 'not true');
+        $e->setNamedLinkConditionFuncParams('g', 'alice', 'data4_admin', 'false');
+        $e->setNamedLinkConditionFuncParams('g', 'alice', 'data5_admin', 'not false');
+    
+        $this->assertTrue($e->enforce('alice', 'data1', 'read'));
+        $this->assertTrue($e->enforce('alice', 'data1', 'write'));
+        $this->assertTrue($e->enforce('alice', 'data2', 'read'));
+        $this->assertTrue($e->enforce('alice', 'data2', 'write'));
+        $this->assertFalse($e->enforce('alice', 'data3', 'read'));
+        $this->assertFalse($e->enforce('alice', 'data3', 'write'));
+        $this->assertTrue($e->enforce('alice', 'data4', 'read'));
+        $this->assertTrue($e->enforce('alice', 'data4', 'write'));
+        $this->assertFalse($e->enforce('alice', 'data5', 'read'));
+        $this->assertFalse($e->enforce('alice', 'data5', 'write'));
+    
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domain_temporal_roles_model.conf');
+    
+        $e->addPolicies([
+            ['alice', 'domain1', 'data1', 'read'],
+            ['alice', 'domain1', 'data1', 'write'],
+            ['data2_admin', 'domain2', 'data2', 'read'],
+            ['data2_admin', 'domain2', 'data2', 'write'],
+            ['data3_admin', 'domain3', 'data3', 'read'],
+            ['data3_admin', 'domain3', 'data3', 'write'],
+            ['data4_admin', 'domain4', 'data4', 'read'],
+            ['data4_admin', 'domain4', 'data4', 'write'],
+            ['data5_admin', 'domain5', 'data5', 'read'],
+            ['data5_admin', 'domain5', 'data5', 'write'],
+        ]);
+    
+        $e->addGroupingPolicies([
+            ['alice', 'data2_admin', 'domain2', '_', '_'],
+            ['alice', 'data3_admin', 'domain3', '_', '_'],
+            ['alice', 'data4_admin', 'domain4', '_', '_'],
+            ['alice', 'data5_admin', 'domain5', '_', '_'],
+        ]);
+    
+        $e->addNamedDomainLinkConditionFunc('g', 'alice', 'data2_admin', 'domain2', $trueFunc);
+        $e->addNamedDomainLinkConditionFunc('g', 'alice', 'data3_admin', 'domain3', $trueFunc);
+        $e->addNamedDomainLinkConditionFunc('g', 'alice', 'data4_admin', 'domain4', $falseFunc);
+        $e->addNamedDomainLinkConditionFunc('g', 'alice', 'data5_admin', 'domain5', $falseFunc);
+    
+        $e->setNamedDomainLinkConditionFuncParams('g', 'alice', 'data2_admin', 'domain2', 'true');
+        $e->setNamedDomainLinkConditionFuncParams('g', 'alice', 'data3_admin', 'domain3', 'not true');
+        $e->setNamedDomainLinkConditionFuncParams('g', 'alice', 'data4_admin', 'domain4', 'false');
+        $e->setNamedDomainLinkConditionFuncParams('g', 'alice', 'data5_admin', 'domain5', 'not false');
+    
+        $this->assertTrue($e->enforce('alice', 'domain1', 'data1', 'read'));
+        $this->assertTrue($e->enforce('alice', 'domain1', 'data1', 'write'));
+        $this->assertTrue($e->enforce('alice', 'domain2', 'data2', 'read'));
+        $this->assertTrue($e->enforce('alice', 'domain2', 'data2', 'write'));
+        $this->assertFalse($e->enforce('alice', 'domain3', 'data3', 'read'));
+        $this->assertFalse($e->enforce('alice', 'domain3', 'data3', 'write'));
+        $this->assertTrue($e->enforce('alice', 'domain4', 'data4', 'read'));
+        $this->assertTrue($e->enforce('alice', 'domain4', 'data4', 'write'));
+        $this->assertFalse($e->enforce('alice', 'domain5', 'data5', 'read'));
+        $this->assertFalse($e->enforce('alice', 'domain5', 'data5', 'write'));
     }
 }

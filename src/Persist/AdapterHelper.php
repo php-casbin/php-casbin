@@ -59,7 +59,7 @@ trait AdapterHelper
             return;
         }
 
-        $rule = \array_slice($rule, 1);
+        $rule = array_slice($rule, 1);
         $assertion->policy[] = $rule;
         $assertion->policyMap[implode(Policy::DEFAULT_SEP, $rule)] = count($assertion->policy) - 1;
 

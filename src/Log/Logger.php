@@ -26,17 +26,51 @@ interface Logger
     public function isEnabled(): bool;
 
     /**
-     * Formats using the default formats for its operands and logs the message.
+     * Log model information.
      *
-     * @param mixed ...$v
+     * @param array $model
+     * 
+     * @return void
      */
-    public function write(...$v): void;
+    public function logModel(array $model): void;
 
     /**
-     * Formats according to a format specifier and logs the message.
+     * Log enforcer information.
      *
-     * @param string $format
-     * @param mixed  ...$v
+     * @param string $matcher
+     * @param array $request
+     * @param bool $result
+     * @param array $explains
+     * 
+     * @return void
      */
-    public function writef(string $format, ...$v): void;
+    public function logEnforce(string $matcher, array $request, bool $result, array $explains): void;
+
+    /**
+     * Log role information.
+     *
+     * @param array $roles
+     * 
+     * @return void
+     */
+    public function logRole(array $roles): void;
+
+    /**
+     * Log policy information.
+     *
+     * @param array $policy
+     * 
+     * @return void
+     */
+    public function logPolicy(array $policy): void;
+
+    /**
+     * Log error information.
+     *
+     * @param \Exception $err
+     * @param string ...$message
+     * 
+     * @return void
+     */
+    public function logError(\Exception $err, string ...$message): void;
 }

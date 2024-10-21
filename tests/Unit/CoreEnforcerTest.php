@@ -4,11 +4,14 @@ namespace Casbin\Tests\Unit;
 
 use Casbin\Enforcer;
 use Casbin\Exceptions\CasbinException;
+use Casbin\Log\Logger;
 use Casbin\Model\Model;
+use Casbin\Persist\Adapter;
 use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\Adapters\FileFilteredAdapter;
 use Casbin\Persist\Adapters\Filter;
 use Casbin\Rbac\RoleManager;
+use Mockery;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -23,13 +26,47 @@ class CoreEnforcerTest extends TestCase
     public function testInitWithEnableLog()
     {
         // The log is not enabled by default
-        $e = new \Casbin\Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv', true);
+        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $this->modelAndPolicyPath . '/basic_policy.csv', null, true);
 
         $this->assertTrue($e->enforce('alice', 'data1', 'read'));
 
         // The log can also be enabled or disabled at run-time.
         $e->enableLog(false);
         $this->assertTrue($e->enforce('alice', 'data1', 'read'));
+
+        // Test setting the logger at run-time.
+        $logger = Mockery::mock(Logger::class);
+        $logger->shouldReceive('enableLog')
+            ->with(true);
+        $logger->shouldReceive('isEnabled')
+            ->andReturn(true);
+        $logger->shouldReceive('logPolicy')
+            ->twice()
+            ->withAnyArgs();
+        $logger->shouldReceive('logModel')
+            ->twice()
+            ->withAnyArgs();
+        $logger->shouldReceive('logRole')
+            ->twice()
+            ->withAnyArgs();
+        // Prints basic rbac model and policys
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+        /** @var Logger $logger */
+        $e->setLogger($logger);
+        $e->enableLog(true);
+
+        $e->getModel()->printModel();
+        $e->getModel()->printPolicy();
+        $e->getRoleManager()->printRoles();
+
+        // Prints rbac model with domain and policys with keymatch
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_model.conf', $this->modelAndPolicyPath . '/rbac_with_domain_pattern_model_and_keymatch_policy.csv');
+        $e->setLogger($logger);
+        $e->enableLog(true);
+
+        $e->getModel()->printModel();
+        $e->getModel()->printPolicy();
+        $e->getRoleManager()->printRoles();
     }
 
     public function testEnableAutoSave()
@@ -60,7 +97,7 @@ class CoreEnforcerTest extends TestCase
 
     public function testInitEmpty()
     {
-        $e = new Enforcer(true);
+        $e = new Enforcer(enableLog: true);
 
         $m = Model::newModelFromString(
             <<<'EOT'
@@ -292,5 +329,21 @@ EOT
         $this->assertFalse($e->enforce('data1_deny_group', 'data1', 'write'));
         $this->assertTrue($e->enforce('data2_allow_group', 'data2', 'read'));
         $this->assertTrue($e->enforce('data2_allow_group', 'data2', 'write'));
+    }
+
+    public function testLoadPolicyError()
+    {
+        $this->expectException(CasbinException::class);
+        $this->expectExceptionMessage('loadPolicy error');
+        $adapter = Mockery::mock(Adapter::class);
+        $adapter->shouldReceive('loadPolicy')
+            ->once()
+            ->withAnyArgs()
+            ->andThrow(new CasbinException('loadPolicy error'));
+
+        /** @var Adapter $adapter */
+        $e = new Enforcer($this->modelAndPolicyPath . '/basic_model.conf', $adapter);
+
+        $e->loadPolicy();
     }
 }

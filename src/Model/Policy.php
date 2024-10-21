@@ -7,7 +7,8 @@ namespace Casbin\Model;
 use ArrayAccess;
 use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
-use Casbin\Log\Log;
+use Casbin\Log\Logger;
+use Casbin\Rbac\ConditionalRoleManager;
 use Casbin\Rbac\RoleManager;
 use Casbin\Util\Util;
 
@@ -31,7 +32,14 @@ abstract class Policy implements ArrayAccess
      *
      * @var array<string, array<string, Assertion>>
      */
-    protected $items = [];
+    protected array $items = [];
+
+    /**
+     * $logger.
+     *
+     * @var Logger|null
+     */
+    protected ?Logger $logger = null;
 
     /**
      * BuildIncrementalRoleLinks provides incremental build the role inheritance relations.
@@ -45,7 +53,7 @@ abstract class Policy implements ArrayAccess
      */
     public function buildIncrementalRoleLinks(array $rmMap, int $op, string $sec, string $ptype, array $rules): void
     {
-        if ($sec == "g") {
+        if ($sec == "g" && isset($rmMap[$ptype]) && isset($this->items[$sec][$ptype])) {
             $this->items[$sec][$ptype]->buildIncrementalRoleLinks($rmMap[$ptype], $op, $rules);
         }
     }
@@ -58,13 +66,54 @@ abstract class Policy implements ArrayAccess
      */
     public function buildRoleLinks(array $rmMap): void
     {
+        $this->printPolicy();
         if (!isset($this->items['g'])) {
             return;
         }
 
         foreach ($this->items['g'] as $ptype => $ast) {
-            $rm = $rmMap[$ptype];
-            $ast->buildRoleLinks($rm);
+            if (isset($rmMap[$ptype])) {
+                $rm = $rmMap[$ptype];
+                $ast->buildRoleLinks($rm);
+            }
+        }
+    }
+
+    /**
+     * BuildIncrementalConditionalRoleLinks provides incremental build the role inheritance relations.
+     *
+     * @param ConditionalRoleManager[] $condRmMap
+     * @param integer $op
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $rules
+     * @return void
+     */
+    public function buildIncrementalConditionalRoleLinks(array $condRmMap, int $op, string $sec, string $ptype, array $rules): void
+    {
+        if ($sec == "g" && isset($condRmMap[$ptype]) && isset($this->items[$sec][$ptype])) {
+            $this->items[$sec][$ptype]->buildIncrementalConditionalRoleLinks($condRmMap[$ptype], $op, $rules);
+        }
+    }
+
+    /**
+     * Initializes the roles in RBAC with conditions.
+     *
+     * @param ConditionalRoleManager[] $condRmMap
+     * @throws CasbinException
+     */
+    public function buildConditionalRoleLinks(array $condRmMap): void
+    {
+        $this->printPolicy();
+        if (!isset($this->items['g'])) {
+            return;
+        }
+
+        foreach ($this->items['g'] as $ptype => $ast) {
+            if (isset($condRmMap[$ptype])) {
+                $rm = $condRmMap[$ptype];
+                $ast->buildConditionalRoleLinks($rm);
+            }
         }
     }
 
@@ -73,16 +122,25 @@ abstract class Policy implements ArrayAccess
      */
     public function printPolicy(): void
     {
-        Log::logPrint('Policy:');
+        if (!$this->getLogger()->isEnabled()) {
+            return;
+        }
 
+        $policy = [];
         foreach (['p', 'g'] as $sec) {
             if (!isset($this->items[$sec])) {
-                return;
+                continue;
             }
-            foreach ($this->items[$sec] as $key => $ast) {
-                Log::logPrint($key, ': ', $ast->value, ': ', $ast->policy);
+
+            foreach ($this->items[$sec] as $ptype => $ast) {
+                $policy[$ptype] = array_merge(
+                    $policy[$ptype] ?? [],
+                    $ast->policy
+                );
             }
         }
+
+        $this->getLogger()->logPolicy($policy);
     }
 
     /**
@@ -533,6 +591,34 @@ abstract class Policy implements ArrayAccess
     {
         $assertion = &$this->items['p'][$ptype];
         $assertion->fieldIndexMap[$field] = $index;
+    }
+
+    /**
+     * Sets the current logger.
+     *
+     * @param Logger $logger
+     *
+     * @return void
+     */
+    public function setLogger(Logger $logger): void
+    {
+        foreach ($this->items as $sec => $astMap) {
+            foreach ($astMap as $ast) {
+                $ast->setLogger($logger);
+            }
+        }
+
+        $this->logger = $logger;
+    }
+
+    /**
+     * Returns the current logger.
+     *
+     * @return Logger
+     */
+    public function getLogger(): Logger
+    {
+        return $this->logger;
     }
 
     /**

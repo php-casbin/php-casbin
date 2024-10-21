@@ -37,6 +37,14 @@ class UtilTest extends TestCase
         $this->assertEquals($a, ['green', 'red', 'blue']);
     }
 
+    public function testSetEquals()
+    {
+        $this->assertEquals(Util::setEquals(['a', 'b', 'c'], ['a', 'b', 'c']), true);
+        $this->assertEquals(Util::setEquals(['a', 'b', 'c'], ['a', 'b']), false);
+        $this->assertEquals(Util::setEquals(['a', 'b', 'c'], ['a', 'c', 'b']), true);
+        $this->assertEquals(Util::setEquals(['a', 'b', 'c'], []), false);
+    }
+
     public function testContainEval()
     {
         $this->assertEquals(Util::hasEval('eval() && a && b &&c'), true);

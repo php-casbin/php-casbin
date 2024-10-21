@@ -8,7 +8,7 @@ use Casbin\Config\Config;
 use Casbin\Config\ConfigContract;
 use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
-use Casbin\Log\Log;
+use Casbin\Log\Logger\DefaultLogger;
 use Casbin\Util\Util;
 
 /**
@@ -26,7 +26,7 @@ class Model extends Policy
     /**
      * @var array<string, string>
      */
-    protected $sectionNameMap = [
+    protected array $sectionNameMap = [
         'r' => 'request_definition',
         'p' => 'policy_definition',
         'g' => 'role_definition',
@@ -34,8 +34,14 @@ class Model extends Policy
         'm' => 'matchers',
     ];
 
+    /**
+     * @var string
+     */
+    protected string $paramsRegex = '/\((.*?)\)/';
+
     public function __construct()
     {
+        $this->setLogger(new DefaultLogger());
     }
 
     public function __clone()
@@ -66,6 +72,22 @@ class Model extends Policy
     }
 
     /**
+     * Get ParamsToken from Assertion.Value
+     *
+     * @param string $value
+     *
+     * @return array
+     */
+    private function getParamsToken(string $value): array
+    {
+        if (!preg_match($this->paramsRegex, $value, $paramsString)) {
+            return [];
+        };
+        $paramsString = trim(substr($paramsString[0], 1, -1));
+        return explode(',', $paramsString);
+    }
+
+    /**
      * Adds an assertion to the model.
      *
      * @param string $sec
@@ -90,6 +112,10 @@ class Model extends Policy
             foreach ($ast->tokens as $i => $token) {
                 $ast->tokens[$i] = $key . '_' . trim($token);
             }
+        } else if ('g' == $sec) {
+            $ast->paramsTokens = $this->getParamsToken($ast->value);
+            $ast->tokens = explode(',', $ast->value);
+            $ast->tokens = array_slice($ast->tokens, 0, count($ast->tokens) - count($ast->paramsTokens));
         } else {
             $ast->value = Util::removeComments(Util::escapeAssertion($ast->value));
         }
@@ -121,7 +147,7 @@ class Model extends Policy
     private function loadSection(ConfigContract $cfg, string $sec): void
     {
         $i = 1;
-        for (; ;) {
+        for (;;) {
             if (!$this->loadAssertion($cfg, $sec, $sec . $this->getKeySuffix($i))) {
                 break;
             } else {
@@ -215,12 +241,18 @@ class Model extends Policy
      */
     public function printModel(): void
     {
-        Log::logPrint('Model:');
-        foreach ($this->items as $k => $v) {
-            foreach ($v as $i => $j) {
-                Log::logPrintf('%s.%s: %s', $k, $i, $j->value);
+        if (!$this->getLogger()->isEnabled()) {
+            return;
+        }
+
+        $modelInfo = [];
+        foreach ($this->items as $sec => $astMap) {
+            foreach ($astMap as $key => $ast) {
+                $modelInfo[] = [$sec, $key, $ast->value];
             }
         }
+
+        $this->getLogger()->logModel($modelInfo);
     }
 
     /**
@@ -302,7 +334,7 @@ class Model extends Policy
         foreach ($this->items['p'] as $ptype => $assertion) {
             try {
                 $domainIndex = $this->getFieldIndex($ptype, Constants::DOMAIN_INDEX);
-            } catch (CasbinException $e) {
+            } catch (CasbinException) {
                 $domainIndex = -1;
             }
             $policies = &$assertion->policy;
@@ -338,7 +370,7 @@ class Model extends Policy
         foreach ($this->items['p'] as $ptype => $assertion) {
             try {
                 $priorityIndex = $this->getFieldIndex($ptype, Constants::PRIORITY_INDEX);
-            } catch (CasbinException $e) {
+            } catch (CasbinException) {
                 continue;
             }
             $policies = &$assertion->policy;

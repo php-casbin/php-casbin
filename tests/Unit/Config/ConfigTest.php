@@ -42,7 +42,7 @@ EOT
         $this->assertEquals('act.wiki', $cfg->getString('url'));
 
         $v = $cfg->getStrings('redis::redis.key');
-        $this->assertTrue(2 == \count($v) && 'push1' == $v[0] && 'push2' == $v[1]);
+        $this->assertTrue(2 == count($v) && 'push1' == $v[0] && 'push2' == $v[1]);
 
         $v = $cfg->getString('mysql::mysql.dev.host');
         $this->assertEquals('127.0.0.1', $v);

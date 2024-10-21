@@ -42,14 +42,24 @@ class BuiltinOperationsTest extends TestCase
         return BuiltinOperations::globMatchFunc($name1, $name2);
     }
 
-    public function keyGetFunc($name1, $name2)
+    private function keyGetFunc($name1, $name2)
     {
         return BuiltinOperations::KeyGetFunc($name1, $name2);
     }
 
-    public function keyGet2Func($name1, $name2, $pathVar)
+    private function keyGet2Func($name1, $name2, $pathVar)
     {
         return BuiltinOperations::KeyGet2Func($name1, $name2, $pathVar);
+    }
+
+    private function regexMatchFunc($name1, $name2)
+    {
+        return BuiltinOperations::regexMatchFunc($name1, $name2);
+    }
+
+    private function ipMatchFunc($ip1, $ip2)
+    {
+        return BuiltinOperations::ipMatchFunc($ip1, $ip2);
     }
 
     public function testKeyMatchFunc()
@@ -208,5 +218,37 @@ class BuiltinOperationsTest extends TestCase
         $this->assertEquals('', $this->keyGet2Func("/alice/all", "/:id", "id"));
 
         $this->assertEquals('', $this->keyGet2Func("/alice/all", "/:/all", ""));
+    }
+
+    public function testRegexMatchFunc()
+    {
+        $this->assertTrue($this->regexMatchFunc("/topic/create", "/topic/create"));
+        $this->assertTrue($this->regexMatchFunc("/topic/create/123", "/topic/create"));
+        $this->assertFalse($this->regexMatchFunc("/topic/delete", "/topic/create"));
+        $this->assertFalse($this->regexMatchFunc("/topic/edit", "/topic/edit/[0-9]+"));
+        $this->assertTrue($this->regexMatchFunc("/topic/edit/123", "/topic/edit/[0-9]+"));
+        $this->assertFalse($this->regexMatchFunc("/topic/edit/abc", "/topic/edit/[0-9]+"));
+        $this->assertFalse($this->regexMatchFunc("/foo/delete/123", "/topic/delete/[0-9]+"));
+        $this->assertTrue($this->regexMatchFunc("/topic/delete/0", "/topic/delete/[0-9]+"));
+        $this->assertFalse($this->regexMatchFunc("/topic/edit/123s", "/topic/delete/[0-9]+"));
+    }
+
+    public function testIPMatchFunc()
+    {
+        // ipv4
+        $this->assertTrue($this->ipMatchFunc("192.168.2.123", "192.168.2.0/24"));
+        $this->assertFalse($this->ipMatchFunc("192.168.2.123", "192.168.3.0/24"));
+        $this->assertTrue($this->ipMatchFunc("192.168.2.123", "192.168.2.0/16"));
+        $this->assertTrue($this->ipMatchFunc("192.168.2.123", "192.168.2.123"));
+        $this->assertTrue($this->ipMatchFunc("192.168.2.123", "192.168.2.123/32"));
+        $this->assertTrue($this->ipMatchFunc("10.0.0.11", "10.0.0.0/8"));
+        $this->assertFalse($this->ipMatchFunc("11.0.0.123", "10.0.0.0/8"));
+        // ipv6
+        $this->assertTrue($this->ipMatchFunc('2001:db8::ffff', '2001:db8::/64'));
+        $this->assertTrue($this->ipMatchFunc('2a00:1450:400c:c04::6a', '2a00:1450::/32'));
+        $this->assertFalse($this->ipMatchFunc('2001:db8:ffff::', '2001:db8::/64'));
+        $this->assertTrue($this->ipMatchFunc('2001:0db8:85a3:08d3:1319:8a2e:0370:7347', '2001:0db8:85a3:08d3::/64'));
+        $this->assertTrue($this->ipMatchFunc('2001:0db8:85a3:08d3:1319:8a2e:0370:7347', '2001:0db8:85a3:08d3:1319:8a2e:0370:7347'));
+        $this->assertFalse($this->ipMatchFunc('2001:0db8:85a3:08d3:1319:8a2e:0370:7347', '2001:0db8:85a3:08d3::'));
     }
 }
