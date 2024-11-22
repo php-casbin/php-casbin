@@ -423,7 +423,7 @@ class BuiltinOperations
      *
      * @return Closure
      */
-    public static function generateGFunction(RoleManager $rm = null): Closure
+    public static function generateGFunction(?RoleManager $rm = null): Closure
     {
         $memorized = [];
         return function (...$args) use ($rm, &$memorized) {
@@ -457,7 +457,7 @@ class BuiltinOperations
      *
      * @return Closure
      */
-    public static function generateConditionalGFunction(ConditionalRoleManager $crm = null): Closure
+    public static function generateConditionalGFunction(?ConditionalRoleManager $crm = null): Closure
     {
         return function (...$args) use ($crm) {
             $name1 = $args[0];
