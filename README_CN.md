@@ -1,8 +1,7 @@
 PHP-Casbin
 ====
 
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/php-casbin/php-casbin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/php-casbin/php-casbin/?branch=master)
-[![Default](https://github.com/php-casbin/php-casbin/workflows/build/badge.svg?branch=master)](https://github.com/php-casbin/php-casbin/actions)
+[![PHPUnit](https://github.com/php-casbin/php-casbin/actions/workflows/phpunit.yml/badge.svg)](https://github.com/php-casbin/php-casbin/actions/workflows/phpunit.yml)
 [![Coverage Status](https://coveralls.io/repos/github/php-casbin/php-casbin/badge.svg)](https://coveralls.io/github/php-casbin/php-casbin)
 [![Latest Stable Version](https://poser.pugx.org/casbin/casbin/v/stable)](https://packagist.org/packages/casbin/casbin)
 [![Total Downloads](https://poser.pugx.org/casbin/casbin/downloads)](https://packagist.org/packages/casbin/casbin)

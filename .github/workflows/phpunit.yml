@@ -1,4 +1,4 @@
-name: build
+name: PHPUnit
 
 on: [push, pull_request]
 
@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.0, 8.1]
+        php: [8.4]
 
     name: Benchmark PHP ${{ matrix.php }}
 
