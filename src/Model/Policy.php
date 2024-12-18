@@ -8,8 +8,7 @@ use ArrayAccess;
 use Casbin\Constant\Constants;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Log\Logger;
-use Casbin\Rbac\ConditionalRoleManager;
-use Casbin\Rbac\RoleManager;
+use Casbin\Rbac\{ConditionalRoleManager, RoleManager};
 use Casbin\Util\Util;
 
 /**
@@ -565,18 +564,23 @@ abstract class Policy implements ArrayAccess
         if (isset($assertion->fieldIndexMap[$field])) {
             return $assertion->fieldIndexMap[$field];
         }
+
         $pattern = $ptype . '_' . $field;
         $index = -1;
+
         foreach ($assertion->tokens as $i => $token) {
             if ($token == $pattern) {
                 $index = $i;
                 break;
             }
         }
+
         if ($index == -1) {
             throw new CasbinException($field . ' index is not set, please use enforcer.SetFieldIndex() to set index');
         }
+
         $assertion->fieldIndexMap[$field] = $index;
+
         return $index;
     }
 
@@ -602,11 +606,9 @@ abstract class Policy implements ArrayAccess
      */
     public function setLogger(Logger $logger): void
     {
-        foreach ($this->items as $sec => $astMap) {
-            foreach ($astMap as $ast) {
-                $ast->setLogger($logger);
-            }
-        }
+        array_walk($this->items, function (array $astMap) use ($logger) {
+            array_walk($astMap, fn(Assertion $ast) => $ast->setLogger($logger));
+        });
 
         $this->logger = $logger;
     }

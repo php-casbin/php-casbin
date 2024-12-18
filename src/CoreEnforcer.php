@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Casbin;
 
-use Casbin\Effector\DefaultEffector;
-use Casbin\Effector\Effector;
-use Casbin\Exceptions\CasbinException;
-use Casbin\Exceptions\EvalFunctionException;
-use Casbin\Exceptions\InvalidFilePathException;
+use Casbin\Effector\{DefaultEffector, Effector};
+use Casbin\Exceptions\{CasbinException, EvalFunctionException, InvalidFilePathException};
 use Casbin\Log\Logger;
 use Casbin\Log\Logger\DefaultLogger;
 use Casbin\Model\FunctionMap;
@@ -16,16 +13,13 @@ use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\FilteredAdapter;
-use Casbin\Persist\Watcher;
-use Casbin\Persist\WatcherEx;
+use Casbin\Persist\{Watcher, WatcherEx};
 use Casbin\Rbac\DefaultRoleManager\ConditionalDomainManager as DefaultConditionalDomainManager;
 use Casbin\Rbac\DefaultRoleManager\ConditionalRoleManager as DefaultConditionalRoleManager;
 use Casbin\Rbac\DefaultRoleManager\RoleManager as DefaultRoleManager;
 use Casbin\Rbac\DefaultRoleManager\DomainManager as DefaultDomainManager;
-use Casbin\Rbac\ConditionalRoleManager;
-use Casbin\Rbac\RoleManager;
-use Casbin\Util\BuiltinOperations;
-use Casbin\Util\Util;
+use Casbin\Rbac\{ConditionalRoleManager, RoleManager};
+use Casbin\Util\{BuiltinOperations, Util};
 use Closure;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
@@ -162,6 +156,7 @@ class CoreEnforcer
         if (is_null($model) && is_null($adapter)) {
             return;
         }
+        
         if (is_string($model)) {
             if (is_string($adapter) || is_null($adapter)) {
                 $this->initWithFile($model, $adapter ?? '');
@@ -334,9 +329,7 @@ class CoreEnforcer
     public function setWatcher(Watcher $watcher): void
     {
         $this->watcher = $watcher;
-        $this->watcher->setUpdateCallback(function () {
-            $this->loadPolicy();
-        });
+        $this->watcher->setUpdateCallback(fn () => $this->loadPolicy());
     }
 
     /**
@@ -809,7 +802,7 @@ class CoreEnforcer
                     $policyEffects[$policyIndex] = Effector::ALLOW;
                 }
 
-                list($effect, $explainIndex) = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults, $policyIndex, $policyLen);
+                [$effect, $explainIndex] = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults, $policyIndex, $policyLen);
                 if ($effect != Effector::INDETERMINATE) {
                     break;
                 }
@@ -834,7 +827,7 @@ class CoreEnforcer
                 $policyEffects[0] = Effector::INDETERMINATE;
             }
 
-            list($effect, $explainIndex) = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults, 0, 1);
+            [$effect, $explainIndex] = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults, 0, 1);
         }
 
         if ($explains !== null) {
@@ -859,11 +852,11 @@ class CoreEnforcer
     {
         $expressionLanguage = new ExpressionLanguage();
         foreach ($functions as $key => $func) {
-            $expressionLanguage->register($key, function (...$args) use ($key) {
-                return sprintf($key . '(%1$s)', implode(',', $args));
-            }, function ($arguments, ...$args) use ($func) {
-                return $func(...$args);
-            });
+            $expressionLanguage->register(
+                $key, 
+                static fn (...$args): string => sprintf($key . '(%1$s)', implode(',', $args)),
+                static fn ($arguments, ...$args) => $func(...$args)
+            );
         }
 
         return $expressionLanguage;
@@ -878,9 +871,7 @@ class CoreEnforcer
     {
         return preg_replace_callback(
             '/([\s\S]*in\s+)\(([\s\S]+)\)([\s\S]*)/',
-            function ($m) {
-                return $m[1] . '[' . $m[2] . ']' . $m[3];
-            },
+            static fn($m): string => $m[1] . '[' . $m[2] . ']' . $m[3],
             $expString
         );
     }
@@ -964,9 +955,7 @@ class CoreEnforcer
      */
     public function batchEnforce(array $requests): array
     {
-        return array_map(function (array $request) {
-            return  $this->enforce(...$request);
-        }, $requests);
+        return array_map(fn (array $request) => $this->enforce(...$request), $requests);
     }
 
     /**
@@ -978,9 +967,7 @@ class CoreEnforcer
      */
     public function batchEnforceWithMatcher(string $matcher, array $requests): array
     {
-        return array_map(function (array $request) use ($matcher) {
-            return  $this->enforceWithMatcher($matcher, ...$request);
-        }, $requests);
+        return array_map(fn (array $request) => $this->enforceWithMatcher($matcher, ...$request), $requests);
     }
 
     /**

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Casbin\Log\Logger;
 
 use Casbin\Log\Logger;
-use Psr\Log\AbstractLogger;
-use Psr\Log\LoggerInterface;
+use Psr\Log\{AbstractLogger, LoggerInterface};
 
 /**
  * Class DefaultLogger.

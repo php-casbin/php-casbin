@@ -6,7 +6,6 @@ namespace Casbin;
 
 use Casbin\Contracts\CacheableParam;
 use Casbin\Exceptions\CasbinException;
-use Casbin\Log\Log;
 use Casbin\Log\Logger;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;

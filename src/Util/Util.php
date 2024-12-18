@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Casbin\Util;
 
-use Casbin\Exceptions\CasbinException;
-
 /**
  * Class Util.
  *
@@ -31,9 +29,11 @@ class Util
             }
         }
 
-        $ss = preg_replace_callback("~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)((r|p)[0-9]*)(\.)~", function ($m) {
-            return $m[1] . $m[2] . '_';
-        }, $s);
+        $ss = preg_replace_callback(
+            "~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)((r|p)[0-9]*)(\.)~", 
+            static fn ($m): string => $m[1] . $m[2] . '_',
+            $s
+        );
 
         return is_string($ss) ? $ss : $s;
     }
@@ -178,7 +178,7 @@ class Util
             return $ipAddress === $cidrAddress;
         }
 
-        list($subnet, $prefixLength) = explode('/', $cidrAddress);
+        [$subnet, $prefixLength] = explode('/', $cidrAddress);
         $prefixLength = intval($prefixLength);
         // IPv6
         if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {

@@ -165,6 +165,7 @@ class FileFilteredAdapter extends FileAdapter implements FilteredAdapter
         if (count($line) < count($filter) + 1) {
             return true;
         }
+        
         $skipLine = false;
         foreach ($filter as $i => $v) {
             if (strlen($v) > 0 && \trim($v) != trim($line[$i + 1])) {

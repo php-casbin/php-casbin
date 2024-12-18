@@ -109,6 +109,7 @@ class FileAdapter implements Adapter, BatchAdapter, UpdatableAdapter
         while ($line = fgets($file)) {
             $this->loadPolicyLine(trim($line), $model);
         }
+        
         fclose($file);
     }
 
