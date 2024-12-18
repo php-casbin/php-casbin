@@ -75,9 +75,7 @@ class ConditionalDomainManager extends ConditionalRoleManager
         $rm = &$this->getRoleManager($domain, true);
         $rm->addLink($name1, $name2);
 
-        $this->rangeAffectedRoleManagers($domain, function (&$rm) use ($name1, $name2) {
-            $rm->addLink($name1, $name2);
-        });
+        $this->rangeAffectedRoleManagers($domain, static fn (&$rm) => $rm->addLink($name1, $name2));
     }
 
     /**
@@ -95,9 +93,7 @@ class ConditionalDomainManager extends ConditionalRoleManager
         $rm = &$this->getRoleManager($domain, true);
         $rm->deleteLink($name1, $name2);
 
-        $this->rangeAffectedRoleManagers($domain, function (&$rm) use ($name1, $name2) {
-            $rm->deleteLink($name1, $name2);
-        });
+        $this->rangeAffectedRoleManagers($domain, static fn (&$rm) => $rm->deleteLink($name1, $name2));
     }
 
     /**

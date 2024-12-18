@@ -288,8 +288,9 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
      */
     public function copyFrom(ConditionalRoleManager &$roleManager): void
     {
-        $this->rangeLinks($roleManager->allRoles, function ($name1, $name2, $domain) {
-            $this->addLink($name1, $name2, $domain);
-        });
+        $this->rangeLinks(
+            $roleManager->allRoles, 
+            fn ($name1, $name2, $domain) => $this->addLink($name1, $name2, $domain),
+        );
     }
 }

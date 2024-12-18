@@ -32,7 +32,7 @@ trait AdapterHelper
         }
 
         $tokens = array_map(function($item){
-            return trim(is_null($item) ? "" : $item);
+            return trim($item ?? $item);
         }, str_getcsv($line, ",", '"', ""));
 
         $this->loadPolicyArray($tokens, $model);

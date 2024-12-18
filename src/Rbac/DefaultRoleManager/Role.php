@@ -122,6 +122,7 @@ class Role
         foreach ($this->matched as &$role) {
             $this->removeMatch($role);
         }
+        
         foreach ($this->matchedBy as &$role) {
             $role->removeMatch($this);
         }
@@ -204,7 +205,7 @@ class Role
     public function getRoles(): array
     {
         $names = [];
-        $this->rangeRoles(function ($name, $role) use (&$names) {
+        $this->rangeRoles(static function ($name, $role) use (&$names) {
             $names[] = $name;
         });
         return Util::removeDumplicateElement($names);
@@ -216,7 +217,7 @@ class Role
     public function getUsers(): array
     {
         $names = [];
-        $this->rangeUsers(function ($name, $user) use (&$names) {
+        $this->rangeUsers(static function ($name, $user) use (&$names) {
             $names[] = $name;
         });
         return $names;

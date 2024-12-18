@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Casbin\Util;
 
-use Casbin\Rbac\ConditionalRoleManager;
-use Casbin\Rbac\RoleManager;
-use Closure;
-use DateTime;
-use Exception;
+use Casbin\Rbac\{ConditionalRoleManager, RoleManager};
+use Closure, DateTime, Exception;
 
 /**
  * Class BuiltinOperations.
@@ -46,8 +43,7 @@ class BuiltinOperations
      */
     public static function keyMatchFunc(...$args): bool
     {
-        $name1 = $args[0];
-        $name2 = $args[1];
+        [$name1, $name2] = $args;
 
         return self::keyMatch($name1, $name2);
     }
@@ -83,8 +79,7 @@ class BuiltinOperations
      */
     public static function keyGetFunc(...$args)
     {
-        $name1 = $args[0];
-        $name2 = $args[1];
+        [$name1, $name2] = $args;
 
         return self::keyGet($name1, $name2);
     }
@@ -107,13 +102,7 @@ class BuiltinOperations
 
         $pattern = '/:[^\/]+/';
 
-        $key2 = preg_replace_callback(
-            $pattern,
-            function ($m) {
-                return '[^\/]+';
-            },
-            $key2
-        );
+        $key2 = preg_replace_callback($pattern, static fn ($m) => '[^\/]+', $key2);
 
         return self::regexMatch($key1, '^' . $key2 . '$');
     }
@@ -127,8 +116,7 @@ class BuiltinOperations
      */
     public static function keyMatch2Func(...$args): bool
     {
-        $name1 = $args[0];
-        $name2 = $args[1];
+        [$name1, $name2] = $args;
 
         return self::keyMatch2($name1, $name2);
     }
@@ -151,13 +139,7 @@ class BuiltinOperations
         $keys = [];
         preg_match_all($pattern, $key2, $keys);
         $keys = $keys[0];
-        $key2 = preg_replace_callback(
-            $pattern,
-            function ($m) {
-                return '([^\/]+)';
-            },
-            $key2
-        );
+        $key2 = preg_replace_callback($pattern, static fn ($m): string => '([^\/]+)', $key2);
 
         $key2 = "~^" . $key2 . "$~";
         $values = [];
@@ -166,11 +148,13 @@ class BuiltinOperations
         if (count($values) === 0) {
             return '';
         }
+
         foreach ($keys as $i => $key) {
             if ($pathVar == substr($key, 1)) {
                 return $values[$i + 1];
             }
         }
+
         return '';
     }
 
@@ -182,9 +166,7 @@ class BuiltinOperations
      */
     public static function keyGet2Func(...$args)
     {
-        $name1 = $args[0];
-        $name2 = $args[1];
-        $key   = $args[2];
+        [$name1, $name2, $key] = $args;
 
         return self::keyGet2($name1, $name2, $key);
     }
@@ -203,13 +185,7 @@ class BuiltinOperations
         $key2 = str_replace(['/*'], ['/.*'], $key2);
 
         $pattern = '/\{[^\/]+\}/';
-        $key2 = preg_replace_callback(
-            $pattern,
-            function ($m) {
-                return '[^\/]+';
-            },
-            $key2
-        );
+        $key2 = preg_replace_callback($pattern, static fn ($m): string => '[^\/]+', $key2);
 
         return self::regexMatch($key1, '^' . $key2 . '$');
     }
@@ -223,8 +199,7 @@ class BuiltinOperations
      */
     public static function keyMatch3Func(...$args): bool
     {
-        $name1 = $args[0];
-        $name2 = $args[1];
+        [$name1, $name2] = $args;
 
         return self::keyMatch3($name1, $name2);
     }
@@ -283,8 +258,7 @@ class BuiltinOperations
      */
     public static function keyMatch4Func(...$args): bool
     {
-        $name1 = $args[0];
-        $name2 = $args[1];
+        [$name1, $name2] = $args;
 
         return self::keyMatch4($name1, $name2);
     }
@@ -317,8 +291,7 @@ class BuiltinOperations
      */
     public static function keyMatch5Func(...$args): bool
     {
-        $name1 = $args[0];
-        $name2 = $args[1];
+        [$name1, $name2] = $args;
 
         return self::keyMatch5($name1, $name2);
     }
@@ -345,8 +318,7 @@ class BuiltinOperations
      */
     public static function regexMatchFunc(...$args): bool
     {
-        $name1 = $args[0];
-        $name2 = $args[1];
+        [$name1, $name2] = $args;
 
         return self::regexMatch($name1, $name2);
     }
@@ -378,8 +350,7 @@ class BuiltinOperations
      */
     public static function ipMatchFunc(...$args): bool
     {
-        $ip1 = $args[0];
-        $ip2 = $args[1];
+        [$ip1, $ip2] = $args;
 
         return self::ipMatch($ip1, $ip2);
     }
@@ -433,8 +404,7 @@ class BuiltinOperations
                 return $memorized[$key];
             }
 
-            $name1 = $args[0];
-            $name2 = $args[1];
+            [$name1, $name2] = $args;
 
             if (null === $rm) {
                 $v = $name1 == $name2;
@@ -460,8 +430,7 @@ class BuiltinOperations
     public static function generateConditionalGFunction(?ConditionalRoleManager $crm = null): Closure
     {
         return function (...$args) use ($crm) {
-            $name1 = $args[0];
-            $name2 = $args[1];
+            [$name1, $name2] = $args;
 
             if (is_null($crm)) {
                 $v = $name1 == $name2;
@@ -485,8 +454,7 @@ class BuiltinOperations
      */
     public static function timeMatchFunc(...$args): bool
     {
-        $startTime = $args[0];
-        $endTime = $args[1];
+        [$startTime, $endTime] = $args;
 
         return self::timeMatch($startTime, $endTime);
     }
