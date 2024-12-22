@@ -413,7 +413,7 @@ class CoreEnforcer
      */
     public function applyModifiedModel(Model $newModel): void
     {
-        $flag = false;
+        $ok = false;
         $needToRebuild = false;
 
         try {
@@ -424,11 +424,9 @@ class CoreEnforcer
                 $this->rebuildConditionalRoleLinks($newModel);
             }
             $this->model = $newModel;
-        } catch (\Throwable $e) {
-            $flag = true;
-            throw $e;
+            $ok = true;
         } finally {
-            if ($flag) {
+            if (!$ok) {
                 if ($this->autoBuildRoleLinks && $needToRebuild) {
                     $this->buildRoleLinks();
                 }
