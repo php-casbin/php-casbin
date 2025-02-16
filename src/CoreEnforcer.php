@@ -82,7 +82,7 @@ class CoreEnforcer
 
     /**
      * CondRmMap.
-     * 
+     *
      * @var array<string, ConditionalRoleManager>
      */
     protected array $condRmMap;
@@ -156,7 +156,7 @@ class CoreEnforcer
         if (is_null($model) && is_null($adapter)) {
             return;
         }
-        
+
         if (is_string($model)) {
             if (is_string($adapter) || is_null($adapter)) {
                 $this->initWithFile($model, $adapter ?? '');
@@ -329,7 +329,7 @@ class CoreEnforcer
     public function setWatcher(Watcher $watcher): void
     {
         $this->watcher = $watcher;
-        $this->watcher->setUpdateCallback(fn () => $this->loadPolicy());
+        $this->watcher->setUpdateCallback(fn() => $this->loadPolicy());
     }
 
     /**
@@ -723,22 +723,20 @@ class CoreEnforcer
         $pTokens = array_values($this->model['p'][$pType]->tokens);
 
         if (count($rTokens) != count($rvals)) {
-            throw new CasbinException(\sprintf('invalid request size: expected %d, got %d', count($rTokens), count($rvals)));
+            throw new CasbinException(\sprintf('invalid request size: expected %d, got %d, rvals: %s', count($rTokens), count($rvals), json_encode($rvals)));
         }
         $rParameters = array_combine($rTokens, $rvals);
 
-        if (false == $rParameters) {
-            throw new CasbinException('invalid request size');
+        $parameters = [];
+        $hasEval = Util::hasEval($expString);
+        if ($hasEval) {
+            $functions['eval'] = function (string $exp) use ($functions, &$parameters) {
+                return $this->getExpressionLanguage($functions)->evaluate(Util::escapeAssertion($exp), $parameters);
+            };
         }
 
         $expressionLanguage = $this->getExpressionLanguage($functions);
-        $expression = "";
-
-        $hasEval = Util::hasEval($expString);
-
-        if (!$hasEval) {
-            $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
-        }
+        $expression = $expressionLanguage->parse($expString, array_merge($rTokens, $pTokens));
 
         $policyEffects = [];
         $matcherResults = [];
@@ -749,29 +747,11 @@ class CoreEnforcer
         $policyLen = count($this->model['p'][$pType]->policy);
         if (0 != $policyLen && str_contains($expString, $pType . '_')) {
             foreach ($this->model['p'][$pType]->policy as $policyIndex => $pvals) {
-                $parameters = array_combine($pTokens, $pvals);
-                if (false == $parameters) {
-                    throw new CasbinException('invalid policy size');
+                if (count($pTokens) != count($pvals)) {
+                    throw new CasbinException(sprintf("invalid policy size: expected %d, got %d, pvals: %s", count($pTokens), count($pvals), json_encode($pvals)));
                 }
 
-                if ($hasEval) {
-                    $ruleNames = Util::getEvalValue($expString);
-                    $replacements = [];
-                    $pTokens_flipped = array_flip($pTokens);
-                    foreach ($ruleNames as $ruleName) {
-                        if (isset($pTokens_flipped[$ruleName])) {
-                            $rule = Util::escapeAssertion($pvals[$pTokens_flipped[$ruleName]]);
-                            $replacements[$ruleName] = $rule;
-                        } else {
-                            throw new CasbinException('please make sure rule exists in policy when using eval() in matcher');
-                        }
-                    }
-
-                    $expWithRule = Util::replaceEvalWithMap($expString, $replacements);
-                    $expression = $expressionLanguage->parse($expWithRule, array_merge($rTokens, $pTokens));
-                }
-
-                $parameters = array_merge($rParameters, $parameters);
+                $parameters = array_merge($rParameters, array_combine($pTokens, $pvals));
                 $result = $expressionLanguage->evaluate($expression, $parameters);
 
                 // set to no-match at first
@@ -851,9 +831,9 @@ class CoreEnforcer
         $expressionLanguage = new ExpressionLanguage();
         foreach ($functions as $key => $func) {
             $expressionLanguage->register(
-                $key, 
-                static fn (...$args): string => sprintf($key . '(%1$s)', implode(',', $args)),
-                static fn ($arguments, ...$args) => $func(...$args)
+                $key,
+                static fn(...$args): string => sprintf($key . '(%1$s)', implode(',', $args)),
+                static fn($arguments, ...$args) => $func(...$args)
             );
         }
 
@@ -953,7 +933,7 @@ class CoreEnforcer
      */
     public function batchEnforce(array $requests): array
     {
-        return array_map(fn (array $request) => $this->enforce(...$request), $requests);
+        return array_map(fn(array $request) => $this->enforce(...$request), $requests);
     }
 
     /**
@@ -965,7 +945,7 @@ class CoreEnforcer
      */
     public function batchEnforceWithMatcher(string $matcher, array $requests): array
     {
-        return array_map(fn (array $request) => $this->enforceWithMatcher($matcher, ...$request), $requests);
+        return array_map(fn(array $request) => $this->enforceWithMatcher($matcher, ...$request), $requests);
     }
 
     /**
@@ -1004,15 +984,14 @@ class CoreEnforcer
         return false;
     }
 
-    /** 
+    /**
      * AddNamedLinkConditionFunc Add condition function fn for Link userName->roleName,
      * when fn returns true, Link is valid, otherwise invalid.
-     * 
+     *
      * @param string $ptype
      * @param string $user
      * @param string $role
      * @param Closure $fn
-
      * @return boolean
      */
     public function addNamedLinkConditionFunc(string $ptype, string $user, string $role, Closure $fn): bool
@@ -1028,13 +1007,13 @@ class CoreEnforcer
     /**
      * AddNamedDomainLinkConditionFunc Add condition function fn for Link userName-> {roleName, domain},
      * when fn returns true, Link is valid, otherwise invalid.
-     * 
+     *
      * @param string $ptype
      * @param string $user
      * @param string $role
      * @param string $domain
      * @param Closure $fn
-     * 
+     *
      * @return boolean
      */
     public function addNamedDomainLinkConditionFunc(string $ptype, string $user, string $role, string $domain, Closure $fn): bool
@@ -1049,12 +1028,12 @@ class CoreEnforcer
 
     /**
      * SetNamedLinkConditionFuncParams Sets the parameters of the condition function fn for Link userName->roleName.
-     * 
+     *
      * @param string $ptype
      * @param string $user
      * @param string $role
      * @param string ...$params
-     * 
+     *
      * @return boolean
      */
     public function setNamedLinkConditionFuncParams(string $ptype, string $user, string $role, string ...$params): bool
@@ -1068,15 +1047,15 @@ class CoreEnforcer
     }
 
     /**
-     * SetNamedDomainLinkConditionFuncParams Sets the parameters of the condition function fn 
+     * SetNamedDomainLinkConditionFuncParams Sets the parameters of the condition function fn
      * for Link userName->{roleName, domain}.
-     * 
+     *
      * @param string $ptype
      * @param string $user
      * @param string $role
      * @param string $domain
      * @param string ...$params
-     * 
+     *
      * @return boolean
      */
     public function setNamedDomainLinkConditionFuncParams(string $ptype, string $user, string $role, string $domain, string ...$params): bool
