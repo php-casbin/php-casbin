@@ -22,6 +22,7 @@ use Casbin\Rbac\{ConditionalRoleManager, RoleManager};
 use Casbin\Util\{BuiltinOperations, Util};
 use Closure;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
+use function sprintf;
 
 /**
  * Class CoreEnforcer
@@ -589,7 +590,7 @@ class CoreEnforcer
                         $this->condRmMap[$ptype] = $value->condRm;
                     }
                     $matchFunc = 'keyMatch(r_dom, p_dom)';
-                    if (str_contains($this->model['m']['m']->value, $matchFunc)) {
+                    if (isset($this->model['m']['m']) && str_contains($this->model['m']['m']->value, $matchFunc)) {
                         $this->addNamedDomainMatchingFunc('g', 'keyMatch', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
                     }
                 }
@@ -712,18 +713,25 @@ class CoreEnforcer
                 break;
         }
 
-        $expString = '';
-        if ('' === $matcher) {
-            $expString = $this->model['m'][$mType]->value;
-        } else {
-            $expString = Util::removeComments(Util::escapeAssertion($matcher));
+        $expString = '' === $matcher ? $this->model['m'][$mType]->value : Util::removeComments(Util::escapeAssertion($matcher));
+
+        if (!isset($this->model['r'][$rType])){
+            throw new CasbinException(sprintf('rType[%s] not defined', $rType));
+        }
+
+        if (!isset($this->model['p'][$pType])){
+            throw new CasbinException(sprintf('pType[%s] not defined', $pType));
+        }
+
+        if (!isset($this->model['e'][$eType])){
+            throw new CasbinException(sprintf('eType[%s] not defined', $eType));
         }
 
         $rTokens = array_values($this->model['r'][$rType]->tokens);
         $pTokens = array_values($this->model['p'][$pType]->tokens);
 
         if (count($rTokens) != count($rvals)) {
-            throw new CasbinException(\sprintf('invalid request size: expected %d, got %d, rvals: %s', count($rTokens), count($rvals), json_encode($rvals)));
+            throw new CasbinException(sprintf('invalid request size: expected %d, got %d, rvals: %s', count($rTokens), count($rvals), json_encode($rvals)));
         }
         $rParameters = array_combine($rTokens, $rvals);
 
@@ -843,9 +851,9 @@ class CoreEnforcer
     /**
      * @param string $expString
      *
-     * @return string
+     * @return string|null
      */
-    protected function getExpString(string $expString): string
+    protected function getExpString(string $expString): string|null
     {
         return preg_replace_callback(
             '/([\s\S]*in\s+)\(([\s\S]+)\)([\s\S]*)/',

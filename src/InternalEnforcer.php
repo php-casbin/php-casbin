@@ -51,7 +51,7 @@ class InternalEnforcer extends CoreEnforcer
 
         if ($this->shouldPersist()) {
             try {
-                $this->adapter->addPolicy($sec, $ptype, $rule);
+                $this->adapter?->addPolicy($sec, $ptype, $rule);
             } catch (NotImplementedException $e) {
             }
         }
@@ -185,7 +185,7 @@ class InternalEnforcer extends CoreEnforcer
     {
         if ($this->shouldPersist()) {
             try {
-                $this->adapter->removePolicy($sec, $ptype, $rule);
+                $this->adapter?->removePolicy($sec, $ptype, $rule);
             } catch (NotImplementedException $e) {
             }
         }
@@ -250,7 +250,7 @@ class InternalEnforcer extends CoreEnforcer
     {
         if ($this->shouldPersist()) {
             try {
-                $this->adapter->removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
+                $this->adapter?->removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
             } catch (NotImplementedException $e) {
             }
         }
@@ -327,7 +327,7 @@ class InternalEnforcer extends CoreEnforcer
             if ($this->watcher instanceof WatcherEx) {
                 $this->watcher->updateForAddPolicy($sec, $ptype, ...$rule);
             } else {
-                $this->watcher->update();
+                $this->watcher?->update();
             }
         }
 
@@ -351,7 +351,7 @@ class InternalEnforcer extends CoreEnforcer
         }
 
         if ($this->shouldNotify()) {
-            $this->watcher->update();
+            $this->watcher?->update();
         }
 
         return true;
@@ -378,7 +378,7 @@ class InternalEnforcer extends CoreEnforcer
                 if ($this->watcher instanceof WatcherUpdatable) {
                     $this->watcher->updateForUpdatePolicy($oldRule, $newRule);
                 } else {
-                    $this->watcher->update();
+                    $this->watcher?->update();
                 }
             } catch (\Exception $e) {
                 $this->logger->logError($e);
@@ -411,7 +411,7 @@ class InternalEnforcer extends CoreEnforcer
                 if ($this->watcher instanceof WatcherUpdatable) {
                     $this->watcher->updateForUpdatePolicies($oldRules, $newRules);
                 } else {
-                    $this->watcher->update();
+                    $this->watcher?->update();
                 }
             } catch (\Exception $e) {
                 $this->logger->logError($e);
@@ -441,7 +441,7 @@ class InternalEnforcer extends CoreEnforcer
             if ($this->watcher instanceof WatcherEx) {
                 $this->watcher->updateForRemovePolicy($sec, $ptype, ...$rule);
             } else {
-                $this->watcher->update();
+                $this->watcher?->update();
             }
         }
 
@@ -465,7 +465,7 @@ class InternalEnforcer extends CoreEnforcer
 
         if ($this->shouldNotify()) {
             // error intentionally ignored
-            $this->watcher->update();
+            $this->watcher?->update();
         }
 
         return true;
@@ -492,7 +492,7 @@ class InternalEnforcer extends CoreEnforcer
             if ($this->watcher instanceof WatcherEx) {
                 $this->watcher->updateForRemoveFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
             } else {
-                $this->watcher->update();
+                $this->watcher?->update();
             }
         }
 
@@ -522,7 +522,7 @@ class InternalEnforcer extends CoreEnforcer
             if ($this->watcher instanceof WatcherUpdatable) {
                 $this->watcher->updateForUpdatePolicies($oldRules, $newRules);
             } else {
-                $this->watcher->update();
+                $this->watcher?->update();
             }
             return true;
         }

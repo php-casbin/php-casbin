@@ -31,9 +31,10 @@ trait AdapterHelper
             return;
         }
 
-        $tokens = array_map(function($item){
-            return trim($item ?? $item);
-        }, str_getcsv($line, ",", '"', ""));
+        $tokens = array_map(
+            fn($item) => $item ? trim($item) : '',
+            str_getcsv($line, ",", '"', ""),
+        );
 
         $this->loadPolicyArray($tokens, $model);
     }

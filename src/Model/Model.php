@@ -241,7 +241,7 @@ class Model extends Policy
      */
     public function printModel(): void
     {
-        if (!$this->getLogger()->isEnabled()) {
+        if (!$this->getLogger()?->isEnabled()) {
             return;
         }
 

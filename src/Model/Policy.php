@@ -121,7 +121,7 @@ abstract class Policy implements ArrayAccess
      */
     public function printPolicy(): void
     {
-        if (!$this->getLogger()->isEnabled()) {
+        if (!$this->getLogger()?->isEnabled()) {
             return;
         }
 
@@ -616,9 +616,9 @@ abstract class Policy implements ArrayAccess
     /**
      * Returns the current logger.
      *
-     * @return Logger
+     * @return Logger|null
      */
-    public function getLogger(): Logger
+    public function getLogger(): ?Logger
     {
         return $this->logger;
     }

@@ -214,7 +214,7 @@ class Assertion
 
             match ($op) {
                 Policy::POLICY_ADD => $this->addConditionalRoleLink($rule, $domainRule),
-                Policy::POLICY_REMOVE => $this->condRm->deleteLink($rule[0], $rule[1], ...array_slice($rule, 2)),
+                Policy::POLICY_REMOVE => $this->condRm?->deleteLink($rule[0], $rule[1], ...array_slice($rule, 2)),
                 default => throw new CasbinException('invalid policy operation')
             };
         }
@@ -229,12 +229,12 @@ class Assertion
     public function addConditionalRoleLink(array $rule, array $domainRule): void
     {
         if (count($domainRule) === 0) {
-            $this->condRm->addLink($rule[0], $rule[1]);
-            $this->condRm->setLinkConditionFuncParams($rule[0], $rule[1], ...array_slice($rule, count($this->tokens)));
+            $this->condRm?->addLink($rule[0], $rule[1]);
+            $this->condRm?->setLinkConditionFuncParams($rule[0], $rule[1], ...array_slice($rule, count($this->tokens)));
         } else {
             $domain = $domainRule[0];
-            $this->condRm->addLink($rule[0], $rule[1], $domain);
-            $this->condRm->setDomainLinkConditionFuncParams($rule[0], $rule[1], $domain, ...array_slice($rule, count($this->tokens)));
+            $this->condRm?->addLink($rule[0], $rule[1], $domain);
+            $this->condRm?->setDomainLinkConditionFuncParams($rule[0], $rule[1], $domain, ...array_slice($rule, count($this->tokens)));
         }
     }
 }

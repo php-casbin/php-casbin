@@ -22,11 +22,11 @@ class Enforcer extends ManagementEnforcer
      *
      * @param string $name
      * @param string ...$domain
-     * @return string[]
+     * @return string[]|null
      */
-    public function getRolesForUser(string $name, string ...$domain): array
+    public function getRolesForUser(string $name, string ...$domain): ?array
     {
-        return $this->model['g']['g']->rm->getRoles($name, ...$domain);
+        return isset($this->model['g']['g']) ? $this->model['g']['g']->rm?->getRoles($name, ...$domain) : [];
     }
 
     /**
@@ -35,11 +35,11 @@ class Enforcer extends ManagementEnforcer
      * @param string $name
      * @param string ...$domain
      *
-     * @return string[]
+     * @return string[]|null
      */
-    public function getUsersForRole(string $name, string ...$domain): array
+    public function getUsersForRole(string $name, string ...$domain): ?array
     {
-        return $this->model['g']['g']->rm->getUsers($name, ...$domain);
+        return isset($this->model['g']['g']) ? $this->model['g']['g']->rm?->getUsers($name, ...$domain) : [];
     }
 
     /**
@@ -55,7 +55,7 @@ class Enforcer extends ManagementEnforcer
     {
         $roles = $this->getRolesForUser($name, ...$domain);
 
-        return in_array($role, $roles, true);
+        return in_array($role, $roles ?? [], true);
     }
 
     /**
@@ -190,7 +190,7 @@ class Enforcer extends ManagementEnforcer
      * Returns false if the user or role already has one of the permissions (aka not affected).
      *
      * @param string $user
-     * @param array  ...$permissions
+     * @param array ...$permissions
      * @return bool
      */
     public function addPermissionsForUser(string $user, array ...$permissions): bool
@@ -243,7 +243,7 @@ class Enforcer extends ManagementEnforcer
     public function getPermissionsForUser(string $user, string ...$domain): array
     {
         $permission = [];
-        foreach ($this->model['p'] as $ptype => $assertion) {
+        foreach ($this->model['p'] ?? [] as $ptype => $assertion) {
             $args = [];
             $subIndex = $this->model->getFieldIndex('p', Constants::SUBJECT_INDEX);
             $args[$subIndex] = $user;
@@ -494,9 +494,9 @@ class Enforcer extends ManagementEnforcer
 
     /**
      * Convert permissions to string as a hash to deduplicate.
-     * 
+     *
      * @param array $permissions
-     * 
+     *
      * @return array
      */
     private function removeDumplicatePermissions(array $permissions): array
@@ -519,22 +519,22 @@ class Enforcer extends ManagementEnforcer
 
     /**
      * GetAllowedObjectConditions returns a string array of object conditions that the user can access.
-     * For example: conditions, err := e.GetAllowedObjectConditions("alice", "read", "r.obj.")  
-     * Note:  
-     * 
+     * For example: conditions, err := e.GetAllowedObjectConditions("alice", "read", "r.obj.")
+     * Note:
+     *
      * 0. prefix: You can customize the prefix of the object conditions, and "r.obj." is commonly used as a prefix.
      * After removing the prefix, the remaining part is the condition of the object.
-     * If there is an obj policy that does not meet the prefix requirement, an ObjConditionException will be thrown.  
-     * 
+     * If there is an obj policy that does not meet the prefix requirement, an ObjConditionException will be thrown.
+     *
      * 1. If the 'objectConditions' array is empty, an EmptyConditionException will be thrown.
      * This error is thrown because some data adapters' ORM return full table data by default
      * when they receive an empty condition, which tends to behave contrary to expectations.(e.g. DBALAdapter)
-     * If you are using an adapter that does not behave like this, you can choose to ignore this error.  
-     * 
+     * If you are using an adapter that does not behave like this, you can choose to ignore this error.
+     *
      * @param string $user
      * @param string $action
      * @param string $prefix
-     * 
+     *
      * @return array
      * @throws ObjConditionException
      * @throws EmptyConditionException
@@ -563,15 +563,15 @@ class Enforcer extends ManagementEnforcer
 
     /**
      * GetImplicitUsersForResource return implicit user based on resource.
-     * For example:  
-     * p, alice, data1, read  
-     * p, bob, data2, write  
-     * p, data2_admin, data2, read  
-     * p, data2_admin, data2, write  
-     * g, alice, data2_admin  
-     * GetImplicitUsersForResource("data2") will return [[bob data2 write] [alice data2 read] [alice data2 write]]  
-     * GetImplicitUsersForResource("data1") will return [[alice data1 read]]  
-     * Note: only users will be returned, roles (2nd arg in "g") will be excluded.  
+     * For example:
+     * p, alice, data1, read
+     * p, bob, data2, write
+     * p, data2_admin, data2, read
+     * p, data2_admin, data2, write
+     * g, alice, data2_admin
+     * GetImplicitUsersForResource("data2") will return [[bob data2 write] [alice data2 read] [alice data2 write]]
+     * GetImplicitUsersForResource("data1") will return [[alice data1 read]]
+     * Note: only users will be returned, roles (2nd arg in "g") will be excluded.
      *
      * @param string $resource
      *
@@ -586,6 +586,10 @@ class Enforcer extends ManagementEnforcer
 
         $roles = $this->getAllRoles();
         $isRole = array_flip($roles);
+
+        if (!isset($this->model['p']['p'])) {
+            return $permissions;
+        }
 
         foreach ($this->model['p']['p']->policy as $rule) {
             $obj = $rule[$objIndex];
@@ -608,17 +612,16 @@ class Enforcer extends ManagementEnforcer
             }
         }
 
-        $res = $this->removeDumplicatePermissions($permissions);
-        return $res;
+        return $this->removeDumplicatePermissions($permissions);
     }
 
     /**
      * GetImplicitUsersForResourceByDomain return implicit user based on resource and domain.
      * Compared to GetImplicitUsersForResource, domain is supported.
-     * 
+     *
      * @param string $resource
      * @param string $domain
-     * 
+     *
      * @return array
      */
     public function getImplicitUsersForResourceByDomain(string $resource, string $domain): array
@@ -631,6 +634,10 @@ class Enforcer extends ManagementEnforcer
 
         $roles = $this->getAllRolesByDomain($domain);
         $isRole = array_flip($roles);
+
+        if (!isset($this->model['p']['p'])) {
+            return $permissions;
+        }
 
         foreach ($this->model['p']['p']->policy as $rule) {
             $obj = $rule[$objIndex];
@@ -656,8 +663,7 @@ class Enforcer extends ManagementEnforcer
             }
         }
 
-        $res = $this->removeDumplicatePermissions($permissions);
-        return $res;
+        return $this->removeDumplicatePermissions($permissions);
     }
 
     /**
@@ -665,17 +671,18 @@ class Enforcer extends ManagementEnforcer
      *
      * @param string $domain
      * @return string[]
+     * @throws CasbinException
      */
     public function getAllUsersByDomain(string $domain): array
     {
         $m = [];
-        $g = $this->model['g']['g'];
-        $p = $this->model['p']['p'];
+        $g = $this->model['g']['g'] ?? null;
+        $p = $this->model['p']['p'] ?? null;
         $users = [];
         $index = $this->model->getFieldIndex('p', Constants::DOMAIN_INDEX);
 
-        $getUser = function (int $index, array $policies, string $domain, array $m): array {
-            if (count($policies) == 0 || count($policies[0]) <= $index) {
+        $getUser = function (int $index, ?array $policies, string $domain, array $m): array {
+            if (is_null($policies) || count($policies) == 0 || count($policies[0]) <= $index) {
                 return [];
             }
             $res = [];
@@ -689,8 +696,8 @@ class Enforcer extends ManagementEnforcer
             return $res;
         };
 
-        $users = array_merge($users, $getUser(2, $g->policy, $domain, $m));
-        $users = array_merge($users, $getUser($index, $p->policy, $domain, $m));
+        $users = array_merge($users, $getUser(2, $g?->policy, $domain, $m));
+        $users = array_merge($users, $getUser($index, $p?->policy, $domain, $m));
         return $users;
     }
 
@@ -700,11 +707,11 @@ class Enforcer extends ManagementEnforcer
      * @param string $name
      * @param string $domain
      *
-     * @return array
+     * @return array|null
      */
-    public function getUsersForRoleInDomain(string $name, string $domain): array
+    public function getUsersForRoleInDomain(string $name, string $domain): ?array
     {
-        return $this->model['g']['g']->rm->getUsers($name, $domain);
+        return isset($this->model['g']['g']) ? $this->model['g']['g']->rm?->getUsers($name, $domain) : [];
     }
 
     /**
@@ -713,11 +720,11 @@ class Enforcer extends ManagementEnforcer
      * @param string $name
      * @param string $domain
      *
-     * @return array
+     * @return array|null
      */
-    public function getRolesForUserInDomain(string $name, string $domain): array
+    public function getRolesForUserInDomain(string $name, string $domain): ?array
     {
-        return $this->model['g']['g']->rm->getRoles($name, $domain);
+        return isset($this->model['g']['g']) ? $this->model['g']['g']->rm?->getRoles($name, $domain) : [];
     }
 
     /**
@@ -774,10 +781,10 @@ class Enforcer extends ManagementEnforcer
      */
     public function deleteRolesForUserInDomain(string $user, string $domain): bool
     {
-        $roles = $this->model['g']['g']->rm->getRoles($user, $domain);
+        $roles = isset($this->model['g']['g']) ? $this->model['g']['g']->rm?->getRoles($user, $domain) : [];
 
         $rules = [];
-        foreach ($roles as $role) {
+        foreach ($roles ?? [] as $role) {
             $rules[] = [$user, $role, $domain];
         }
 
@@ -792,12 +799,12 @@ class Enforcer extends ManagementEnforcer
      */
     public function deleteAllUsersByDomain(string $domain): bool
     {
-        $g = $this->model['g']['g'];
-        $p = $this->model['p']['p'];
+        $g = $this->model['g']['g'] ?? null;
+        $p = $this->model['p']['p'] ?? null;
         $index = $this->model->getFieldIndex('p', Constants::DOMAIN_INDEX);
 
-        $getUser = function (int $index, array $policies, string $domain): array {
-            if (count($policies) == 0 || count($policies[0]) <= $index) {
+        $getUser = function (int $index, ?array $policies, string $domain): array {
+            if (is_null($policies) || count($policies) == 0 || count($policies[0]) <= $index) {
                 return [];
             }
             $res = [];
@@ -809,9 +816,9 @@ class Enforcer extends ManagementEnforcer
             return $res;
         };
 
-        $users = $getUser(2, $g->policy, $domain);
+        $users = $getUser(2, $g?->policy, $domain);
         $this->removeGroupingPolicies($users);
-        $users = $getUser($index, $p->policy, $domain);
+        $users = $getUser($index, $p?->policy, $domain);
         $this->removePolicies($users);
         return true;
     }
@@ -837,7 +844,7 @@ class Enforcer extends ManagementEnforcer
 
     /**
      * GetAllDomains would get all domains.
-     * 
+     *
      * @return array
      */
     public function getAllDomains(): array
@@ -848,15 +855,15 @@ class Enforcer extends ManagementEnforcer
     /**
      * GetAllRolesByDomain would get all roles associated with the domain.
      * Note: Not applicable to Domains with inheritance relationship  (implicit roles)
-     * 
+     *
      * @param string $domain
-     * 
+     *
      * @return array
      */
     public function getAllRolesByDomain(string $domain): array
     {
-        $g = $this->model['g']['g'];
-        $policies = $g->policy;
+        $g = $this->model['g']['g'] ?? null;
+        $policies = $g ? $g->policy : [];
         $roles = [];
         $existMap = [];
 

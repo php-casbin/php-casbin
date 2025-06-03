@@ -14,7 +14,7 @@ use Exception;
 /**
  * Class ConditionalRoleManager.
  * Provides a default implementation for the ConditionalRoleManager interface.
- * 
+ *
  * @author 1692898084@qq.com
  */
 class ConditionalRoleManager implements ConditionalRoleManagerContract
@@ -108,7 +108,7 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
      * @param Role $nextRole
      * @param array $domain
      * @param array $nextRoles
-     * 
+     *
      * @return bool
      */
     protected function getNextRoles(Role $currentRole, Role $nextRole, array $domain, array &$nextRoles): bool
@@ -119,13 +119,13 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
                 $linkConditionFunc = $this->getLinkConditionFunc($currentRole->name, $nextRole->name);
                 if (!is_null($linkConditionFunc)) {
                     $params = $this->getLinkConditionFuncParams($currentRole->name, $nextRole->name);
-                    $passLinkConditionFunc = $linkConditionFunc(...$params);
+                    $passLinkConditionFunc = $linkConditionFunc(...($params ?? []));
                 }
             } else {
                 $linkConditionFunc = $this->getDomainLinkConditionFunc($currentRole->name, $nextRole->name, $domain[0]);
                 if (!is_null($linkConditionFunc)) {
                     $params = $this->getDomainLinkConditionFuncParams($currentRole->name, $nextRole->name, $domain[0]);
-                    $passLinkConditionFunc = $linkConditionFunc(...$params);
+                    $passLinkConditionFunc = $linkConditionFunc(...($params ?? []));
                 }
             }
         } catch (Exception $e) {
@@ -155,7 +155,7 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
      * @param string $userName
      * @param string $roleName
      * @param string $domain
-     * 
+     *
      * @return Closure|null
      */
     private function getDomainLinkConditionFunc(string $userName, string $roleName, string $domain): ?Closure
@@ -183,7 +183,7 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
     /**
      * @param string $userName
      * @param string $roleName
-     * 
+     *
      * @return array|null
      */
     private function getLinkConditionFuncParams(string $userName, string $roleName): ?array
@@ -195,7 +195,7 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
      * @param string $userName
      * @param string $roleName
      * @param string $domain
-     * 
+     *
      * @return array|null
      */
     private function getDomainLinkConditionFuncParams(string $userName, string $roleName, string $domain): ?array
@@ -289,8 +289,8 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
     public function copyFrom(ConditionalRoleManager &$roleManager): void
     {
         $this->rangeLinks(
-            $roleManager->allRoles, 
-            fn ($name1, $name2, $domain) => $this->addLink($name1, $name2, $domain),
+            $roleManager->allRoles,
+            fn($name1, $name2, $domain) => $this->addLink($name1, $name2, $domain),
         );
     }
 }

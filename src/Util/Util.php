@@ -118,9 +118,9 @@ class Util
      *
      * @param string $src
      * @param array $sets
-     * @return string
+     * @return string|null
      */
-    public static function replaceEvalWithMap(string $src, array $sets): string
+    public static function replaceEvalWithMap(string $src, array $sets): ?string
     {
         return preg_replace_callback(self::REGEXP, function ($matches) use ($sets): string {
             $key = $matches['rule'];
