@@ -36,7 +36,7 @@ final class Config implements ConfigContract
      */
     public static function newConfig(string $confName): ConfigContract
     {
-        $c = new static();
+        $c = new Config();
         $c->parse($confName);
 
         return $c;
@@ -93,7 +93,7 @@ final class Config implements ConfigContract
     {
         $buf = file_get_contents($fname);
 
-        return $buf === false ? false : $this->parseBuffer($buf);
+        return !($buf === false) && $this->parseBuffer($buf);
     }
 
     /**
@@ -134,9 +134,10 @@ final class Config implements ConfigContract
 
             if ('' == $line || self::DEFAULT_COMMENT == substr($line, 0, 1) || self::DEFAULT_COMMENT_SEM == substr($line, 0, 1)) {
                 $canWrite = true;
-
                 continue;
-            } elseif ('[' == substr($line, 0, 1) && ']' == substr($line, -1)) {
+            }
+
+            if (str_starts_with($line, '[') && str_ends_with($line, ']')) {
                 if (\strlen($buffer) > 0) {
                     $this->write($section, $lineNum, $buffer);
                     $canWrite = false;
