@@ -77,7 +77,7 @@ class BuiltinOperations
      * @param mixed ...$args
      * @return string
      */
-    public static function keyGetFunc(...$args)
+    public static function keyGetFunc(...$args): string
     {
         [$name1, $name2] = $args;
 
@@ -164,7 +164,7 @@ class BuiltinOperations
      * @param mixed ...$args
      * @return string
      */
-    public static function keyGet2Func(...$args)
+    public static function keyGet2Func(...$args): string
     {
         [$name1, $name2, $key] = $args;
 
