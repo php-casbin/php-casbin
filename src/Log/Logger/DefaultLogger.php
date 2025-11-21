@@ -51,7 +51,7 @@ class DefaultLogger implements Logger
                 $this->path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'casbin.log';
             }
 
-            public function log($level, $message, array $context = []): void
+            public function log($level, string|\Stringable $message, array $context = []): void
             {
                 $timestamp = date('Y-m-d H:i:s');
                 $message = (string) $message;
