@@ -8,10 +8,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.0, 8.1, 8.2, 8.3, 8.4]
-        stability: [ prefer-lowest, prefer-stable ]
+        php: [8.0, 8.1, 8.2, 8.3, 8.4, 8.5]
 
-    name: Test PHP ${{ matrix.php }} - ${{ matrix.stability }}
+    name: Test PHP ${{ matrix.php }}
 
     steps:
       - name: Checkout code
@@ -41,7 +40,7 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: ${{ runner.os }} - ${{ matrix.php }} - ${{ matrix.stability }}
+          COVERALLS_FLAG_NAME: ${{ runner.os }} - ${{ matrix.php }}
         run: ./vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
 
   benchmark:
@@ -49,7 +48,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.4]
+        php: [8.5]
 
     name: Benchmark PHP ${{ matrix.php }}
 
