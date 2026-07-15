@@ -419,4 +419,19 @@ class RoleManagerTest extends TestCase
         $rm->deleteLink('u1', 'g1', '*');
         $this->assertEquals($rm->hasLink('u1', 'root', 'domain1'), false);
     }
+
+    public function testConditionalDomainManagerTransitiveLinkCondition()
+    {
+        // u1 --[true]--> g1 --[false]--> root, all in domain1
+        $rm = new ConditionalDomainManager(10);
+        $rm->addLink('u1', 'g1', 'domain1');
+        $rm->addLink('g1', 'root', 'domain1');
+        $rm->addDomainLinkConditionFunc('u1', 'g1', 'domain1', fn() => true);
+        $rm->addDomainLinkConditionFunc('g1', 'root', 'domain1', fn() => false);
+        $rm->setDomainLinkConditionFuncParams('u1', 'g1', 'domain1');
+        $rm->setDomainLinkConditionFuncParams('g1', 'root', 'domain1');
+
+        $this->assertEquals($rm->hasLink('u1', 'root', 'domain1'), false);
+        $this->assertEquals($rm->hasLink('u1', 'g1', 'domain1'), true);
+    }
 }

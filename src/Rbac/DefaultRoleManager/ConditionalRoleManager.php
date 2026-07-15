@@ -100,7 +100,7 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
             }
         }
 
-        return $this->hasLinkHelper($targetName, $nextRoles, $level - 1);
+        return $this->hasLinkHelper($targetName, $nextRoles, $level - 1, ...$domain);
     }
 
     /**
