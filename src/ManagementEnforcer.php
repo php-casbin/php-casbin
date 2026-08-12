@@ -106,6 +106,20 @@ class ManagementEnforcer extends InternalEnforcer
     }
 
     /**
+     * Gets the list of users that show up in the current policy.
+     * Users are subjects that are not roles (i.e., subjects that do not appear as the second element in any grouping policy).
+     *
+     * @return array
+     */
+    public function getAllUsers(): array
+    {
+        $subjects = $this->getAllSubjects();
+        $roles = $this->getAllRoles();
+
+        return array_values(array_diff($subjects, $roles));
+    }
+
+    /**
      * Gets all the authorization rules in the policy.
      *
      * @return array

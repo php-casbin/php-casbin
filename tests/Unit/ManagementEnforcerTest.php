@@ -54,6 +54,7 @@ class ManagementEnforcerTest extends TestCase
         $this->assertEquals($e->getAllObjects(), ['data1', 'data2']);
         $this->assertEquals($e->getAllActions(), ['read', 'write']);
         $this->assertEquals($e->getAllRoles(), ['data2_admin']);
+        $this->assertEquals($e->getAllUsers(), ['alice', 'bob']);
         $this->assertEquals($e->getAllDomains(), ['']);
     }
 
@@ -65,6 +66,7 @@ class ManagementEnforcerTest extends TestCase
         $this->assertEquals($e->getAllObjects(), ['data1', 'data2']);
         $this->assertEquals($e->getAllActions(), ['read', 'write']);
         $this->assertEquals($e->getAllRoles(), ['admin']);
+        $this->assertEquals($e->getAllUsers(), []);
         $this->assertEquals($e->getAllDomains(), ['domain1', 'domain2']);
     }
 
