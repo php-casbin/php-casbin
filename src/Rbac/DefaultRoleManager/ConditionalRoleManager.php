@@ -141,6 +141,210 @@ class ConditionalRoleManager implements ConditionalRoleManagerContract
     }
 
     /**
+     * Gets the roles that a user inherits, respecting link conditions.
+     * domain is a prefix to the roles.
+     *
+     * @param string $name
+     * @param string ...$domains
+     *
+     * @return string[]
+     */
+    public function getRoles(string $name, string ...$domains): array
+    {
+        $userGet = &$this->getRole($name);
+        $user = &$userGet[0];
+        $userCreated = $userGet[1];
+
+        try {
+            $roles = [];
+            $user->rangeRoles(function (string $roleName) use ($name, $domains, &$roles): void {
+                if ($this->checkLinkCondition($name, $roleName, $domains)) {
+                    $roles[] = $roleName;
+                }
+            });
+
+            return $roles;
+        } finally {
+            if ($userCreated) {
+                $this->removeRole($user->name);
+            }
+        }
+    }
+
+    /**
+     * Gets the users that inherits a role, respecting link conditions.
+     * domain is a prefix to the users.
+     *
+     * @param string $name
+     * @param string ...$domains
+     *
+     * @return string[]
+     */
+    public function getUsers(string $name, string ...$domains): array
+    {
+        $roleGet = &$this->getRole($name);
+        $role = &$roleGet[0];
+        $roleCreated = $roleGet[1];
+
+        try {
+            $users = [];
+            $role->rangeUsers(function (string $userName) use ($name, $domains, &$users): void {
+                if ($this->checkLinkCondition($userName, $name, $domains)) {
+                    $users[] = $userName;
+                }
+            });
+
+            return $users;
+        } finally {
+            if ($roleCreated) {
+                $this->removeRole($role->name);
+            }
+        }
+    }
+
+    /**
+     * Gets the implicit roles that a user inherits, respecting maxHierarchyLevel and link conditions.
+     * domain is a prefix to the roles.
+     *
+     * @param string $name
+     * @param string ...$domain
+     *
+     * @return string[]
+     */
+    public function getImplicitRoles(string $name, string ...$domain): array
+    {
+        $roleGet = &$this->getRole($name);
+        $role = &$roleGet[0];
+        $roleCreated = $roleGet[1];
+
+        try {
+            $res = [];
+            $roleSet = [$name => true];
+            $roles = [$role->name => $role];
+
+            return $this->getImplicitRolesHelper($roles, $roleSet, $res, 0, $domain);
+        } finally {
+            if ($roleCreated) {
+                $this->removeRole($role->name);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, Role> $roles
+     * @param array<string, bool> $roleSet
+     * @param string[] $res
+     * @param int $level
+     * @param array $domains
+     *
+     * @return string[]
+     */
+    protected function getImplicitRolesHelper(array $roles, array &$roleSet, array $res, int $level, array $domains): array
+    {
+        if ($level >= $this->maxHierarchyLevel || count($roles) == 0) {
+            return $res;
+        }
+
+        $nextRoles = [];
+        foreach ($roles as $role) {
+            $role->rangeRoles(function (string $roleName, Role $nextRole) use ($role, $domains, &$roleSet, &$res, &$nextRoles): void {
+                if (!isset($roleSet[$roleName]) && $this->checkLinkCondition($role->name, $roleName, $domains)) {
+                    $res[] = $roleName;
+                    $roleSet[$roleName] = true;
+                    $nextRoles[$roleName] = $nextRole;
+                }
+            });
+        }
+
+        return $this->getImplicitRolesHelper($nextRoles, $roleSet, $res, $level + 1, $domains);
+    }
+
+    /**
+     * Gets the implicit users that inherits a role, respecting maxHierarchyLevel and link conditions.
+     * domain is a prefix to the users.
+     *
+     * @param string $name
+     * @param string ...$domain
+     *
+     * @return string[]
+     */
+    public function getImplicitUsers(string $name, string ...$domain): array
+    {
+        $roleGet = &$this->getRole($name);
+        $role = &$roleGet[0];
+        $roleCreated = $roleGet[1];
+
+        try {
+            $res = [];
+            $userSet = [$name => true];
+            $users = [$role->name => $role];
+
+            return $this->getImplicitUsersHelper($users, $userSet, $res, 0, $domain);
+        } finally {
+            if ($roleCreated) {
+                $this->removeRole($role->name);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, Role> $users
+     * @param array<string, bool> $userSet
+     * @param string[] $res
+     * @param int $level
+     * @param array $domains
+     *
+     * @return string[]
+     */
+    protected function getImplicitUsersHelper(array $users, array &$userSet, array $res, int $level, array $domains): array
+    {
+        if ($level >= $this->maxHierarchyLevel || count($users) == 0) {
+            return $res;
+        }
+
+        $nextUsers = [];
+        foreach ($users as $user) {
+            $user->rangeUsers(function (string $userName, Role $nextUser) use ($user, $domains, &$userSet, &$res, &$nextUsers): void {
+                if (!isset($userSet[$userName]) && $this->checkLinkCondition($userName, $user->name, $domains)) {
+                    $res[] = $userName;
+                    $userSet[$userName] = true;
+                    $nextUsers[$userName] = $nextUser;
+                }
+            });
+        }
+
+        return $this->getImplicitUsersHelper($nextUsers, $userSet, $res, $level + 1, $domains);
+    }
+
+    /**
+     * Checks the link condition between a user and a role, returns true when no
+     * condition is registered or the condition passes.
+     *
+     * @param string $userName
+     * @param string $roleName
+     * @param array $domain
+     *
+     * @return bool
+     */
+    private function checkLinkCondition(string $userName, string $roleName, array $domain): bool
+    {
+        try {
+            $linkDomain = count($domain) === 0 ? RoleManager::DEFAULT_DOMAIN : $domain[0];
+
+            $linkConditionFunc = $this->getDomainLinkConditionFunc($userName, $roleName, $linkDomain);
+            if (!is_null($linkConditionFunc)) {
+                $params = $this->getDomainLinkConditionFuncParams($userName, $roleName, $linkDomain);
+                return $linkConditionFunc(...($params ?? []));
+            }
+
+            return true;
+        } catch (Exception $e) {
+            $this->logger->logError($e, 'getImplicitRolesHelper LinkCondition Error');
+            return false;
+        }
+    }
+
+    /**
      * @param string $userName
      * @param string $roleName
      *

@@ -237,11 +237,8 @@ class EnforcerTest extends TestCase
         $this->assertEquals($e->getPermissionsForUser('alice'), [['alice', 'data1', 'read']]);
         $this->assertEquals($e->getPermissionsForUser('bob'), [['bob', 'data2', 'write']]);
 
-        $this->assertEquals($e->getImplicitRolesForUser('alice'), ['admin', 'data1_admin', 'data2_admin']);
-        $this->assertEquals($e->getImplicitRolesForUser('bob'), []);
-
-        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_hierarchy_with_domains_policy.csv');
-        $this->assertEquals($e->getImplicitRolesForUser('alice', 'domain1'), ['role:global_admin', 'role:reader', 'role:writer']);
+        $this->assertEqualsCanonicalizing(['admin', 'data1_admin', 'data2_admin'], $e->getImplicitRolesForUser('alice'));
+        $this->assertEqualsCanonicalizing([], $e->getImplicitRolesForUser('bob'));
 
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_pattern_model.conf', $this->modelAndPolicyPath . '/rbac_with_pattern_policy.csv');
 
@@ -249,9 +246,89 @@ class EnforcerTest extends TestCase
         if ($roleManager instanceof RoleManager) {
             $roleManager->addMatchingFunc('matcher', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
         }
+        $e->addNamedMatchingFunc('g2', 'matcher', fn(string $key1, string $key2) => BuiltinOperations::keyMatch($key1, $key2));
 
-        $this->assertEquals($e->getImplicitRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
-        $this->assertEquals($e->getRolesForUser('cathy'), ['/book/1/2/3/4/5', 'pen_admin']);
+        $this->assertEqualsCanonicalizing(['/book/1/2/3/4/5', 'pen_admin'], $e->getImplicitRolesForUser('cathy'));
+        $this->assertEqualsCanonicalizing(['/book/1/2/3/4/5', 'pen_admin'], $e->getRolesForUser('cathy'));
+    }
+
+    public function testGetImplicitRolesForDomainUser()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_model.conf', $this->modelAndPolicyPath . '/rbac_with_hierarchy_with_domains_policy.csv');
+
+        // This is only able to retrieve the first level of roles.
+        $this->assertEqualsCanonicalizing(['role:global_admin'], $e->getRolesForUserInDomain('alice', 'domain1'));
+
+        // Retrieve all inherit roles. It supports domains as well.
+        $this->assertEqualsCanonicalizing(['role:global_admin', 'role:reader', 'role:writer'], $e->getImplicitRolesForUser('alice', 'domain1'));
+    }
+
+    public function testMaxHierarchyLevelConsistency()
+    {
+        // Test consistency behavior under different maxHierarchyLevel values
+        foreach ([1, 2, 3] as $maxLevel) {
+            $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_policy.csv');
+
+            // Set the maximum hierarchy level for role manager
+            $e->setRoleManager(new RoleManager($maxLevel));
+
+            // Add role hierarchy: level0 -> level1 -> level2 -> level3 -> level4
+            for ($i = 0; $i <= 3; $i++) {
+                $e->addRoleForUser('level' . $i, 'level' . ($i + 1));
+            }
+
+            // Test HasLink method
+            for ($i = 1; $i <= 4; $i++) {
+                $this->assertSame($i <= $maxLevel, $e->getRoleManager()->hasLink('level0', 'level' . $i));
+            }
+
+            // Test GetImplicitRolesForUser method
+            $implicitRoles = $e->getImplicitRolesForUser('level0');
+            $this->assertCount($maxLevel, $implicitRoles);
+            for ($i = 1; $i <= $maxLevel; $i++) {
+                $this->assertContains('level' . $i, $implicitRoles);
+            }
+
+            // Test GetImplicitUsersForRole method
+            $implicitUsers = $e->getImplicitUsersForRole('level4');
+            $this->assertCount($maxLevel, $implicitUsers);
+            for ($i = 0; $i < $maxLevel; $i++) {
+                $this->assertContains('level' . (3 - $i), $implicitUsers);
+            }
+
+            // Test implicit roles for different users
+            for ($i = 0; $i <= 3; $i++) {
+                $roles = $e->getImplicitRolesForUser('level' . $i);
+                $this->assertLessThanOrEqual($maxLevel, count($roles));
+            }
+        }
+    }
+
+    public function testConditional()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_domains_conditional_model.conf', $this->modelAndPolicyPath . '/rbac_with_domains_conditional_policy.csv');
+        foreach ($e->getNamedGroupingPolicy('g') as $gp) {
+            $e->addNamedDomainLinkConditionFunc('g', $gp[0], $gp[1], $gp[2], fn(...$args) => BuiltinOperations::timeMatchFunc(...$args));
+        }
+
+        $this->assertTrue($e->enforce('alice', 'domain1', 'service1', '/list'));
+        $this->assertTrue($e->enforce('bob', 'domain2', 'service2', '/broadcast'));
+        $this->assertFalse($e->enforce('jack', 'domain1', 'service1', '/list'));
+        $this->assertEqualsCanonicalizing(['test1'], $e->getImplicitRolesForUser('alice', 'domain1'));
+        $this->assertEqualsCanonicalizing(['test1'], $e->getRolesForUserInDomain('alice', 'domain1'));
+        $this->assertEqualsCanonicalizing(['alice'], $e->getUsersForRoleInDomain('test1', 'domain1'));
+    }
+
+    public function testGetNamedImplicitRolesForUser()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf', $this->modelAndPolicyPath . '/rbac_with_hierarchy_policy.csv');
+
+        $this->assertEqualsCanonicalizing(['admin', 'data1_admin', 'data2_admin'], $e->getNamedImplicitRolesForUser('g', 'alice'));
+        $this->assertEqualsCanonicalizing($e->getImplicitRolesForUser('alice'), $e->getNamedImplicitRolesForUser('g', 'alice'));
+
+        $this->expectException(CasbinException::class);
+        $this->expectExceptionMessage('role manager g2 is not initialized');
+        $e->getNamedImplicitRolesForUser('g2', 'alice');
     }
 
     public function testGetImplicitResourcesForUser()

@@ -344,6 +344,20 @@ class CoreEnforcer
     }
 
     /**
+     * Gets the role manager of the named grouping policy, e.g. "g2".
+     * Falls back to the conditional role manager map, as conditional role
+     * managers also satisfy the RoleManager contract.
+     *
+     * @param string $ptype
+     *
+     * @return RoleManager|null
+     */
+    public function getNamedRoleManager(string $ptype): ?RoleManager
+    {
+        return $this->rmMap[$ptype] ?? $this->condRmMap[$ptype] ?? null;
+    }
+
+    /**
      * Gets the current role manager.
      *
      * @param RoleManager $rm

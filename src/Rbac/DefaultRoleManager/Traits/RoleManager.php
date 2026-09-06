@@ -309,6 +309,118 @@ trait RoleManager
     }
 
     /**
+     * Gets the implicit roles that a user inherits, respecting maxHierarchyLevel.
+     * domain is a prefix to the roles.
+     *
+     * @param string $name
+     * @param string ...$domain
+     *
+     * @return string[]
+     */
+    public function getImplicitRoles(string $name, string ...$domain): array
+    {
+        $roleGet = &$this->getRole($name);
+        $role = &$roleGet[0];
+        $roleCreated = $roleGet[1];
+
+        try {
+            $res = [];
+            $roleSet = [$name => true];
+            $roles = [$role->name => $role];
+
+            return $this->getImplicitRolesHelper($roles, $roleSet, $res, 0);
+        } finally {
+            if ($roleCreated) {
+                $this->removeRole($role->name);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, Role> $roles
+     * @param array<string, bool> $roleSet
+     * @param string[] $res
+     * @param int $level
+     *
+     * @return string[]
+     */
+    protected function getImplicitRolesHelper(array $roles, array &$roleSet, array $res, int $level): array
+    {
+        if ($level >= $this->maxHierarchyLevel || count($roles) == 0) {
+            return $res;
+        }
+
+        $nextRoles = [];
+        foreach ($roles as $role) {
+            $role->rangeRoles(function (string $roleName, Role $nextRole) use (&$roleSet, &$res, &$nextRoles): void {
+                if (!isset($roleSet[$roleName])) {
+                    $res[] = $roleName;
+                    $roleSet[$roleName] = true;
+                    $nextRoles[$roleName] = $nextRole;
+                }
+            });
+        }
+
+        return $this->getImplicitRolesHelper($nextRoles, $roleSet, $res, $level + 1);
+    }
+
+    /**
+     * Gets the implicit users that inherits a role, respecting maxHierarchyLevel.
+     * domain is a prefix to the users.
+     *
+     * @param string $name
+     * @param string ...$domain
+     *
+     * @return string[]
+     */
+    public function getImplicitUsers(string $name, string ...$domain): array
+    {
+        $roleGet = &$this->getRole($name);
+        $role = &$roleGet[0];
+        $roleCreated = $roleGet[1];
+
+        try {
+            $res = [];
+            $userSet = [$name => true];
+            $users = [$role->name => $role];
+
+            return $this->getImplicitUsersHelper($users, $userSet, $res, 0);
+        } finally {
+            if ($roleCreated) {
+                $this->removeRole($role->name);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, Role> $users
+     * @param array<string, bool> $userSet
+     * @param string[] $res
+     * @param int $level
+     *
+     * @return string[]
+     */
+    protected function getImplicitUsersHelper(array $users, array &$userSet, array $res, int $level): array
+    {
+        if ($level >= $this->maxHierarchyLevel || count($users) == 0) {
+            return $res;
+        }
+
+        $nextUsers = [];
+        foreach ($users as $user) {
+            $user->rangeUsers(function (string $userName, Role $nextUser) use (&$userSet, &$res, &$nextUsers): void {
+                if (!isset($userSet[$userName])) {
+                    $res[] = $userName;
+                    $userSet[$userName] = true;
+                    $nextUsers[$userName] = $nextUser;
+                }
+            });
+        }
+
+        return $this->getImplicitUsersHelper($nextUsers, $userSet, $res, $level + 1);
+    }
+
+    /**
      * Converts the roles to a string array.
      *
      * @return array
