@@ -290,29 +290,38 @@ class Enforcer extends ManagementEnforcer
     public function getImplicitRolesForUser(string $name, string ...$domain): array
     {
         $res = [];
-        $roleSet = [];
-        $roleSet[$name] = true;
-
-        $q = [];
-        $q[] = $name;
-
-        for (; count($q) > 0;) {
-            $name = $q[0];
-            $q = array_slice($q, 1);
-
-            foreach ($this->rmMap as $rm) {
-                $roles = $rm->getRoles($name, ...$domain);
-                foreach ($roles as $r) {
-                    if (!isset($roleSet[$r])) {
-                        $res[] = $r;
-                        $q[] = $r;
-                        $roleSet[$r] = true;
-                    }
-                }
-            }
+        foreach (array_merge($this->rmMap, $this->condRmMap) as $ptype => $rm) {
+            $res = array_merge($res, $this->getNamedImplicitRolesForUser($ptype, $name, ...$domain));
         }
 
         return $res;
+    }
+
+    /**
+     * GetNamedImplicitRolesForUser gets implicit roles that a user has by named role definition.
+     * Compared to getImplicitRolesForUser(), this function retrieves indirect roles besides direct roles.
+     * For example:
+     * g, alice, role:admin
+     * g, role:admin, role:user
+     * g2, alice, role:admin2.
+     *
+     * getImplicitRolesForUser("alice") can only get: ["role:admin", "role:user"].
+     * But getNamedImplicitRolesForUser("g2", "alice") will get: ["role:admin2"].
+     *
+     * @param string $ptype
+     * @param string $name
+     * @param string ...$domain
+     *
+     * @return array
+     */
+    public function getNamedImplicitRolesForUser(string $ptype, string $name, string ...$domain): array
+    {
+        $rm = $this->getNamedRoleManager($ptype);
+        if (is_null($rm)) {
+            throw new CasbinException('role manager ' . $ptype . ' is not initialized');
+        }
+
+        return $rm->getImplicitRoles($name, ...$domain);
     }
 
     /**
@@ -325,27 +334,10 @@ class Enforcer extends ManagementEnforcer
     public function getImplicitUsersForRole(string $name, string ...$domain): array
     {
         $res = [];
-        $roleSet = [];
-        $roleSet[$name] = true;
-
-        $q = [];
-        $q[] = $name;
-
-        for (; count($q) > 0;) {
-            $name = $q[0];
-            $q = array_slice($q, 1);
-
-            foreach ($this->rmMap as $rm) {
-                $roles = $rm->getUsers($name, ...$domain);
-                foreach ($roles as $r) {
-                    if (!isset($roleSet[$r])) {
-                        $res[] = $r;
-                        $q[] = $r;
-                        $roleSet[$r] = true;
-                    }
-                }
-            }
+        foreach (array_merge($this->rmMap, $this->condRmMap) as $rm) {
+            $res = array_merge($res, $rm->getImplicitUsers($name, ...$domain));
         }
+
         return $res;
     }
 
@@ -711,7 +703,9 @@ class Enforcer extends ManagementEnforcer
      */
     public function getUsersForRoleInDomain(string $name, string $domain): ?array
     {
-        return isset($this->model['g']['g']) ? $this->model['g']['g']->rm?->getUsers($name, $domain) : [];
+        $rm = $this->getNamedRoleManager('g');
+
+        return !is_null($rm) ? $rm->getUsers($name, $domain) : [];
     }
 
     /**
@@ -724,7 +718,9 @@ class Enforcer extends ManagementEnforcer
      */
     public function getRolesForUserInDomain(string $name, string $domain): ?array
     {
-        return isset($this->model['g']['g']) ? $this->model['g']['g']->rm?->getRoles($name, $domain) : [];
+        $rm = $this->getNamedRoleManager('g');
+
+        return !is_null($rm) ? $rm->getRoles($name, $domain) : [];
     }
 
     /**

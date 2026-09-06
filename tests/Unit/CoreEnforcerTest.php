@@ -10,6 +10,7 @@ use Casbin\Persist\Adapter;
 use Casbin\Persist\Adapters\FileAdapter;
 use Casbin\Persist\Adapters\FileFilteredAdapter;
 use Casbin\Persist\Adapters\Filter;
+use Casbin\Rbac\ConditionalRoleManager;
 use Casbin\Rbac\RoleManager;
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -160,6 +161,17 @@ EOT
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf');
         $rm = $e->getRoleManager();
         $this->assertTrue($rm instanceof RoleManager);
+    }
+
+    public function testGetNamedRoleManager()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_model.conf');
+        $this->assertTrue($e->getNamedRoleManager('g') instanceof RoleManager);
+        $this->assertNull($e->getNamedRoleManager('g2'));
+
+        // The conditional role manager also satisfies the RoleManager contract.
+        $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_temporal_roles_model.conf');
+        $this->assertTrue($e->getNamedRoleManager('g') instanceof ConditionalRoleManager);
     }
 
     public function testSetAdapterFromFile()

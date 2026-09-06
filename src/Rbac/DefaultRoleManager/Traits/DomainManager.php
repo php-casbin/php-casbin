@@ -238,6 +238,38 @@ trait DomainManager
         return $rm->getUsers($name, ...$domains);
     }
 
+    /**
+     * Gets the implicit roles that a subject inherits, respecting maxHierarchyLevel.
+     * domain is a prefix to the roles.
+     *
+     * @param string $name
+     * @param string ...$domains
+     *
+     * @return string[]
+     */
+    public function getImplicitRoles(string $name, string ...$domains): array
+    {
+        $domain = $this->getDomain(...$domains);
+        $rm = &$this->getRoleManager($domain, false);
+        return $rm->getImplicitRoles($name, ...$domains);
+    }
+
+    /**
+     * Gets the implicit users that inherits a role, respecting maxHierarchyLevel.
+     * domain is a prefix to the users.
+     *
+     * @param string $name
+     * @param string ...$domains
+     *
+     * @return string[]
+     */
+    public function getImplicitUsers(string $name, string ...$domains): array
+    {
+        $domain = $this->getDomain(...$domains);
+        $rm = &$this->getRoleManager($domain, false);
+        return $rm->getImplicitUsers($name, ...$domains);
+    }
+
 
     /**
      * Converts the roles to a string array.
