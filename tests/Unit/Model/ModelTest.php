@@ -195,6 +195,27 @@ EOT;
         $this->assertEquals($e->enforce('alice', 'domain2', '/book/1', 'write'), true);
     }
 
+    public function testGlobMatchModel()
+    {
+        $e = new Enforcer($this->modelAndPolicyPath . '/glob_model.conf', $this->modelAndPolicyPath . '/glob_policy.csv');
+
+        $this->assertEquals($e->enforce('u1', '/foo/', 'read'), true);
+        $this->assertEquals($e->enforce('u1', '/foo', 'read'), false);
+        $this->assertEquals($e->enforce('u1', '/foo/subprefix', 'read'), true);
+        $this->assertEquals($e->enforce('u1', 'foo', 'read'), false);
+
+        $this->assertEquals($e->enforce('u2', '/foosubprefix', 'read'), true);
+        $this->assertEquals($e->enforce('u2', '/foo/subprefix', 'read'), false);
+        $this->assertEquals($e->enforce('u2', 'foo', 'read'), false);
+
+        $this->assertEquals($e->enforce('u3', '/prefix/foo/subprefix', 'read'), true);
+        $this->assertEquals($e->enforce('u3', '/prefix/foo/', 'read'), true);
+        $this->assertEquals($e->enforce('u3', '/prefix/foo', 'read'), false);
+
+        $this->assertEquals($e->enforce('u4', '/foo', 'read'), false);
+        $this->assertEquals($e->enforce('u4', 'foo', 'read'), true);
+    }
+
     public function testTemporalRolesModel()
     {
         $e = new Enforcer($this->modelAndPolicyPath . '/rbac_with_temporal_roles_model.conf', $this->modelAndPolicyPath . '/rbac_with_temporal_roles_policy.csv');
