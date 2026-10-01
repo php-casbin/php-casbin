@@ -173,6 +173,134 @@ class BuiltinOperationsTest extends TestCase
         $this->assertTrue($this->globMatchFunc('/foo/bar', '/foo/*'));
     }
 
+    /**
+     * @dataProvider globMatchCasesProvider
+     */
+    public function testGlobMatch(string $value, string $pattern, bool $expected)
+    {
+        $this->assertSame($expected, BuiltinOperations::globMatch($value, $pattern));
+    }
+
+    public function testGlobMatchEscapedSeparator()
+    {
+        $this->assertTrue(BuiltinOperations::globMatch('foo/bar', 'foo\/bar'));
+        $this->assertFalse(BuiltinOperations::globMatch('fooXbar', 'foo\/bar'));
+    }
+
+    public static function globMatchCasesProvider(): array
+    {
+        return [
+            ['/foo', '/foo', true],
+            ['/foo', '/foo*', true],
+            ['/foo', '/foo/*', false],
+            ['/foo/bar', '/foo', false],
+            ['/foo/bar', '/foo*', false],
+            ['/foo/bar', '/foo/*', true],
+            ['/foobar', '/foo', false],
+            ['/foobar', '/foo*', true],
+            ['/foobar', '/foo/*', false],
+
+            ['/foo', '*/foo', true],
+            ['/foo', '*/foo*', true],
+            ['/foo', '*/foo/*', false],
+            ['/foo/bar', '*/foo', false],
+            ['/foo/bar', '*/foo*', false],
+            ['/foo/bar', '*/foo/*', true],
+            ['/foobar', '*/foo', false],
+            ['/foobar', '*/foo*', true],
+            ['/foobar', '*/foo/*', false],
+
+            ['/prefix/foo', '*/foo', false],
+            ['/prefix/foo', '*/foo*', false],
+            ['/prefix/foo', '*/foo/*', false],
+            ['/prefix/foo/bar', '*/foo', false],
+            ['/prefix/foo/bar', '*/foo*', false],
+            ['/prefix/foo/bar', '*/foo/*', false],
+            ['/prefix/foobar', '*/foo', false],
+            ['/prefix/foobar', '*/foo*', false],
+            ['/prefix/foobar', '*/foo/*', false],
+
+            ['/prefix/subprefix/foo', '*/foo', false],
+            ['/prefix/subprefix/foo', '*/foo*', false],
+            ['/prefix/subprefix/foo', '*/foo/*', false],
+            ['/prefix/subprefix/foo/bar', '*/foo', false],
+            ['/prefix/subprefix/foo/bar', '*/foo*', false],
+            ['/prefix/subprefix/foo/bar', '*/foo/*', false],
+            ['/prefix/subprefix/foobar', '*/foo', false],
+            ['/prefix/subprefix/foobar', '*/foo*', false],
+            ['/prefix/subprefix/foobar', '*/foo/*', false],
+
+            ['/foo', '**/foo', true],
+            ['/foo', '**/foo**', true],
+            ['/foo', '**/foo/**', true],
+            ['/foo/bar', '**/foo', false],
+            ['/foo/bar', '**/foo**', false],
+            ['/foo/bar', '**/foo/**', true],
+            ['/foobar', '**/foo', false],
+            ['/foobar', '**/foo**', true],
+            ['/foobar', '**/foo/**', false],
+
+            ['/prefix/foo', '**/foo', true],
+            ['/prefix/foo', '**/foo**', true],
+            ['/prefix/foo', '**/foo/**', true],
+            ['/prefix/foo/bar', '**/foo', false],
+            ['/prefix/foo/bar', '**/foo**', false],
+            ['/prefix/foo/bar', '**/foo/**', true],
+            ['/prefix/foobar', '**/foo', false],
+            ['/prefix/foobar', '**/foo**', true],
+            ['/prefix/foobar', '**/foo/**', false],
+
+            ['/prefix/subprefix/foo', '**/foo', true],
+            ['/prefix/subprefix/foo', '**/foo**', true],
+            ['/prefix/subprefix/foo', '**/foo/**', true],
+            ['/prefix/subprefix/foo/bar', '**/foo', false],
+            ['/prefix/subprefix/foo/bar', '**/foo**', false],
+            ['/prefix/subprefix/foo/bar', '**/foo/**', true],
+            ['/prefix/subprefix/foobar', '**/foo', false],
+            ['/prefix/subprefix/foobar', '**/foo**', true],
+            ['/prefix/subprefix/foobar', '**/foo/**', false],
+
+            ['/foo', '*/foo**', true],
+            ['/foo', '**/foo*', true],
+            ['/foo', '*/foo/**', true],
+            ['/foo', '**/foo/*', false],
+            ['/foo/bar', '*/foo**', false],
+            ['/foo/bar', '**/foo*', false],
+            ['/foo/bar', '*/foo/**', true],
+            ['/foo/bar', '**/foo/*', true],
+            ['/foobar', '*/foo**', true],
+            ['/foobar', '**/foo*', true],
+            ['/foobar', '*/foo/**', false],
+            ['/foobar', '**/foo/*', false],
+
+            ['/prefix/foo', '*/foo**', false],
+            ['/prefix/foo', '**/foo*', true],
+            ['/prefix/foo', '*/foo/**', false],
+            ['/prefix/foo', '**/foo/*', false],
+            ['/prefix/foo/bar', '*/foo**', false],
+            ['/prefix/foo/bar', '**/foo*', false],
+            ['/prefix/foo/bar', '*/foo/**', false],
+            ['/prefix/foo/bar', '**/foo/*', true],
+            ['/prefix/foobar', '*/foo**', false],
+            ['/prefix/foobar', '**/foo*', true],
+            ['/prefix/foobar', '*/foo/**', false],
+            ['/prefix/foobar', '**/foo/*', false],
+
+            ['/prefix/subprefix/foo', '*/foo**', false],
+            ['/prefix/subprefix/foo', '**/foo*', true],
+            ['/prefix/subprefix/foo', '*/foo/**', false],
+            ['/prefix/subprefix/foo', '**/foo/*', false],
+            ['/prefix/subprefix/foo/bar', '*/foo**', false],
+            ['/prefix/subprefix/foo/bar', '**/foo*', false],
+            ['/prefix/subprefix/foo/bar', '*/foo/**', false],
+            ['/prefix/subprefix/foo/bar', '**/foo/*', true],
+            ['/prefix/subprefix/foobar', '*/foo**', false],
+            ['/prefix/subprefix/foobar', '**/foo*', true],
+            ['/prefix/subprefix/foobar', '*/foo/**', false],
+            ['/prefix/subprefix/foobar', '**/foo/*', false],
+        ];
+    }
+
     public function testKeyGetFunc()
     {
         $this->assertEquals('', $this->keyGetFunc('/foo', '/foo'));

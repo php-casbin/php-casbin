@@ -357,17 +357,16 @@ class BuiltinOperations
 
     /**
      * Returns true if the specified `string` matches the given glob `pattern`.
+     * A `**` used as a full path segment matches zero or more path segments.
      *
      * @param string $str
      * @param string $pattern
      *
      * @return bool
-     *
-     * @throws Exception
      */
     public static function globMatch(string $str, string $pattern): bool
     {
-        return fnmatch($pattern, $str, FNM_PATHNAME | FNM_PERIOD);
+        return DoubleStar::match($pattern, $str);
     }
 
     /**
