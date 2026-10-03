@@ -8,7 +8,7 @@ PHP-Casbin
 [![License](https://poser.pugx.org/casbin/casbin/license)](https://packagist.org/packages/casbin/casbin)
 [![Discord](https://img.shields.io/discord/1022748306096537660?logo=discord&label=discord&color=5865F2)](https://discord.gg/S5UjpzGZjN)
 
-[Documentation](https://casbin.org/docs/overview) | [Tutorials](https://github.com/php-casbin/casbin-tutorials) | [Extensions](https://github.com/php-casbin)
+[Documentation](https://casbin.apache.org/docs/overview/) | [Tutorials](https://github.com/php-casbin/casbin-tutorials) | [Extensions](https://github.com/php-casbin)
 
 **Breaking News**: [Laravel-authz](https://github.com/php-casbin/laravel-authz) is now available, an authorization library for the Laravel framework.
 
@@ -16,12 +16,12 @@ PHP-Casbin
 
 ## All the languages supported by Casbin:
 
-[![golang](https://casbin.org/img/langs/golang.png)](https://github.com/casbin/casbin) | [![java](https://casbin.org/img/langs/java.png)](https://github.com/casbin/jcasbin) | [![nodejs](https://casbin.org/img/langs/nodejs.png)](https://github.com/casbin/node-casbin) | [![php](https://casbin.org/img/langs/php.png)](https://github.com/php-casbin/php-casbin)
+[![golang](https://casbin.apache.org/img/langs/golang.png)](https://github.com/casbin/casbin) | [![java](https://casbin.apache.org/img/langs/java.png)](https://github.com/casbin/jcasbin) | [![nodejs](https://casbin.apache.org/img/langs/nodejs.png)](https://github.com/casbin/node-casbin) | [![php](https://casbin.apache.org/img/langs/php.png)](https://github.com/php-casbin/php-casbin)
 ----|----|----|----
 [Casbin](https://github.com/casbin/casbin) | [jCasbin](https://github.com/casbin/jcasbin) | [node-Casbin](https://github.com/casbin/node-casbin) | [PHP-Casbin](https://github.com/php-casbin/php-casbin)
 production-ready | production-ready | production-ready | production-ready
 
-[![python](https://casbin.org/img/langs/python.png)](https://github.com/casbin/pycasbin) | [![dotnet](https://casbin.org/img/langs/dotnet.png)](https://github.com/casbin/Casbin.NET) | [![c++](https://casbin.org/img/langs/cpp.png)](https://github.com/casbin/casbin-cpp) | [![rust](https://casbin.org/img/langs/rust.png)](https://github.com/casbin/casbin-rs)
+[![python](https://casbin.apache.org/img/langs/python.png)](https://github.com/casbin/pycasbin) | [![dotnet](https://casbin.apache.org/img/langs/dotnet.png)](https://github.com/casbin/Casbin.NET) | [![c++](https://casbin.apache.org/img/langs/cpp.png)](https://github.com/casbin/casbin-cpp) | [![rust](https://casbin.apache.org/img/langs/rust.png)](https://github.com/casbin/casbin-rs)
 ----|----|----|----
 [PyCasbin](https://github.com/casbin/pycasbin) | [Casbin.NET](https://github.com/casbin/Casbin.NET) | [Casbin-CPP](https://github.com/casbin/casbin-cpp) | [Casbin-RS](https://github.com/casbin/casbin-rs)
 production-ready | production-ready | production-ready | production-ready
@@ -142,22 +142,22 @@ What php-casbin does NOT do:
 
 ## Documentation
 
-https://casbin.org/docs/en/overview
+https://casbin.apache.org/docs/overview/
 
 ## Online editor
 
-You can also use the online editor (http://casbin.org/editor/) to write your php-casbin model and policy in your web browser. It provides functionality such as ``syntax highlighting`` and ``code completion``, just like an IDE for a programming language.
+You can also use the online editor (https://editor.casbin.org/) to write your php-casbin model and policy in your web browser. It provides functionality such as ``syntax highlighting`` and ``code completion``, just like an IDE for a programming language.
 
 ## Tutorials
 
-https://casbin.org/docs/tutorials
+https://casbin.apache.org/docs/tutorials/
 
 ## Policy management
 
 php-casbin provides two sets of APIs to manage permissions:
 
-- [Management API](https://casbin.org/docs/en/management-api): the primitive API that provides full support for php-casbin policy management. 
-- [RBAC API](https://casbin.org/docs/en/rbac-api): a more friendly API for RBAC. This API is a subset of Management API. The RBAC users could use this API to simplify the code.
+- [Management API](https://casbin.apache.org/docs/management-api/): the primitive API that provides full support for php-casbin policy management. 
+- [RBAC API](https://casbin.apache.org/docs/rbac-api/): a more friendly API for RBAC. This API is a subset of Management API. The RBAC users could use this API to simplify the code.
 
 ![model editor](https://hsluoyz.github.io/casbin/ui_model_editor.png)
 
@@ -165,11 +165,11 @@ php-casbin provides two sets of APIs to manage permissions:
 
 ## Policy persistence
 
-https://casbin.org/docs/en/adapters
+https://casbin.apache.org/docs/adapters/
 
 ## Role manager
 
-https://casbin.org/docs/en/role-managers
+https://casbin.apache.org/docs/role-managers/
 
 ## Examples
 
@@ -189,11 +189,11 @@ Priority | [priority_model.conf](https://github.com/php-casbin/php-casbin/blob/m
 
 ## Middlewares
 
-Authz middlewares for web frameworks: https://casbin.org/docs/middlewares
+Authz middlewares for web frameworks: https://casbin.apache.org/docs/middlewares/
 
 ## Our adopters
 
-https://casbin.org/docs/adopters
+https://casbin.apache.org/docs/adopters/
 
 ## Contributors
 
