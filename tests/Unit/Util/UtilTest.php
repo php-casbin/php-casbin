@@ -28,6 +28,12 @@ class UtilTest extends TestCase
         $this->assertEquals(Util::escapeAssertion('g(r.sub, p.sub) == p.attr'), 'g(r_sub, p_sub) == p_attr');
         $this->assertEquals(Util::escapeAssertion('g(r.sub,p.sub) == p.attr'), 'g(r_sub,p_sub) == p_attr');
         $this->assertEquals(Util::escapeAssertion('(r.attp.value || p.attr)p.u'), '(r_attp.value || p_attr)p_u');
+        // Quoted string literals are kept as they are.
+        $this->assertEquals(Util::escapeAssertion('r.sub == "a.p.p.l.e"'), 'r_sub == "a.p.p.l.e"');
+        $this->assertEquals(Util::escapeAssertion('r.sub == "test.p.value"'), 'r_sub == "test.p.value"');
+        $this->assertEquals(Util::escapeAssertion('r.sub == "https://p.example.com"'), 'r_sub == "https://p.example.com"');
+        $this->assertEquals(Util::escapeAssertion("r.obj == 'https://p.example.com' && p.sub == r.sub"), "r_obj == 'https://p.example.com' && p_sub == r_sub");
+        $this->assertEquals(Util::escapeAssertion('keyMatch(r.obj, "/p.*") || r.obj == "a\"/r.b"'), 'keyMatch(r_obj, "/p.*") || r_obj == "a\"/r.b"');
     }
 
     public function testArrayRemoveDuplicates()
