@@ -15,6 +15,7 @@ class Util
 
     /**
      * Escapes the dots in the assertion, because the expression evaluation doesn't support such variable names.
+     * Quoted string literals are kept as they are.
      *
      * @param string $s
      *
@@ -22,16 +23,52 @@ class Util
      */
     public static function escapeAssertion(string $s): string
     {
-        if (str_starts_with($s, 'r') || str_starts_with($s, 'p')) {
-            $pos = strpos($s, '.');
-            if ($pos !== false) {
-                $s[$pos] = '_';
+        $result = '';
+        $start = 0;
+        $length = strlen($s);
+        while ($start < $length) {
+            // Jump to the next quote at C speed; a string without literals exits after one jump.
+            $pos = $start + strcspn($s, '"\'', $start);
+            if ($pos >= $length) {
+                break;
             }
+            if ($pos > $start) {
+                $result .= self::escapeAssertionUnquoted(substr($s, $start, $pos - $start));
+            }
+            // Find the end of the string literal, honoring backslash escapes.
+            $quote = $s[$pos];
+            $end = $pos + 1;
+            while ($end < $length) {
+                $end += strcspn($s, $quote . '\\', $end);
+                if ($end >= $length || $s[$end] === $quote) {
+                    break;
+                }
+                $end += 2;
+            }
+            $end = $end < $length ? $end + 1 : $length;
+            $result .= substr($s, $pos, $end - $pos);
+            $start = $end;
         }
 
-        $ss = preg_replace_callback(
-            "~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/)((r|p)[0-9]*)(\.)~", 
-            static fn ($m): string => $m[1] . $m[2] . '_',
+        if ($start < $length) {
+            $result .= self::escapeAssertionUnquoted(substr($s, $start));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Escapes the dots of r./p. references outside of quoted literals.
+     *
+     * @param string $s
+     *
+     * @return string
+     */
+    private static function escapeAssertionUnquoted(string $s): string
+    {
+        $ss = preg_replace(
+            "~(\|| |=|\)|\(|&|<|>|,|\+|-|!|\*|\/|^)((r|p)[0-9]*)(\.)~",
+            '$1$2_',
             $s
         );
 
