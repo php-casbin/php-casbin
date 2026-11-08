@@ -278,7 +278,7 @@ final class DoubleStar
             return false;
         }
 
-        $closingIdx = self::indexUnescapedByte($pattern, ']', $patIdx, $separator !== '\\');
+        $closingIdx = self::indexUnescapedByte($pattern, ']', $patIdx, $separator !== self::BACKSLASH);
         if (-1 === $closingIdx) {
             // no closing `]`
             throw new BadPatternException('unterminated character class');
@@ -311,14 +311,14 @@ final class DoubleStar
     {
         $beforeIdx = $patIdx;
         $patIdx++;
-        $closingIdx = self::indexMatchedClosingAlt($pattern, $patIdx, $separator !== '\\');
+        $closingIdx = self::indexMatchedClosingAlt($pattern, $patIdx, $separator !== self::BACKSLASH);
         if (-1 === $closingIdx) {
             // no closing `}`
             return false;
         }
 
         for (;;) {
-            $commaIdx = self::indexNextAlt($pattern, $patIdx, $closingIdx, $separator !== '\\');
+            $commaIdx = self::indexNextAlt($pattern, $patIdx, $closingIdx, $separator !== self::BACKSLASH);
             if (-1 === $commaIdx) {
                 break;
             }
@@ -357,7 +357,7 @@ final class DoubleStar
     private static function matchLiteralRune(string $pattern, string $name, int $separator, int &$patIdx, int &$nameIdx, bool &$startOfSegment): bool
     {
         $patLen = strlen($pattern);
-        if ('\\' === $pattern[$patIdx] && $separator !== '\\') {
+        if ('\\' === $pattern[$patIdx] && $separator !== self::BACKSLASH) {
             // next rune is "escaped" in the pattern - literal match
             $patIdx++;
             if ($patIdx >= $patLen) {
@@ -369,7 +369,7 @@ final class DoubleStar
         [$patRune, $patRuneLen] = self::decodeRune($pattern, $patIdx);
         [$nameRune, $nameRuneLen] = self::decodeRune($name, $nameIdx);
         if ($patRune !== $nameRune) {
-            if ($separator !== '\\' && $patIdx > 0 && '\\' === $pattern[$patIdx - 1]) {
+            if ($separator !== self::BACKSLASH && $patIdx > 0 && '\\' === $pattern[$patIdx - 1]) {
                 // if this rune was meant to be escaped, we need to move patIdx
                 // back to the backslash before backtracking or validating below
                 $patIdx--;
@@ -469,7 +469,7 @@ final class DoubleStar
         }
 
         if ('{' === $pattern[0]) {
-            $closingIdx = self::indexMatchedClosingAlt($pattern, 1, $separator !== '\\');
+            $closingIdx = self::indexMatchedClosingAlt($pattern, 1, $separator !== self::BACKSLASH);
             if (-1 === $closingIdx) {
                 // no closing '}'
                 throw new BadPatternException('unterminated brace alternation');
@@ -477,7 +477,7 @@ final class DoubleStar
 
             $patIdx = 1;
             for (;;) {
-                $commaIdx = self::indexNextAlt($pattern, $patIdx, $closingIdx, $separator !== '\\');
+                $commaIdx = self::indexNextAlt($pattern, $patIdx, $closingIdx, $separator !== self::BACKSLASH);
                 if (-1 === $commaIdx) {
                     break;
                 }
@@ -517,7 +517,7 @@ final class DoubleStar
         for (; $i < $length; $i++) {
             $byte = $s[$i];
             if ('\\' === $byte) {
-                if ($separator !== '\\') {
+                if ($separator !== self::BACKSLASH) {
                     // skip the next byte - invalid if there is no next byte
                     $i++;
                     if ($i >= $length) {
@@ -539,7 +539,7 @@ final class DoubleStar
                 }
 
                 for (; $i < $length; $i++) {
-                    if ($separator !== '\\' && '\\' === $s[$i]) {
+                    if ($separator !== self::BACKSLASH && '\\' === $s[$i]) {
                         $i++;
                     } elseif (']' === $s[$i]) {
                         // looks good
@@ -731,6 +731,6 @@ final class DoubleStar
      */
     private static function runeChar(int $rune): string
     {
-        return $rune < 0x80 ? chr($rune) : '';
+        return $rune >= 0x00 && $rune < 0x80 ? chr($rune) : '';
     }
 }

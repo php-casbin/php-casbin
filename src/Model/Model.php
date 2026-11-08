@@ -306,8 +306,12 @@ class Model extends Policy
             while (count($queue) != 0) {
                 $sz = count($queue);
                 for ($i = 0; $i < $sz; $i++) {
-                    $node = $queue[array_key_first($queue)];
-                    unset($queue[array_key_first($queue)]);
+                    $key = array_key_first($queue);
+                    if (null === $key) {
+                        break;
+                    }
+                    $node = $queue[$key];
+                    unset($queue[$key]);
 
                     $nodeValue = $node;
                     $subjectHierarchyMap[$nodeValue] = $lv;

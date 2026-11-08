@@ -161,7 +161,7 @@ class CoreEnforcer
         if (is_string($model)) {
             if (is_string($adapter) || is_null($adapter)) {
                 $this->initWithFile($model, $adapter ?? '');
-            } else if ($adapter instanceof Adapter) {
+            } else {
                 $this->initWithAdapter($model, $adapter);
             }
         } else if ($model instanceof Model) {
@@ -830,10 +830,8 @@ class CoreEnforcer
             [$effect, $explainIndex] = $this->eft->mergeEffects($this->model['e'][$eType]->value, $policyEffects, $matcherResults, 0, 1);
         }
 
-        if ($explains !== null) {
-            if (($explainIndex != -1) && (count($this->model['p'][$pType]->policy) > $explainIndex)) {
-                $explains = $this->model['p'][$pType]->policy[$explainIndex];
-            }
+        if (($explainIndex != -1) && (count($this->model['p'][$pType]->policy) > $explainIndex)) {
+            $explains = $this->model['p'][$pType]->policy[$explainIndex];
         }
 
         $result = $effect == Effector::ALLOW;

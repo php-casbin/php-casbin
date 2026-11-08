@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Casbin\Persist;
 
-use Casbin\Model\Assertion;
 use Casbin\Model\Model;
 use Casbin\Model\Policy;
 
@@ -56,9 +55,6 @@ trait AdapterHelper
 
         $assertions = $model[$sec];
         $assertion = $assertions[$key];
-        if (!($assertion instanceof Assertion)) {
-            return;
-        }
 
         $rule = array_slice($rule, 1);
         $assertion->policy[] = $rule;
