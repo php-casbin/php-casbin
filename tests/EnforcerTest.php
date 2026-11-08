@@ -457,4 +457,97 @@ class EnforcerTest extends TestCase
         $this->assertTrue($e->enforce('alice', 'domain4', 'data2', 'read'));
         $this->assertFalse($e->enforce('alice', 'domain4', 'data2', 'write'));
     }
+
+    /**
+     * Regression tests for matchers containing string literals with dots.
+     *
+     * escapeAssertion used to rewrite "p." / "r." patterns inside quoted
+     * literals (e.g. "https://p.example.com" became "https://p_example.com"),
+     * flipping authorization decisions in both directions. Quoted literals are
+     * now skipped while escaping, mirroring casbin/casbin (Go) behaviour.
+     */
+    private function buildEnforcerFromText(string $modelText): Enforcer
+    {
+        $model = new Model();
+        $model->loadModelFromText($modelText);
+
+        return new Enforcer($model);
+    }
+
+    public function testMatcherLiteralWithSlashIsNotRewritten()
+    {
+        $e = $this->buildEnforcerFromText(<<<'MODEL'
+[request_definition]
+r = sub, obj
+[policy_definition]
+p = sub
+[policy_effect]
+e = some(where (p.eft == allow))
+[matchers]
+m = r.sub == p.sub && r.obj == "https://p.example.com"
+MODEL
+        );
+        $e->addPolicy('alice');
+
+        $this->assertTrue($e->enforce('alice', 'https://p.example.com'));
+        $this->assertFalse($e->enforce('alice', 'https://p_example.com'));
+    }
+
+    public function testMatcherLiteralWithoutSlashIsNotRewritten()
+    {
+        $e = $this->buildEnforcerFromText(<<<'MODEL'
+[request_definition]
+r = sub, obj
+[policy_definition]
+p = sub
+[policy_effect]
+e = some(where (p.eft == allow))
+[matchers]
+m = r.sub == p.sub && r.obj == "p.example.com"
+MODEL
+        );
+        $e->addPolicy('alice');
+
+        $this->assertTrue($e->enforce('alice', 'p.example.com'));
+        $this->assertFalse($e->enforce('alice', 'p_example.com'));
+    }
+
+    public function testLegacyFlatTokenMatcherStillSupported()
+    {
+        $e = $this->buildEnforcerFromText(<<<'MODEL'
+[request_definition]
+r = sub, obj
+[policy_definition]
+p = sub
+[policy_effect]
+e = some(where (p.eft == allow))
+[matchers]
+m = r_sub == p_sub && r_obj == "https://p.example.com"
+MODEL
+        );
+        $e->addPolicy('alice');
+
+        $this->assertTrue($e->enforce('alice', 'https://p.example.com'));
+        $this->assertFalse($e->enforce('alice', 'https://p_example.com'));
+    }
+
+    public function testEvalRuleLiteralIsNotCorrupted()
+    {
+        $e = $this->buildEnforcerFromText(<<<'MODEL'
+[request_definition]
+r = sub, obj, act
+[policy_definition]
+p = sub_rule, obj, act
+[policy_effect]
+e = some(where (p.eft == allow))
+[matchers]
+m = eval(p.sub_rule) && r.obj == p.obj && r.act == p.act
+MODEL
+        );
+        // The rule text lives in policy data and must reach the evaluator verbatim.
+        $e->addPolicy('r.obj == "https://p.example.com"', 'https://p.example.com', 'read');
+
+        $this->assertTrue($e->enforce('alice', 'https://p.example.com', 'read'));
+        $this->assertFalse($e->enforce('alice', 'https://p_example.com', 'read'));
+    }
 }
